@@ -1,3 +1,5 @@
+import { normalizeSkillArray } from "../utils/skillNormalizer.js";
+
 export const skillEvaluator = ({ resumeSkills = [], jobSkills = [] }) => {
   if (jobSkills.length === 0) {
     return {
@@ -10,12 +12,9 @@ export const skillEvaluator = ({ resumeSkills = [], jobSkills = [] }) => {
     };
   }
 
-  // Normalize: lowercase, trim, unique
-  const normalize = (skills) => 
-    [...new Set(skills.map(s => s.toLowerCase().trim()).filter(Boolean))];
-
-  const normResume = normalize(resumeSkills);
-  const normJob = normalize(jobSkills);
+  // Use the optimized normalizer
+  const normResume = normalizeSkillArray(resumeSkills);
+  const normJob = normalizeSkillArray(jobSkills);
 
   // Matched: intersection
   const matched = normJob.filter(s => normResume.includes(s));
