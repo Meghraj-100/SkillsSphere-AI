@@ -12,8 +12,8 @@ import ProfilePage from "../modules/profile/ProfilePage";
 
 function App() {
   return (
-    <div>
-      <Routes>
+    <div className="bg-white text-black dark:bg-dark-bg dark:text-text-main min-h-screen transition-colors duration-300">
+     <Routes>
         <Route path="/" element={<LandingPage />} />
         {import.meta.env.DEV && <Route path="/demo" element={<ComponentDemo />} />}
         <Route path="/resume-analyzer" element={<ResumeAnalyzerPage />} />
