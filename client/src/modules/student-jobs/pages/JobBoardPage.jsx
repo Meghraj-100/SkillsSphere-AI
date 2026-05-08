@@ -7,7 +7,7 @@ import ErrorState from "../../../shared/components/ErrorState";
 import EmptyState from "../../../shared/components/EmptyState";
 import { JobViewerCard } from "../../../shared/components";
 import JobFilters from "../components/JobFilters";
-import { getJobs } from "../services/jobService";
+import { getJobs, applyToJob } from "../services/jobService";
 
 const JobBoardPage = () => {
   const { token } = useSelector((state) => state.auth);
@@ -15,6 +15,8 @@ const JobBoardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
+  const [appliedJobIds, setAppliedJobIds] = useState(new Set());
+  const [applyingJobId, setApplyingJobId] = useState(null);
 
   const fetchJobs = useCallback(async (currentFilters) => {
     setLoading(true);
@@ -35,6 +37,24 @@ const JobBoardPage = () => {
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
+  };
+
+  const handleApply = async (job) => {
+    const jobId = job._id || job.id;
+    setApplyingJobId(jobId);
+    try {
+      await applyToJob(jobId, token);
+      setAppliedJobIds((prev) => new Set([...prev, jobId]));
+    } catch (err) {
+      const msg = err.message || err.data?.message || "Failed to apply";
+      if (msg.includes("already applied")) {
+        setAppliedJobIds((prev) => new Set([...prev, jobId]));
+      } else {
+        alert(msg);
+      }
+    } finally {
+      setApplyingJobId(null);
+    }
   };
 
   return (
@@ -91,7 +111,13 @@ const JobBoardPage = () => {
             ) : (
               <div className="grid grid-cols-1 gap-5">
                 {jobs.map((job) => (
-                  <JobViewerCard key={job._id} job={job} viewerRole="student" />
+                  <JobViewerCard
+                    key={job._id}
+                    job={job}
+                    viewerRole="student"
+                    onApply={handleApply}
+                    isApplied={appliedJobIds.has(job._id || job.id)}
+                  />
                 ))}
               </div>
             )}

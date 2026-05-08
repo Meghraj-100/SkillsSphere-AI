@@ -39,6 +39,9 @@ export const registerUserAndIssueToken = async ({ name, email, password, role })
   }
 
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+  const emailMode = process.env.EMAIL_SERVICE_MODE || "console";
+  const skipVerification = emailMode !== "smtp";
+
   const otp = generateOTP();
   const otpExpiry = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
@@ -47,12 +50,17 @@ export const registerUserAndIssueToken = async ({ name, email, password, role })
     email,
     password: hashedPassword,
     role,
-    verificationToken: otp,
-    verificationTokenExpires: otpExpiry,
-    isVerified: false,
+    verificationToken: skipVerification ? undefined : otp,
+    verificationTokenExpires: skipVerification ? undefined : otpExpiry,
+    isVerified: skipVerification,
   });
 
-  await sendOTP(email, otp, "verification");
+  // In SMTP mode, send real OTP email; in console mode, auto-verify the user
+  if (!skipVerification) {
+    await sendOTP(email, otp, "verification");
+  } else {
+    console.log(`[AUTH] User ${email} auto-verified (EMAIL_SERVICE_MODE=${emailMode})`);
+  }
 
   const token = buildAuthToken(user);
 
@@ -62,7 +70,7 @@ export const registerUserAndIssueToken = async ({ name, email, password, role })
       id: user._id.toString(),
       name: user.name,
       email: user.email,
-      isVerified: false,
+      isVerified: skipVerification,
     },
   };
 };
@@ -187,7 +195,9 @@ export const loginUser = async (email, password) => {
     throw new AppError("Invalid email or password", 401);
   }
 
-  if (!user.isVerified) {
+  // In console email mode, skip verification check for development convenience
+  const emailMode = process.env.EMAIL_SERVICE_MODE || "console";
+  if (!user.isVerified && emailMode === "smtp") {
     throw new AppError("Please verify your email before logging in", 403);
   }
 

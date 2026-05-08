@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import JobPosting from "../../database/models/JobPosting.js";
+import JobApplication from "../../database/models/JobApplication.js";
 import * as resumeService from "../resumes/service.js";
 import * as matchingService from "../matching/service.js";
 import { generateRecommendations } from "../../../../ai-ml/pipeline/recommendationEngine.js";
@@ -191,5 +193,213 @@ export const getJobRecommendations = async (user) => {
     message: "Personalized matches found by SkillSphere AI",
     jobs: jobsWithDetails,
     hasResume: true
+  };
+};
+
+/**
+ * Get aggregated analytics for a recruiter's job postings
+ * @param {string} recruiterId - ID of the recruiter
+ * @returns {Promise<Object>} - Analytics data
+ */
+export const getRecruiterAnalytics = async (recruiterId) => {
+  // Get all jobs for this recruiter
+  const allJobs = await JobPosting.find({ recruiter: recruiterId })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  // Status breakdown
+  const statusBreakdown = { open: 0, draft: 0, closed: 0 };
+  allJobs.forEach((job) => {
+    const status = job.status || "draft";
+    if (statusBreakdown[status] !== undefined) {
+      statusBreakdown[status] += 1;
+    }
+  });
+
+  // Jobs by month (last 6 months)
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const jobsByMonthAgg = await JobPosting.aggregate([
+    {
+      $match: {
+        recruiter: new mongoose.Types.ObjectId(recruiterId),
+        createdAt: { $gte: sixMonthsAgo },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" },
+        },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { "_id.year": 1, "_id.month": 1 } },
+  ]);
+
+  const jobsByMonth = jobsByMonthAgg.map((item) => ({
+    month: `${item._id.year}-${String(item._id.month).padStart(2, "0")}`,
+    count: item.count,
+  }));
+
+  // Top skills across all jobs
+  const skillCount = {};
+  allJobs.forEach((job) => {
+    (job.skills || []).forEach((skill) => {
+      const normalized = skill.toLowerCase().trim();
+      if (normalized) {
+        skillCount[normalized] = (skillCount[normalized] || 0) + 1;
+      }
+    });
+  });
+
+  const topSkills = Object.entries(skillCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([skill, count]) => ({ skill, count }));
+
+  // Recent jobs (last 5)
+  const recentJobs = allJobs.slice(0, 5).map((job) => ({
+    _id: job._id,
+    title: job.title,
+    status: job.status,
+    location: job.location,
+    salary: job.salary,
+    createdAt: job.createdAt,
+  }));
+
+  return {
+    totalJobs: allJobs.length,
+    statusBreakdown,
+    jobsByMonth,
+    topSkills,
+    recentJobs,
+  };
+};
+
+/**
+ * Apply to a job posting (for students)
+ * @param {string} jobId - ID of the job
+ * @param {string} applicantId - ID of the student
+ * @param {Object} options - Optional fields (resumeId, coverNote)
+ * @returns {Promise<Object>} - Created application
+ */
+export const applyToJob = async (jobId, applicantId, options = {}) => {
+  const job = await JobPosting.findById(jobId);
+  if (!job) {
+    throw new AppError("Job not found", 404);
+  }
+
+  if (job.status !== "open") {
+    throw new AppError("This job is not accepting applications", 400);
+  }
+
+  // Check for duplicate application
+  const existing = await JobApplication.findOne({ job: jobId, applicant: applicantId });
+  if (existing) {
+    throw new AppError("You have already applied to this job", 409);
+  }
+
+  const application = await JobApplication.create({
+    job: jobId,
+    applicant: applicantId,
+    resume: options.resumeId || null,
+    coverNote: options.coverNote || "",
+  });
+
+  return application;
+};
+
+/**
+ * Get all applications for a specific job (for recruiters)
+ * @param {string} jobId - ID of the job
+ * @param {string} recruiterId - ID of the recruiter (for ownership check)
+ * @returns {Promise<Array>} - List of applications
+ */
+export const getJobApplications = async (jobId, recruiterId) => {
+  const job = await JobPosting.findById(jobId);
+  if (!job) {
+    throw new AppError("Job not found", 404);
+  }
+
+  if (job.recruiter.toString() !== recruiterId.toString()) {
+    throw new AppError("You do not have permission to view these applications", 403);
+  }
+
+  const applications = await JobApplication.find({ job: jobId })
+    .populate("applicant", "name email")
+    .populate("resume", "fileName")
+    .sort({ createdAt: -1 });
+
+  return applications;
+};
+
+/**
+ * Get applicant analytics for a recruiter's jobs
+ * @param {string} recruiterId - ID of the recruiter
+ * @returns {Promise<Object>} - Applicant analytics
+ */
+export const getApplicantAnalytics = async (recruiterId) => {
+  // Get all jobs for this recruiter
+  const recruiterJobIds = await JobPosting.find({ recruiter: recruiterId })
+    .select("_id")
+    .lean();
+  const jobIds = recruiterJobIds.map((j) => j._id);
+
+  if (jobIds.length === 0) {
+    return {
+      totalApplicants: 0,
+      applicantsByStatus: { pending: 0, reviewed: 0, shortlisted: 0, rejected: 0 },
+      applicantsPerJob: [],
+    };
+  }
+
+  // Total applicant count
+  const totalApplicants = await JobApplication.countDocuments({ job: { $in: jobIds } });
+
+  // Applicants by status
+  const statusAgg = await JobApplication.aggregate([
+    { $match: { job: { $in: jobIds } } },
+    { $group: { _id: "$status", count: { $sum: 1 } } },
+  ]);
+
+  const applicantsByStatus = { pending: 0, reviewed: 0, shortlisted: 0, rejected: 0 };
+  statusAgg.forEach((item) => {
+    if (applicantsByStatus[item._id] !== undefined) {
+      applicantsByStatus[item._id] = item.count;
+    }
+  });
+
+  // Applicants per job (top 10 by count)
+  const perJobAgg = await JobApplication.aggregate([
+    { $match: { job: { $in: jobIds } } },
+    { $group: { _id: "$job", count: { $sum: 1 } } },
+    { $sort: { count: -1 } },
+    { $limit: 10 },
+    {
+      $lookup: {
+        from: "jobpostings",
+        localField: "_id",
+        foreignField: "_id",
+        as: "jobInfo",
+      },
+    },
+    { $unwind: "$jobInfo" },
+    {
+      $project: {
+        _id: 1,
+        count: 1,
+        title: "$jobInfo.title",
+        status: "$jobInfo.status",
+      },
+    },
+  ]);
+
+  return {
+    totalApplicants,
+    applicantsByStatus,
+    applicantsPerJob: perJobAgg,
   };
 };

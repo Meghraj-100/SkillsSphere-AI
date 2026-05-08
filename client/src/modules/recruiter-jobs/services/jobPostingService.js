@@ -106,3 +106,21 @@ export const getJobPostingById = async (id, token) => {
     throw normalizedError;
   }
 };
+
+/**
+ * Fetch aggregated analytics for the authenticated recruiter
+ * @param {string} token - Auth bearer token
+ * @returns {Promise<{success: boolean, analytics: Object}>}
+ */
+export const getRecruiterAnalytics = async (token) => {
+  try {
+    const response = await apiRequest("/api/jobs/recruiter/analytics", { token });
+    return {
+      success: true,
+      analytics: response.analytics || {},
+    };
+  } catch (error) {
+    const normalizedError = handleServiceError(error);
+    throw normalizedError;
+  }
+};

@@ -86,11 +86,17 @@ const Register = () => {
     );
 
     if (registerUser.fulfilled.match(resultAction)) {
-      success("Account created. Check your email for the verification code.");
-      navigate(`/verify-email?email=${encodeURIComponent(email)}`, {
-        state: { email },
-        replace: true,
-      });
+      const isAutoVerified = resultAction.payload?.user?.isVerified;
+      if (isAutoVerified) {
+        success("Account created and verified! You can now log in.");
+        navigate("/login", { replace: true });
+      } else {
+        success("Account created. Check your email for the verification code.");
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`, {
+          state: { email },
+          replace: true,
+        });
+      }
     } else {
       const message = resultAction.payload || "Registration failed";
       setErrors({

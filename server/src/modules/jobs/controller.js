@@ -1,5 +1,12 @@
 import JobPosting from "../../database/models/JobPosting.js";
-import { getAllJobs, getJobRecommendations } from "./service.js";
+import {
+  getAllJobs,
+  getJobRecommendations,
+  getRecruiterAnalytics as getAnalyticsData,
+  applyToJob as applyToJobService,
+  getJobApplications as getJobAppsService,
+  getApplicantAnalytics as getApplicantAnalyticsData,
+} from "./service.js";
 import AppError from "../../utils/AppError.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 
@@ -144,4 +151,60 @@ export const getJobs = asyncHandler(async (req, res) => {
 export const getRecommendations = asyncHandler(async (req, res) => {
   const recommendations = await getJobRecommendations(req.user);
   res.status(200).json(recommendations);
+});
+
+/**
+ * @desc    Get recruiter analytics (job stats, trends, top skills)
+ * @route   GET /api/jobs/recruiter/analytics
+ * @access  Private (Recruiters only)
+ */
+export const getRecruiterAnalytics = asyncHandler(async (req, res) => {
+  const [jobAnalytics, applicantAnalytics] = await Promise.all([
+    getAnalyticsData(req.user._id),
+    getApplicantAnalyticsData(req.user._id),
+  ]);
+
+  res.status(200).json({
+    success: true,
+    analytics: {
+      ...jobAnalytics,
+      ...applicantAnalytics,
+    },
+  });
+});
+
+/**
+ * @desc    Apply to a job posting
+ * @route   POST /api/jobs/:id/apply
+ * @access  Private (Students only)
+ */
+export const applyToJobPosting = asyncHandler(async (req, res) => {
+  const { resumeId, coverNote } = req.body;
+
+  const application = await applyToJobService(
+    req.params.id,
+    req.user._id,
+    { resumeId, coverNote }
+  );
+
+  res.status(201).json({
+    success: true,
+    message: "Application submitted successfully",
+    application,
+  });
+});
+
+/**
+ * @desc    Get all applications for a job posting
+ * @route   GET /api/jobs/:id/applications
+ * @access  Private (Recruiters only)
+ */
+export const getApplications = asyncHandler(async (req, res) => {
+  const applications = await getJobAppsService(req.params.id, req.user._id);
+
+  res.status(200).json({
+    success: true,
+    count: applications.length,
+    applications,
+  });
 });
