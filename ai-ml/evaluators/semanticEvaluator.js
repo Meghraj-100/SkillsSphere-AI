@@ -74,8 +74,6 @@ export const semanticEvaluator = async ({ resumeText = "", jobDescription = "" }
       key: KEY,
       label: LABEL,
       score: 0,
-      weight: WEIGHT,
-      weightedScore: 0,
       summary: "Semantic evaluation could not run because resume text was missing.",
       details: {},
       meta: {}
@@ -87,8 +85,6 @@ export const semanticEvaluator = async ({ resumeText = "", jobDescription = "" }
       key: KEY,
       label: LABEL,
       score: 0,
-      weight: WEIGHT,
-      weightedScore: 0,
       summary: "Semantic evaluation could not run because job description was missing.",
       details: {},
       meta: {}
@@ -114,8 +110,6 @@ export const semanticEvaluator = async ({ resumeText = "", jobDescription = "" }
       key: KEY,
       label: LABEL,
       score,
-      weight: WEIGHT,
-      weightedScore: Math.round(score * WEIGHT),
       summary: feedback,
       details: {
         similarityRaw: similarity,

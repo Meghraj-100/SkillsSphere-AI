@@ -5,7 +5,7 @@ import { normalizeSkillArray } from "../utils/skillNormalizer.js";
  * Evaluates the tech profile strength by checking for domain-specific skills.
  * Identifies if a profile is specialized or missing core tools for a domain.
  */
-export const techStandardEvaluator = ({ resumeText = "", weight = 0.15 }) => {
+export const techStandardEvaluator = ({ resumeText = "" }) => {
   const lowerText = resumeText.toLowerCase();
   const domainMatches = {};
 
@@ -51,14 +51,10 @@ export const techStandardEvaluator = ({ resumeText = "", weight = 0.15 }) => {
     suggestions.push("Add Cloud/DevOps skills (Docker, AWS) to demonstrate modern deployment knowledge.");
   }
 
-  const currentWeight = 0.05; // Standardized weight
-
   return {
     key: "tech_standard",
     label: "Technical Breadth",
     score,
-    weight: currentWeight,
-    weightedScore: Math.round(score * currentWeight),
     summary: score > 70 
       ? "Well-rounded technical profile across multiple domains." 
       : "The technical profile appears narrow; consider highlighting more cross-stack tools.",

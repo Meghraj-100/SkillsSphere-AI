@@ -83,8 +83,7 @@ function detectGeneric(text) {
 
 // Main evaluator function
 export default function consistencyEvaluator({
-  resumeText = "",
-  weight = 0.2
+  resumeText = ""
 }) {
   const clean = normalize(resumeText);
 
@@ -122,14 +121,10 @@ export default function consistencyEvaluator({
     feedback.push("Content is well structured and non-repetitive");
   }
 
-  const currentWeight = 0.05; // Standardized weight
-
   return {
     key: "consistency_match",
     label: "Content Consistency",
     score,
-    weight: currentWeight,
-    weightedScore: Math.round(score * currentWeight),
     summary: score > 80 
       ? "The resume content is clear and professionally structured." 
       : "Detected repetitive phrasing or generic cliches that could be improved.",

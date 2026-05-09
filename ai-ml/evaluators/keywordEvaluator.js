@@ -48,7 +48,6 @@ export const keywordEvaluator = ({
   jobDescription = "",
   resumeSkills = [],
   jobSkills = [],
-  weight = 0.2,
 }) => {
   const lowerResume = normalizeText(resumeText);
   const lowerJD = normalizeText(jobDescription);
@@ -79,8 +78,6 @@ export const keywordEvaluator = ({
       key: "keyword_match",
       label: "Keyword Optimization",
       score: 0,
-      weight: weights.keyword ?? 0.10,
-      weightedScore: 0,
       summary: "No relevant technical keywords could be extracted from the job description.",
       details: {
         feedback: ["No extractable keywords found in the job description"],
@@ -125,14 +122,10 @@ export const keywordEvaluator = ({
     feedback.push(`Consider adding: ${k}`);
   });
 
-  const currentWeight = weights.keyword ?? 0.10;
-
   return {
     key: "keyword_match",
     label: "Keyword Optimization",
     score,
-    weight: currentWeight,
-    weightedScore: Math.round(score * currentWeight),
     summary: score > 80 
       ? "Strong keyword alignment detected." 
       : `Missing ${missingKeywords.length} important keywords identified in the job description.`,

@@ -2,7 +2,7 @@
  * Evaluates the "Impact" of a resume by looking for quantifiable achievements.
  * Searches for metrics like percentages, currency, multipliers, and time.
  */
-export const impactEvaluator = ({ resumeText = "", weight = 0.2 }) => {
+export const impactEvaluator = ({ resumeText = "" }) => {
   const metrics = {
     percentage: /(?:\d+%|percent)/gi,
     currency: /(?:\$|usd|inr|€|£)\s?\d+(?:[kKmMbB]|\s?million|billion)?/gi,
@@ -58,16 +58,12 @@ export const impactEvaluator = ({ resumeText = "", weight = 0.2 }) => {
     suggestions.push("Use phrases like 'resulting in', 'achieved by', or 'led to' followed by a metric.");
   }
 
-  const currentWeight = 0.15; // Standardized weight
-
   return {
     key: "impact_match",
     label: "Measurable Impact",
     score,
-    weight: currentWeight,
-    weightedScore: Math.round(score * currentWeight),
-    summary: score > 70 
-      ? "Strong evidence of results-oriented achievements." 
+    summary: score > 80 
+      ? "Strong evidence of quantifiable impact." 
       : "The resume describes duties but lacks enough quantifiable results (numbers, %, $).",
     details: {
       totalFindings,

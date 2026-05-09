@@ -107,24 +107,18 @@ export function extractExperienceInYears(text = "") {
 }
 
 // --- MAIN EVALUATOR ---
-export const experienceEvaluator = ({
+export function experienceEvaluator({
   candidateExperienceText = "",
   jobDescription = "",
-  weight = weights.experience ?? 0.20,
-} = {}) => {
-  const candidateExperience = extractExperienceInYears(candidateExperienceText);
-  const requiredExperience = extractExperienceInYears(jobDescription);
-
-  const candidateYears = candidateExperience;
-  const requiredYears = requiredExperience;
+} = {}) {
+  const candidateYears = extractExperienceInYears(candidateExperienceText);
+  const requiredYears = extractExperienceInYears(jobDescription);
 
   if (requiredYears === 0) {
     return {
       key: "experience_match",
       label: "Experience Match",
-      score: 100, // If no experience is required, candidate technically matches
-      weight,
-      weightedScore: Math.round(100 * weight),
+      score: 100,
       summary: "No specific years of experience required for this role.",
       details: {
         feedback: ["Could not detect required experience from the job description"],
@@ -163,8 +157,6 @@ export const experienceEvaluator = ({
     key: "experience_match",
     label: "Experience Match",
     score,
-    weight,
-    weightedScore: Math.round(score * weight),
     summary: score === 100 
       ? "Candidate meets the required experience level."
       : `Candidate is short by approximately ${gap.toFixed(1)} years of experience.`,

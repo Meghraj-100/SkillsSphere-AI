@@ -1,8 +1,6 @@
 import { normalizeSkillArray } from "../utils/skillNormalizer.js";
-import { weights } from "../config/weights.config.js";
 
 export const skillEvaluator = ({ resumeSkills = [], jobSkills = [] }) => {
-  const currentWeight = weights.skill ?? 0.50;
   // Use the optimized normalizer
   const normResume = normalizeSkillArray(resumeSkills);
   const normJob = normalizeSkillArray(jobSkills);
@@ -12,8 +10,6 @@ export const skillEvaluator = ({ resumeSkills = [], jobSkills = [] }) => {
       key: "skill_match",
       label: "Skill Match",
       score: 0,
-      weight: currentWeight,
-      weightedScore: 0,
       summary: "No job skills provided for comparison",
       details: {
         feedback: ["No job skills provided for comparison"],
@@ -50,8 +46,6 @@ export const skillEvaluator = ({ resumeSkills = [], jobSkills = [] }) => {
     key: "skill_match",
     label: "Skill Match",
     score,
-    weight: currentWeight,
-    weightedScore: Math.round(score * currentWeight),
     summary: matched.length > 0 
       ? `Matched ${matched.length} out of ${normJob.length} required skills.`
       : "No matching skills found for this position.",

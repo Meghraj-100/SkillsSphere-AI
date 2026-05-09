@@ -4,7 +4,7 @@ import { normalizeSkillArray } from "../utils/skillNormalizer.js";
  * Evaluates ATS compatibility by checking for required sections, 
  * contact information, and formatting hygiene based on parsed data.
  */
-export const atsOptimizationEvaluator = ({ resumeData, weight = 0.15 }) => {
+export const atsOptimizationEvaluator = ({ resumeData }) => {
   const {
     experience = [],
     education = [],
@@ -90,14 +90,11 @@ export const atsOptimizationEvaluator = ({ resumeData, weight = 0.15 }) => {
   }
 
   const finalScore = Math.max(0, Math.min(100, Math.round(score)));
-  const currentWeight = 0.1; // Standardized weight
 
   return {
     key: "ats_optimization",
     label: "ATS Optimization",
     score: finalScore,
-    weight: currentWeight,
-    weightedScore: Math.round(finalScore * currentWeight),
     summary: finalScore > 80 
       ? "Your resume format is highly ATS-friendly." 
       : `Missing ${missingSections.length + missingContact.length} optimization elements.`,

@@ -6,7 +6,7 @@ import powerVerbs from "../data/powerVerbs.json" with { type: "json" };
  * 2. Identifies specific weak bullets (sentences missing action verbs)
  * 3. Detects passive voice
  */
-export default function readabilityEvaluator({ resumeText = "", weight = 0.1 }) {
+export default function readabilityEvaluator({ resumeText = "" }) {
   // Clean bullet point prefixes from sentence start (fixes #230)
   // Handles common bullet characters from PDF extraction: •, –, *, en-dash, em-dash
   function cleanSentenceStart(sentence) {
@@ -80,8 +80,6 @@ export default function readabilityEvaluator({ resumeText = "", weight = 0.1 }) 
     key: "readability_match",
     label: "Readability & Impact",
     score: finalScore,
-    weight,
-    weightedScore: Math.round(finalScore * weight),
     summary: finalScore > 80 
       ? "Strong use of action verbs and active voice." 
       : "Some bullets are weak or use passive voice, which reduces the impact of your experience.",
