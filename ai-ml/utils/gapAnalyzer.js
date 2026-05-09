@@ -6,7 +6,9 @@ export default function gapAnalyzer({
   readabilityMatch = {},
   impactMatch = {},
   atsOptimization = {},
-  techStandard = {}
+  techStandard = {},
+  resumeText = "",
+  isJDProvided = false
 }) {
   const categorizedSuggestions = {
     critical: [],
@@ -34,7 +36,7 @@ export default function gapAnalyzer({
   }
 
   // 2. 🎯 Strategic: Skills & Keywords (Only if JD provided)
-  if (skillMatch?.score !== null && skillMatch?.score < 70) {
+  if (isJDProvided && skillMatch?.score !== null && skillMatch?.score < 70) {
     const missingSkills = skillMatch.details?.missingSkills || skillMatch.missingSkills || [];
     const prioritySkills = missingSkills.slice(0, 3);
     if (prioritySkills.length > 0) {
@@ -42,7 +44,7 @@ export default function gapAnalyzer({
     }
   }
 
-  if (keywordMatch?.score !== null && keywordMatch?.score < 60) {
+  if (isJDProvided && keywordMatch?.score !== null && keywordMatch?.score < 60) {
     const missingKeywords = keywordMatch.details?.missingKeywords || keywordMatch.missingKeywords || [];
     const topKeywords = missingKeywords.slice(0, 3);
     if (topKeywords.length > 0) {
@@ -76,7 +78,7 @@ export default function gapAnalyzer({
 
   // If still too few, add highly contextual polish tips
   if (allSuggestions.length < 4) {
-    const wordCount = (atsOptimization?.meta?.resumeText || atsOptimization?.resumeText || "").split(/\s+/).length;
+    const wordCount = resumeText.split(/\s+/).filter(Boolean).length;
     if (wordCount > 1000) {
       allSuggestions.push({ priority: "Polish", text: "Your resume is quite long (~3+ pages). Aim for a concise 1-2 page format for maximum engagement.", icon: "CheckCircle2" });
     } else if (wordCount > 0 && wordCount < 200) {

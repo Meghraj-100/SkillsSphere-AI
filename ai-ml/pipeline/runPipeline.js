@@ -209,6 +209,8 @@ export async function runPipeline({
     impactMatch,
     atsOptimization,
     techStandard,
+    resumeText,
+    isJDProvided,
   });
 
   // 🔥 Classification
