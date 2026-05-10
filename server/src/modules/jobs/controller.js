@@ -179,12 +179,12 @@ export const getRecruiterAnalytics = asyncHandler(async (req, res) => {
  * @access  Private (Students only)
  */
 export const applyToJobPosting = asyncHandler(async (req, res) => {
-  const { resumeId, coverNote } = req.body;
+  const { resumeId, resumeLink, coverNote } = req.body;
 
   const application = await applyToJobService(
     req.params.id,
     req.user._id,
-    { resumeId, coverNote }
+    { resumeId, resumeLink, coverNote }
   );
 
   res.status(201).json({

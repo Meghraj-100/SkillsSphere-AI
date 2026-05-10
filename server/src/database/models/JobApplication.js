@@ -28,6 +28,25 @@ const jobApplicationSchema = new mongoose.Schema(
       default: "pending",
     },
 
+    resumeLink: {
+      type: String,
+      trim: true,
+      maxlength: [2048, "Resume link cannot exceed 2048 characters"],
+      default: null,
+      validate: {
+        validator: function (v) {
+          if (!v) return true; // allow null/empty
+          try {
+            const url = new URL(v);
+            return url.protocol === "http:" || url.protocol === "https:";
+          } catch {
+            return false;
+          }
+        },
+        message: "Resume link must be a valid HTTP or HTTPS URL",
+      },
+    },
+
     coverNote: {
       type: String,
       trim: true,

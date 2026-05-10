@@ -283,7 +283,7 @@ export const getRecruiterAnalytics = async (recruiterId) => {
  * Apply to a job posting (for students)
  * @param {string} jobId - ID of the job
  * @param {string} applicantId - ID of the student
- * @param {Object} options - Optional fields (resumeId, coverNote)
+ * @param {Object} options - Optional fields (resumeId, resumeLink, coverNote)
  * @returns {Promise<Object>} - Created application
  */
 export const applyToJob = async (jobId, applicantId, options = {}) => {
@@ -296,6 +296,11 @@ export const applyToJob = async (jobId, applicantId, options = {}) => {
     throw new AppError("This job is not accepting applications", 400);
   }
 
+  // resumeLink is required for student applications
+  if (!options.resumeLink || !options.resumeLink.trim()) {
+    throw new AppError("A shareable resume link is required to apply", 400);
+  }
+
   // Check for duplicate application
   const existing = await JobApplication.findOne({ job: jobId, applicant: applicantId });
   if (existing) {
@@ -306,7 +311,8 @@ export const applyToJob = async (jobId, applicantId, options = {}) => {
     job: jobId,
     applicant: applicantId,
     resume: options.resumeId || null,
-    coverNote: options.coverNote || "",
+    resumeLink: options.resumeLink.trim(),
+    coverNote: options.coverNote?.trim() || "",
   });
 
   return application;
