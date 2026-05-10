@@ -92,7 +92,7 @@ export const parseResume = async (filePath) => {
     const fileBuffer = await fs.readFile(filePath);
     const parser = new PDFParse({ data: fileBuffer });
     try {
-      const parsed = await parser.getText();
+      const parsed = await parser.getText({ parseHyperlinks: true });
       text = normalizeWhitespace(parsed.text || "");
     } finally {
       await parser.destroy();
