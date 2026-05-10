@@ -422,3 +422,17 @@ export const getMyAppliedJobIds = async (applicantId) => {
 
   return applications.map((app) => app.job.toString());
 };
+
+/**
+ * Get all applications with full job details for the current student
+ * @param {string} applicantId - ID of the student
+ * @returns {Promise<Object[]>} - Array of application objects with populated job data
+ */
+export const getMyApplicationsWithDetails = async (applicantId) => {
+  const applications = await JobApplication.find({ applicant: applicantId })
+    .populate("job", "title skills location status salary jobLevel description")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  return applications;
+};

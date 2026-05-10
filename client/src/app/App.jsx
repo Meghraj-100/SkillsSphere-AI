@@ -19,6 +19,7 @@ import RecruiterJobsPage from "../modules/recruiter-jobs/pages/RecruiterJobsPage
 import RecruiterAnalyticsPage from "../modules/recruiter-jobs/pages/RecruiterAnalyticsPage";
 import CreateJobPostingPage from "../modules/recruiter-jobs/pages/CreateJobPostingPage";
 import JobBoardPage from "../modules/student-jobs/pages/JobBoardPage";
+import MyApplicationsPage from "../modules/student-jobs/pages/MyApplicationsPage";
 import ClassroomsDashboard from "../modules/classrooms/pages/ClassroomsDashboard";
 import ClassroomRoom from "../modules/classrooms/pages/ClassroomRoom";
 import ProtectedRoute from "../shared/components/ProtectedRoute";
@@ -45,6 +46,14 @@ function App() {
               <JobMatcherPage />
             </ProtectedRoute>
           } 
+        />
+        <Route
+          path="/my-applications"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <MyApplicationsPage />
+            </ProtectedRoute>
+          }
         />
         {import.meta.env.DEV && <Route path="/demo" element={<ComponentDemo />} />}
         <Route 

@@ -43,3 +43,12 @@ export const applyToJob = async (jobId, token, options = {}) => {
 export const getMyAppliedJobIds = async (token) => {
   return apiRequest("/api/jobs/my-applications", { token });
 };
+
+/**
+ * Get current student's applied jobs with full details
+ * @param {string} token - Auth token
+ * @returns {Promise<Object>} - API response with applications array
+ */
+export const getMyApplicationsDetailed = async (token) => {
+  return apiRequest("/api/jobs/my-applications/details", { token });
+};

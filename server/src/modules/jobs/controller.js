@@ -7,6 +7,7 @@ import {
   getJobApplications as getJobAppsService,
   getApplicantAnalytics as getApplicantAnalyticsData,
   getMyAppliedJobIds as getMyAppliedJobIdsService,
+  getMyApplicationsWithDetails as getMyAppsDetailedService,
 } from "./service.js";
 import AppError from "../../utils/AppError.js";
 import asyncHandler from "../../utils/asyncHandler.js";
@@ -221,5 +222,20 @@ export const getMyApplications = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     appliedJobIds: jobIds,
+  });
+});
+
+/**
+ * @desc    Get current student's applied jobs with full details
+ * @route   GET /api/jobs/my-applications/details
+ * @access  Private (Students only)
+ */
+export const getMyApplicationsDetailed = asyncHandler(async (req, res) => {
+  const applications = await getMyAppsDetailedService(req.user._id);
+
+  res.status(200).json({
+    success: true,
+    count: applications.length,
+    applications,
   });
 });

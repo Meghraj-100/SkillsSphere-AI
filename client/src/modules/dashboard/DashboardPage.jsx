@@ -667,6 +667,17 @@ const DashboardPage = () => {
                       </div>
                       <ArrowRight size={16} className="text-emerald-300 group-hover/link:translate-x-1 transition-transform" />
                     </Link>
+
+                    <Link
+                      to="/my-applications"
+                      className="flex items-center justify-between group/link w-full p-4 rounded-xl bg-white/10 border border-white/10 hover:bg-white/20 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Briefcase size={18} className="text-violet-300" />
+                        <span className="font-semibold text-sm">Applied Jobs</span>
+                      </div>
+                      <ArrowRight size={16} className="text-violet-300 group-hover/link:translate-x-1 transition-transform" />
+                    </Link>
                   </>
                 ) : (
                   <>
