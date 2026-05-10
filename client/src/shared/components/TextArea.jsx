@@ -21,14 +21,14 @@ const TextArea = ({
   const hasError = Boolean(error);
 
   const baseTextArea = [
-    "w-full rounded-xl border bg-slate-800/50 px-4 py-3 text-sm text-white caret-primary transition-all duration-200 outline-none",
+    "w-full rounded-xl border bg-white dark:bg-slate-800/50 px-4 py-3 text-sm text-gray-900 dark:text-white caret-primary transition-all duration-200 outline-none",
     "placeholder:text-gray-500 focus:ring-2",
     hasError
       ? "border-red-400 focus:ring-red-400/20 focus:border-red-400"
-      : "border-slate-700 focus:ring-primary/20 focus:border-primary",
+      : "border-gray-300 dark:border-slate-700 focus:ring-primary/20 focus:border-primary",
     disabled
       ? "opacity-50 cursor-not-allowed"
-      : "hover:border-slate-600",
+      : "hover:border-gray-400 dark:hover:border-slate-600",
   ]
     .filter(Boolean)
     .join(" ");

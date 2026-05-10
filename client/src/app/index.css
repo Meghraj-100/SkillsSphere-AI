@@ -34,7 +34,7 @@
   --transition: all 0.3s ease;
 }
 
-:root.dark {
+.dark {
   --primary: #818CF8;
   --primary-hover: #6366F1;
   --secondary: #34D399;

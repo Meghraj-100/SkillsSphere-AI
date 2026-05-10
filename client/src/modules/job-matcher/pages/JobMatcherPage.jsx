@@ -73,7 +73,7 @@ export default function JobMatcherPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#0f172a,#020617)] text-slate-100 flex flex-col">
+    <main className="min-h-screen bg-white dark:bg-[radial-gradient(circle_at_top_left,#0f172a,#020617)] text-gray-900 dark:text-slate-100 flex flex-col">
       <Navbar />
 
       {/* Spacer for fixed navbar */}
@@ -85,7 +85,7 @@ export default function JobMatcherPage() {
           <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tight leading-tight">
             <span className="text-gradient">Smart Job</span> Matching
           </h1>
-          <p className="text-slate-400 text-xl leading-relaxed font-medium">
+          <p className="text-gray-500 dark:text-slate-400 text-xl leading-relaxed font-medium">
             AI-powered job recommendations based on your resume skills 🚀
           </p>
         </div>
@@ -96,7 +96,7 @@ export default function JobMatcherPage() {
             <LoadingState message="Analyzing your profile for the best matches..." />
           </div>
         ) : error ? (
-          <div className="max-w-lg mx-auto text-center p-10 bg-slate-900/50 rounded-2xl border border-red-500/20">
+          <div className="max-w-lg mx-auto text-center p-10 bg-gray-100 dark:bg-slate-900/50 rounded-2xl border border-red-500/20">
             <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
             <p className="text-red-300 font-medium mb-6">{error}</p>
             <button
@@ -108,11 +108,11 @@ export default function JobMatcherPage() {
           </div>
         ) : !hasResume ? (
           /* No Resume — Upload Prompt */
-          <div className="max-w-lg mx-auto text-center p-12 bg-slate-900/50 rounded-2xl border border-white/5">
+          <div className="max-w-lg mx-auto text-center p-12 bg-gray-100 dark:bg-slate-900/50 rounded-2xl border border-white/5">
             <div className="inline-flex p-4 bg-blue-500/10 rounded-2xl mb-6">
               <FileUp size={48} className="text-blue-400" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">Upload Your Resume First</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Upload Your Resume First</h2>
             <p className="text-slate-400 mb-8 leading-relaxed">
               {message || "To get personalized job recommendations, please upload and analyze your resume first."}
             </p>
@@ -125,7 +125,7 @@ export default function JobMatcherPage() {
           </div>
         ) : jobs.length === 0 ? (
           /* Resume exists but no matching jobs */
-          <div className="max-w-lg mx-auto text-center p-12 bg-slate-900/50 rounded-2xl border border-white/5">
+          <div className="max-w-lg mx-auto text-center p-12 bg-gray-100 dark:bg-slate-900/50 rounded-2xl border border-white/5">
             <div className="inline-flex p-4 bg-slate-700/30 rounded-2xl mb-6">
               <Briefcase size={48} className="text-slate-500" />
             </div>

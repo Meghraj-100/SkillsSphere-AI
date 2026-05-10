@@ -52,15 +52,15 @@ const JobFilters = ({ onFilterChange }) => {
   ];
 
   return (
-    <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6 h-fit sticky top-28">
+    <div className="bg-gray-100 dark:bg-slate-900/50 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-6 h-fit sticky top-28">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <Filter size={20} className="text-blue-400" />
           Filters
         </h2>
         <button
           onClick={handleClear}
-          className="text-xs font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1"
+          className="text-xs font-medium text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-1"
         >
           <X size={14} />
           Clear All
@@ -70,7 +70,7 @@ const JobFilters = ({ onFilterChange }) => {
       <div className="space-y-6">
         {/* Designation */}
         <div>
-          <label htmlFor="filter-designation" className="block text-sm font-medium text-slate-300 mb-2">
+          <label htmlFor="filter-designation" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
             Designation
           </label>
           <Input
@@ -86,7 +86,7 @@ const JobFilters = ({ onFilterChange }) => {
 
         {/* Salary Range */}
         <div>
-          <label htmlFor="filter-min-salary" className="block text-sm font-medium text-slate-300 mb-2">
+          <label htmlFor="filter-min-salary" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
             Expected Salary (₹)
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -113,7 +113,7 @@ const JobFilters = ({ onFilterChange }) => {
 
         {/* Date Posted */}
         <div>
-          <label htmlFor="filter-date-posted" className="block text-sm font-medium text-slate-300 mb-2">
+          <label htmlFor="filter-date-posted" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
             Date Posted
           </label>
           <Select

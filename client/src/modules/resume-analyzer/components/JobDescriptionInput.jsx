@@ -129,7 +129,7 @@ const JobDescriptionInput = ({ value, onChange }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-primary">
           <ClipboardList className="w-5 h-5" />
-          <h3 className="text-lg font-bold text-text-main">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-text-main">
             Job Description
             <span className="ml-2 text-xs font-normal text-text-muted">(Optional)</span>
           </h3>
@@ -141,7 +141,7 @@ const JobDescriptionInput = ({ value, onChange }) => {
           <button
             type="button"
             onClick={handlePasteFromClipboard}
-            className="flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-primary transition-colors py-1.5 px-3 border border-border rounded-full bg-surface/50 hover:border-primary/40"
+            className="flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-primary transition-colors py-1.5 px-3 border border-border rounded-full bg-gray-100 dark:bg-surface/50 hover:border-primary/40"
           >
             <ClipboardPaste className="w-3.5 h-3.5" />
             Paste
@@ -156,7 +156,7 @@ const JobDescriptionInput = ({ value, onChange }) => {
               accept=".txt,.text"
               onChange={handleFileChange}
             />
-            <div className="flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-primary transition-colors py-1.5 px-3 border border-border rounded-full bg-surface/50 hover:border-primary/40 cursor-pointer">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-primary transition-colors py-1.5 px-3 border border-border rounded-full bg-gray-100 dark:bg-surface/50 hover:border-primary/40 cursor-pointer">
               <Upload className="w-3.5 h-3.5" />
               Upload .txt
             </div>
@@ -167,7 +167,7 @@ const JobDescriptionInput = ({ value, onChange }) => {
             <button
               type="button"
               onClick={handleAutoClean}
-              className="flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-secondary transition-colors py-1.5 px-3 border border-border rounded-full bg-surface/50 hover:border-secondary/40"
+              className="flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-secondary transition-colors py-1.5 px-3 border border-border rounded-full bg-gray-100 dark:bg-surface/50 hover:border-secondary/40"
             >
               <Sparkles className="w-3.5 h-3.5" />
               Auto-clean

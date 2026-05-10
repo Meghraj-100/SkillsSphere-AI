@@ -23,7 +23,6 @@ import MyApplicationsPage from "../modules/student-jobs/pages/MyApplicationsPage
 import ClassroomsDashboard from "../modules/classrooms/pages/ClassroomsDashboard";
 import ClassroomRoom from "../modules/classrooms/pages/ClassroomRoom";
 import ProtectedRoute from "../shared/components/ProtectedRoute";
-import ThemeToggle from "../shared/components/ThemeToggle";
 function App() {
   const dispatch = useDispatch();
   const { token } = useSelector((state) => state.auth);
@@ -36,7 +35,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-white text-black dark:bg-dark-bg dark:text-text-main transition-colors duration-300">
-      
+
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route 

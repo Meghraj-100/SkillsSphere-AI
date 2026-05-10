@@ -51,7 +51,7 @@ const ResumeAnalyzerPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dark-bg text-text-main font-sans">
+    <div className="min-h-screen bg-white dark:bg-dark-bg text-gray-900 dark:text-text-main font-sans">
       <Navbar />
       <div className="max-w-4xl mx-auto pt-32 pb-12 px-4 sm:px-6 lg:px-8 space-y-8 animate-slide-up">
         <PageHeader 
@@ -60,7 +60,7 @@ const ResumeAnalyzerPage = () => {
         />
 
         {/* Main Content Area */}
-        <div className="mt-12 bg-surface border border-border rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+        <div className="mt-12 bg-gray-100 dark:bg-surface border border-gray-200 dark:border-border rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
           {/* Background Decorative Element */}
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
 
@@ -146,9 +146,9 @@ const ResumeAnalyzerPage = () => {
           ].map((item, id) => (
             <div
               key={id}
-              className="p-6 bg-surface border border-border rounded-2xl hover:border-primary/30 transition-all group"
+              className="p-6 bg-gray-100 dark:bg-surface border border-gray-200 dark:border-border rounded-2xl hover:border-primary/30 transition-all group"
             >
-              <h4 className="font-heading font-bold text-text-main mb-2 group-hover:text-primary transition-colors">
+              <h4 className="font-heading font-bold text-gray-900 dark:text-text-main mb-2 group-hover:text-primary transition-colors">
                 {item.title}
               </h4>
               <p className="text-sm text-text-muted leading-relaxed">

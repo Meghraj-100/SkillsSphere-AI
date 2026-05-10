@@ -74,7 +74,7 @@ const JobBoardPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#0f172a,#020617)] text-slate-100 flex flex-col">
+    <main className="min-h-screen bg-white dark:bg-[radial-gradient(circle_at_top_left,#0f172a,#020617)] text-gray-900 dark:text-slate-100 flex flex-col">
       <Navbar />
       
       {/* Spacer to push content below the fixed Navbar */}
@@ -86,7 +86,7 @@ const JobBoardPage = () => {
           <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tight leading-tight">
             <span className="text-gradient">Opportunities</span> Await
           </h1>
-          <p className="text-slate-400 text-xl leading-relaxed font-medium">
+          <p className="text-gray-500 dark:text-slate-400 text-xl leading-relaxed font-medium">
             Browse through curated job listings from top companies looking for talent like you.
           </p>
         </div>
@@ -100,7 +100,7 @@ const JobBoardPage = () => {
           {/* Job List Area */}
           <div className="lg:col-span-3">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-slate-200 flex items-center gap-2">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-slate-200 flex items-center gap-2">
                 Available Jobs
                 <span className="text-sm font-normal text-slate-500 bg-slate-800/50 px-2 py-0.5 rounded-full border border-white/5">
                   {loading ? "..." : jobs.length}

@@ -100,7 +100,7 @@ const DragDropUpload = ({ onFileUpload }) => {
       className={`relative w-full p-12 border-2 border-dashed rounded-[1.5rem] transition-all duration-500 ease-out flex flex-col items-center justify-center space-y-6 focus:outline-none focus:ring-2 focus:ring-primary/40 outline-none ${
         isDragActive
           ? "border-primary bg-primary/5 scale-[1.02] shadow-[0_0_40px_rgba(79,70,229,0.15)]"
-          : "border-border bg-surface/30 hover:bg-surface/50 hover:border-primary/40"
+          : "border-gray-200 dark:border-border bg-gray-50 dark:bg-surface/30 hover:bg-gray-100 dark:hover:bg-surface/50 hover:border-primary/40"
       }`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}

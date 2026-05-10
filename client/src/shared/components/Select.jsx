@@ -35,16 +35,16 @@ const Select = ({
   const hasError = Boolean(error);
 
   const selectClasses = [
-    "w-full appearance-none rounded-lg border bg-slate-800 px-3.5 py-2.5 pr-9",
+    "w-full appearance-none rounded-lg border bg-gray-100 dark:bg-slate-800 px-3.5 py-2.5 pr-9",
     "text-sm transition-all duration-150 cursor-pointer",
     "focus:outline-none focus:ring-2 focus:ring-offset-0",
     hasError
       ? "border-red-400 text-white focus:ring-red-400 focus:border-red-400"
-      : "border-slate-600 text-white focus:ring-blue-500 focus:border-blue-500 hover:border-slate-500",
+      : "border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 dark:hover:border-slate-500",
     disabled
-      ? "cursor-not-allowed bg-slate-800/50 text-slate-500 border-slate-700"
+      ? "cursor-not-allowed bg-gray-200 dark:bg-slate-800/50 text-gray-400 dark:text-slate-500 border-gray-300 dark:border-slate-700"
       : "",
-    !value ? "text-slate-400" : "text-white",
+    !value ? "text-gray-400 dark:text-slate-400" : "text-gray-900 dark:text-white",
   ]
     .filter(Boolean)
     .join(" ");
