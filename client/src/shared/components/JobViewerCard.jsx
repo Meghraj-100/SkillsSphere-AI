@@ -394,14 +394,16 @@ const JobViewerCard = ({
                     ) : canApply ? (
                       <Button
                         fullWidth
-                        className="bg-blue-600 hover:bg-blue-500 flex items-center justify-center gap-2"
+                        className="bg-blue-600 hover:bg-blue-500"
                         onClick={(e) => {
                           e.stopPropagation();
                           onApply?.(job);
                         }}
                       >
-                        Apply for this position
-                        <ExternalLink size={16} />
+                        <span className="flex items-center justify-center gap-2 whitespace-nowrap">
+                          Apply for this position
+                          <ExternalLink size={16} className="shrink-0" />
+                        </span>
                       </Button>
                     ) : (
                       <div className="flex items-center justify-center w-full py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-500 text-sm font-medium">
