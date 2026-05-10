@@ -42,10 +42,10 @@ const AnalysisResult = ({ result, file, onReset }) => {
   // --- ATS Checklist Logic ---
   const atsData = result.atsOptimization || {};
   const checklist = [
-    { label: "Experience Section", status: atsData.sectionResults?.experience, reason: "Missing clear experience headers or work history" },
-    { label: "Skills Section", status: atsData.sectionResults?.skills, reason: "No extractable skills section found" },
-    { label: "Contact: Email", status: atsData.contactResults?.email, reason: "Missing valid email address" },
-    { label: "Contact: LinkedIn", status: atsData.contactResults?.linkedin, reason: "Missing LinkedIn profile link" },
+    { label: "Experience Section", status: atsData.details?.sectionResults?.experience, reason: "Missing clear experience headers or work history" },
+    { label: "Skills Section", status: atsData.details?.sectionResults?.skills, reason: "No extractable skills section found" },
+    { label: "Contact: Email", status: atsData.details?.contactResults?.email, reason: "Missing valid email address" },
+    { label: "Contact: LinkedIn", status: atsData.details?.contactResults?.linkedin, reason: "Missing LinkedIn profile link" },
   ];
 
   // --- Action Words ---
