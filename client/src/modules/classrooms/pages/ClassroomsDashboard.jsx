@@ -35,10 +35,10 @@ export default function ClassroomsDashboard() {
     <div className="min-h-screen bg-[#020617] text-white pt-24 px-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center p-3 bg-indigo-500/20 text-indigo-400 rounded-2xl mb-6">
+          <div className="inline-flex items-center justify-center p-3 bg-indigo-100 text-indigo-900 dark:bg-indigo-500/20 dark:text-indigo-400 rounded-2xl mb-6">
             <MonitorPlay size={32} />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-indigo-900 to-purple-900 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
             Live Interactive Classrooms
           </h1>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto">
@@ -49,7 +49,7 @@ export default function ClassroomsDashboard() {
         <div className="grid md:grid-cols-2 gap-8">
           {/* Start a Session */}
           <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800 transition-colors">
-            <div className="bg-indigo-500/20 w-12 h-12 rounded-xl flex items-center justify-center text-indigo-400 mb-6">
+            <div className="bg-indigo-100 w-12 h-12 rounded-xl flex items-center justify-center text-indigo-900 dark:bg-indigo-500/20 dark:text-indigo-400 mb-6">
               <Video size={24} />
             </div>
             <h2 className="text-2xl font-semibold mb-3">Start a New Session</h2>
@@ -74,7 +74,7 @@ export default function ClassroomsDashboard() {
 
           {/* Join a Session */}
           <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800 transition-colors">
-            <div className="bg-purple-500/20 w-12 h-12 rounded-xl flex items-center justify-center text-purple-400 mb-6">
+            <div className="bg-purple-100 w-12 h-12 rounded-xl flex items-center justify-center text-purple-900 dark:bg-purple-500/20 dark:text-purple-400 mb-6">
               <Users size={24} />
             </div>
             <h2 className="text-2xl font-semibold mb-3">Join a Session</h2>

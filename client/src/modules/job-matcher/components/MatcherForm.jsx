@@ -30,7 +30,7 @@ export default function MatcherForm({ onSubmit }) {
             ${
               type === "existing"
                 ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-[0_4px_14px_0_rgba(79,70,229,0.39)]"
-                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                : "bg-gray-300 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             }
           `}
         >

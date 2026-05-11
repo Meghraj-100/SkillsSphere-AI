@@ -37,11 +37,11 @@ const JOB_LEVEL_COLORS = {
 
 const Badge = ({ children, color = "slate" }) => {
   const colors = {
-    blue: "bg-blue-500/15 text-blue-300 border-blue-500/25",
-    emerald: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25",
-    yellow: "bg-yellow-500/15 text-yellow-300 border-yellow-500/25",
-    purple: "bg-purple-500/15 text-purple-300 border-purple-500/25",
-    slate: "bg-slate-700/60 text-slate-300 border-slate-600/40",
+    blue: "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/25",
+    emerald: "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/25",
+    yellow: "bg-yellow-100 text-yellow-900 border-yellow-300 dark:bg-yellow-500/15 dark:text-yellow-300 dark:border-yellow-500/25",
+    purple: "bg-purple-100 text-purple-900 border-purple-300 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/25",
+    slate: "bg-gray-200 text-gray-900 border-gray-400 dark:bg-slate-700/60 dark:text-slate-300 dark:border-slate-600/40",
   };
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colors[color] || colors.slate}`}>

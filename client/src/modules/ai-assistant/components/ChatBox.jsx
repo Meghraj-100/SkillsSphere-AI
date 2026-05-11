@@ -65,15 +65,15 @@ const ChatBox = () => {
         height: "100%",
         borderRadius: "10px",
         overflow: "hidden",
-        backgroundColor: "#ffffff",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        backgroundColor: "var(--surface)",
+        boxShadow: "var(--shadow-soft)",
       }}
     >
       {/* Header */}
       <div
         style={{
           padding: "10px",
-          backgroundColor: "#2563eb",
+          backgroundColor: "var(--primary)",
           color: "#fff",
           fontWeight: "bold",
         }}
@@ -99,7 +99,7 @@ const ChatBox = () => {
       <div
         style={{
           display: "flex",
-          borderTop: "1px solid #ddd",
+          borderTop: "1px solid var(--border)",
           padding: "8px",
         }}
       >
@@ -112,8 +112,10 @@ const ChatBox = () => {
             flex: 1,
             padding: "8px",
             borderRadius: "6px",
-            border: "1px solid #ccc",
+            border: "1px solid var(--border)",
             outline: "none",
+            color: "var(--text-main)",
+            backgroundColor: "var(--surface)",
           }}
         />
 
@@ -122,7 +124,7 @@ const ChatBox = () => {
           style={{
             marginLeft: "8px",
             padding: "8px 12px",
-            backgroundColor: "#2563eb",
+            backgroundColor: "var(--primary)",
             color: "#fff",
             border: "none",
             borderRadius: "6px",

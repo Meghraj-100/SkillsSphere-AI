@@ -20,14 +20,14 @@ const ChatWidget = () => {
           width: "55px",
           height: "55px",
           borderRadius: "50%",
-          backgroundColor: "#2563eb",
+          backgroundColor: "var(--primary)",
           color: "#fff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize: "24px",
           cursor: "pointer",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+          boxShadow: "var(--shadow-soft)",
           zIndex: 1000,
         }}
       >

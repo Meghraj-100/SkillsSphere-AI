@@ -214,8 +214,8 @@ const DashboardPage = () => {
         <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
-              <p className="text-xs sm:text-sm font-medium text-blue-300 uppercase tracking-wider">Professional Intelligence</p>
+              <div className="h-2 w-2 rounded-full bg-blue-500 dark:bg-blue-500/20 animate-pulse"></div>
+              <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-300 uppercase tracking-wider">Professional Intelligence</p>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-500 dark:from-white dark:to-slate-400">
               Welcome, {user?.name || "Learner"}

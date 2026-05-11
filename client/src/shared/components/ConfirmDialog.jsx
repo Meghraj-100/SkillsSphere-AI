@@ -29,16 +29,16 @@ const ConfirmDialog = ({
 
   const variantStyles = {
     danger: {
-      icon: "bg-red-500/15 text-red-400 border-red-500/25",
-      button: "bg-red-600 hover:bg-red-500 focus:ring-red-500/40",
+      icon: "bg-red-100 text-red-900 border-red-300 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/25",
+      button: "bg-red-600 hover:bg-red-500 focus:ring-red-500/40 dark:bg-red-600 dark:hover:bg-red-500",
     },
     warning: {
-      icon: "bg-yellow-500/15 text-yellow-400 border-yellow-500/25",
-      button: "bg-yellow-600 hover:bg-yellow-500 focus:ring-yellow-500/40",
+      icon: "bg-yellow-100 text-yellow-900 border-yellow-300 dark:bg-yellow-500/15 dark:text-yellow-400 dark:border-yellow-500/25",
+      button: "bg-yellow-600 hover:bg-yellow-500 focus:ring-yellow-500/40 dark:bg-yellow-600 dark:hover:bg-yellow-500",
     },
     info: {
-      icon: "bg-blue-500/15 text-blue-400 border-blue-500/25",
-      button: "bg-blue-600 hover:bg-blue-500 focus:ring-blue-500/40",
+      icon: "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/25",
+      button: "bg-blue-600 hover:bg-blue-500 focus:ring-blue-500/40 dark:bg-blue-600 dark:hover:bg-blue-500",
     },
   };
 

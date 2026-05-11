@@ -156,8 +156,8 @@ const JobFilters = ({ onFilterChange }) => {
       </div>
 
       {/* Quick Tips */}
-      <div className="mt-8 p-4 bg-blue-500/5 rounded-xl border border-blue-500/10">
-        <p className="text-xs text-blue-300 leading-relaxed">
+      <div className="mt-8 p-4 bg-blue-100 dark:bg-blue-500/5 rounded-xl border border-blue-300 dark:border-blue-500/10">
+        <p className="text-xs text-blue-900 dark:text-blue-300 leading-relaxed">
           <span className="font-bold">Pro Tip:</span> Refine your search to find jobs matching your skill set more accurately.
         </p>
       </div>

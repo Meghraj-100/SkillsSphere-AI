@@ -199,7 +199,7 @@ const MyApplicationsPage = () => {
                           {job.skills.slice(0, 5).map((skill) => (
                             <span
                               key={skill}
-                              className="px-2 py-0.5 bg-blue-500/10 text-blue-300 text-xs rounded-md border border-blue-500/20"
+                              className="px-2 py-0.5 bg-blue-100 text-blue-900 dark:bg-blue-500/10 dark:text-blue-300 text-xs rounded-md border border-blue-300 dark:border-blue-500/20"
                             >
                               {skill}
                             </span>
