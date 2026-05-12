@@ -26,7 +26,7 @@ export const createJob = async (jobData, recruiterId) => {
  * @returns {Promise<Array>} - List of jobs
  */
 export const getAllJobs = async (queryParams = {}) => {
-  const { minSalary, maxSalary, designation, postedWithin } = queryParams;
+  const { minSalary, maxSalary, designation, postedWithin, page = 1, limit = 10 } = queryParams;
 
   // Base filter: only show open jobs
   const filters = { status: "open" };
@@ -72,11 +72,23 @@ export const getAllJobs = async (queryParams = {}) => {
     }
   }
 
-  const jobs = await JobPosting.find(filters)
-    .populate("recruiter", "name email company")
-    .sort("-createdAt");
+  const skip = (page - 1) * limit;
 
-  return jobs;
+  const [jobs, totalCount] = await Promise.all([
+    JobPosting.find(filters)
+      .populate("recruiter", "name email company")
+      .sort("-createdAt")
+      .skip(skip)
+      .limit(limit),
+    JobPosting.countDocuments(filters)
+  ]);
+
+  return {
+    jobs,
+    totalCount,
+    totalPages: Math.ceil(totalCount / limit),
+    currentPage: page
+  };
 };
 
 /**

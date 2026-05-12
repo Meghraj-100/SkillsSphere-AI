@@ -6,13 +6,15 @@ import { apiRequest } from "../../../services/apiClient";
  * @param {string} token - Auth token
  * @returns {Promise<Object>} - API response
  */
-export const getJobs = async (filters = {}, token) => {
+export const getJobs = async (filters = {}, token, page = 1, limit = 10) => {
   const queryParams = new URLSearchParams();
   
   if (filters.designation) queryParams.append("designation", filters.designation);
   if (filters.minSalary) queryParams.append("minSalary", filters.minSalary);
   if (filters.maxSalary) queryParams.append("maxSalary", filters.maxSalary);
   if (filters.postedWithin) queryParams.append("postedWithin", filters.postedWithin);
+  queryParams.append("page", page);
+  queryParams.append("limit", limit);
 
   const queryString = queryParams.toString();
   const path = `/api/jobs${queryString ? `?${queryString}` : ""}`;

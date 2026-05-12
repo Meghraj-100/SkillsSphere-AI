@@ -5,7 +5,7 @@ import Navbar from "../../../shared/landing/Navbar";
 import LoadingState from "../../../shared/components/LoadingState";
 import ErrorState from "../../../shared/components/ErrorState";
 import EmptyState from "../../../shared/components/EmptyState";
-import { JobViewerCard } from "../../../shared/components";
+import { JobViewerCard, Pagination } from "../../../shared/components";
 import JobFilters from "../components/JobFilters";
 import JobApplyForm from "../components/JobApplyForm";
 import { getJobs, applyToJob, getMyAppliedJobIds } from "../services/jobService";
@@ -19,13 +19,19 @@ const JobBoardPage = () => {
   const [appliedJobIds, setAppliedJobIds] = useState(new Set());
   const [applyingJobId, setApplyingJobId] = useState(null);
   const [applyModalJob, setApplyModalJob] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const fetchJobs = useCallback(async (currentFilters) => {
+  const fetchJobs = useCallback(async (currentFilters, page = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getJobs(currentFilters, token);
+      const response = await getJobs(currentFilters, token, page, 6);
       setJobs(response.jobs || []);
+      setCurrentPage(response.currentPage || 1);
+      setTotalPages(response.totalPages || 1);
+      setTotalCount(response.totalCount || 0);
 
       // Fetch applied status separately — don't block job loading if it fails
       try {
@@ -42,8 +48,16 @@ const JobBoardPage = () => {
   }, [token]);
 
   useEffect(() => {
-    fetchJobs(filters);
+    fetchJobs(filters, 1);
   }, [fetchJobs, filters]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      fetchJobs(filters, newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
@@ -136,6 +150,14 @@ const JobBoardPage = () => {
                   />
                 ))}
               </div>
+            )}
+
+            {!loading && !error && jobs.length > 0 && (
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
             )}
 
             {/* Quick Note */}

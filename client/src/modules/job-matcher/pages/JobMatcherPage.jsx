@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Sparkles, FileUp, AlertCircle, Briefcase } from "lucide-react";
 import Navbar from "../../../shared/landing/Navbar";
 import LoadingState from "../../../shared/components/LoadingState";
-import { JobViewerCard } from "../../../shared/components";
+import { JobViewerCard, Pagination } from "../../../shared/components";
 import JobApplyForm from "../../student-jobs/components/JobApplyForm";
 import { applyToJob, getMyAppliedJobIds } from "../../student-jobs/services/jobService";
 import { getRecommendations } from "../services/matcherService";
@@ -20,6 +20,8 @@ export default function JobMatcherPage() {
   const [appliedJobIds, setAppliedJobIds] = useState(new Set());
   const [applyingJobId, setApplyingJobId] = useState(null);
   const [applyModalJob, setApplyModalJob] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -156,7 +158,9 @@ export default function JobMatcherPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-5">
-              {jobs.map((job) => (
+              {jobs
+                .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+                .map((job) => (
                 <div key={job._id || job.id} className="relative">
                   {/* Match Score Badge */}
                   {job.matchScore != null && (
@@ -173,6 +177,15 @@ export default function JobMatcherPage() {
                 </div>
               ))}
             </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(jobs.length / ITEMS_PER_PAGE)}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
 
             {/* Browse all jobs link */}
             <div className="mt-10 text-center">

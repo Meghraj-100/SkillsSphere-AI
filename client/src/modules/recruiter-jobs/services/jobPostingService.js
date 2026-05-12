@@ -43,12 +43,15 @@ const handleServiceError = (error) => {
  * @param {string} token - Auth bearer token
  * @returns {Promise<{success: boolean, jobs: Array}>}
  */
-export const getRecruiterJobs = async (token) => {
+export const getRecruiterJobs = async (token, page = 1, limit = 10) => {
   try {
-    const response = await apiRequest("/api/jobs/recruiter", { token });
+    const response = await apiRequest(`/api/jobs/recruiter?page=${page}&limit=${limit}`, { token });
     return {
       success: true,
       jobs: response.jobs || response.data || [],
+      currentPage: response.currentPage || 1,
+      totalPages: response.totalPages || 1,
+      totalCount: response.totalCount || 0,
     };
   } catch (error) {
     const normalizedError = handleServiceError(error);
