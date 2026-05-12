@@ -8,7 +8,7 @@ import Input from "../../../shared/components/Input";
 import LoadingState from "../../../shared/components/LoadingState";
 import ErrorState from "../../../shared/components/ErrorState";
 import EmptyState from "../../../shared/components/EmptyState";
-import { JobViewerCard } from "../../../shared/components";
+import { JobViewerCard, Pagination } from "../../../shared/components";
 import { getRecruiterJobs, deleteJobPosting } from "../services/jobPostingService";
 
 const RecruiterJobsPage = () => {
@@ -18,14 +18,20 @@ const RecruiterJobsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (page = 1) => {
     setLoading(true);
     setError("");
 
     try {
-      const response = await getRecruiterJobs(token);
+      const response = await getRecruiterJobs(token, page, 6);
       setJobs(response.jobs || []);
+      setCurrentPage(response.currentPage || 1);
+      setTotalPages(response.totalPages || 1);
+      setTotalCount(response.totalCount || 0);
     } catch (err) {
       setError(err.message || "Failed to load job postings. Please try again later.");
       console.error("Failed to fetch jobs:", err);
@@ -42,9 +48,12 @@ const RecruiterJobsPage = () => {
       setError("");
 
       try {
-        const response = await getRecruiterJobs(token);
+        const response = await getRecruiterJobs(token, currentPage, 6);
         if (!ignore) {
           setJobs(response.jobs || []);
+          setCurrentPage(response.currentPage || 1);
+          setTotalPages(response.totalPages || 1);
+          setTotalCount(response.totalCount || 0);
         }
       } catch (err) {
         if (!ignore) {
@@ -63,6 +72,14 @@ const RecruiterJobsPage = () => {
       ignore = true;
     };
   }, [token]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      fetchJobs(newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   const filteredJobs = jobs.filter((job) => {
     const locationString = job.location
@@ -155,6 +172,14 @@ const RecruiterJobsPage = () => {
               />
             ))}
           </div>
+        )}
+
+        {!loading && !error && filteredJobs.length > 0 && !searchTerm && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         )}
       </div>
     </main>
