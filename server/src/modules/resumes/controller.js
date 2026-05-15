@@ -79,19 +79,24 @@ export const analyzeResume = async (req, res) => {
       });
     }
 
+    console.time("ResumeAnalysis");
     // Parse resume
+    console.time("ResumeParsing");
     const parsedData = await controllerDependencies.parseResume(file.path);
+    console.timeEnd("ResumeParsing");
 
     // Parse job inputs
     const jobSkills = JSON.parse(req.body.jobSkills || "[]");
     const jobDescription = req.body.jobDescription || "";
 
     // 🧠 RUN PIPELINE (ONLY LOGIC ENTRY)
+    console.time("PipelineExecution");
     const pipelineResult = await runPipeline({
       resumeData: parsedData,
       jobSkills,
       jobDescription,
     });
+    console.timeEnd("PipelineExecution");
 
     const evaluators = [];
     if (parsedData.skills?.length && jobSkills.length) {
@@ -104,12 +109,14 @@ export const analyzeResume = async (req, res) => {
     evaluators.push(experienceMatchEvaluator);
     
     // 🔗 LINK VERIFICATION: Check if extracted links are alive
+    console.time("LinkVerification");
     const linksToVerify = [
       parsedData.linkedin,
       parsedData.github,
       parsedData.portfolio
     ].filter(Boolean);
     const verifiedLinks = await verifyLinks(linksToVerify);
+    console.timeEnd("LinkVerification");
 
     // 🔥 Normalize everything
     const safeData = normalizeResumeData(parsedData);
@@ -141,21 +148,23 @@ export const analyzeResume = async (req, res) => {
       breakdown: safePipeline.breakdown || {},
     });
 
-    // Clean up: Limit history to last 10 versions to prevent bloat
+    // Clean up: Limit history to last 10 versions to prevent bloat (Optimized with direct deletion)
     const historyCount = await AnalysisHistory.countDocuments({ user: req.user._id });
     if (historyCount > 10) {
-      const oldestToKeep = await AnalysisHistory.find({ user: req.user._id })
-        .sort({ createdAt: -1 })
-        .skip(9)
-        .limit(1);
+      const surplus = historyCount - 10;
+      const oldestRecords = await AnalysisHistory.find({ user: req.user._id })
+        .sort({ createdAt: 1 })
+        .limit(surplus)
+        .select("_id");
       
-      if (oldestToKeep.length > 0) {
+      if (oldestRecords.length > 0) {
         await AnalysisHistory.deleteMany({
-          user: req.user._id,
-          createdAt: { $lt: oldestToKeep[0].createdAt }
+          _id: { $in: oldestRecords.map(r => r._id) }
         });
       }
     }
+
+    console.timeEnd("ResumeAnalysis");
 
     return res.status(200).json({
       success: true,

@@ -13,25 +13,27 @@ export const evaluateMatches = async (user, resume) => {
   // 1. Fetch all open jobs
   const openJobs = await JobPosting.find({ status: "open" });
 
-  const recommendations = [];
+  // 2. Evaluate each job using the AI/ML pipeline in parallel
+  console.time(`Matching evaluation for ${openJobs.length} jobs`);
+  const recommendations = await Promise.all(
+    openJobs.map(async (job) => {
+      const pipelineResult = await runPipeline({
+        resumeData: resume,
+        jobSkills: job.skills,
+        jobDescription: job.description,
+      });
 
-  // 2. Evaluate each job using the AI/ML pipeline
-  for (const job of openJobs) {
-    const pipelineResult = await runPipeline({
-      resumeData: resume,
-      jobSkills: job.skills,
-      jobDescription: job.description,
-    });
-
-    recommendations.push({
-      job: job._id,
-      score: pipelineResult.score,
-      breakdown: pipelineResult.breakdown,
-      skillMatch: pipelineResult.skillMatch,
-      keywordMatch: pipelineResult.keywordMatch,
-      experienceMatch: pipelineResult.experienceMatch,
-    });
-  }
+      return {
+        job: job._id,
+        score: pipelineResult.score,
+        breakdown: pipelineResult.breakdown,
+        skillMatch: pipelineResult.skillMatch,
+        keywordMatch: pipelineResult.keywordMatch,
+        experienceMatch: pipelineResult.experienceMatch,
+      };
+    })
+  );
+  console.timeEnd(`Matching evaluation for ${openJobs.length} jobs`);
 
   // 3. Sort by score (highest first)
   recommendations.sort((a, b) => b.score - a.score);

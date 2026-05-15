@@ -143,5 +143,10 @@ const resumeSchema = new mongoose.Schema(
 
 const Resume = mongoose.model("Resume", resumeSchema);
 
+// Indexes for efficient matching and retrieval
+Resume.schema.index({ user: 1 });
+Resume.schema.index({ skills: 1 });
+Resume.schema.index({ createdAt: -1 });
+
 export default Resume;
 

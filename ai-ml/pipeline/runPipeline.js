@@ -74,130 +74,142 @@ export async function runPipeline({
 
   const resumeText = resumeData.resumeText || "";
 
-  // 🟢 Skill Match
-  const skillMatch = isJDProvided
-    ? await safeEval("skillMatch", () =>
-        skillEvaluator({
-          resumeSkills: resumeData.skills || [],
-          jobSkills: finalJobSkills,
+  // 🔥 RUN EVALUATORS IN PARALLEL
+  const [
+    skillMatch,
+    keywordMatch,
+    experienceMatch,
+    semanticMatchResult,
+    consistencyMatch,
+    readabilityMatch,
+    impactMatch,
+    atsOptimization,
+    techStandard
+  ] = await Promise.all([
+    // 🟢 Skill Match
+    isJDProvided
+      ? safeEval("skillMatch", () =>
+          skillEvaluator({
+            resumeSkills: resumeData.skills || [],
+            jobSkills: finalJobSkills,
+          }),
+        )
+      : Promise.resolve({
+          score: null,
+          name: "skillMatch",
+          message: "No job description provided",
         }),
-      )
-    : {
-        score: null,
-        name: "skillMatch",
-        message: "No job description provided",
-      };
 
-  evaluations.push(skillMatch);
-
-  // 🟡 Keyword Match
-  const keywordMatch = isJDProvided
-    ? await safeEval("keywordMatch", () =>
-        keywordEvaluator({
-          resumeText,
-          jobDescription,
-          resumeSkills: resumeData.skills || [],
-          jobSkills: finalJobSkills,
+    // 🟡 Keyword Match
+    isJDProvided
+      ? safeEval("keywordMatch", () =>
+          keywordEvaluator({
+            resumeText,
+            jobDescription,
+            resumeSkills: resumeData.skills || [],
+            jobSkills: finalJobSkills,
+          }),
+        )
+      : Promise.resolve({
+          score: null,
+          name: "keywordMatch",
+          message: "No job description provided",
         }),
-      )
-    : {
-        score: null,
-        name: "keywordMatch",
-        message: "No job description provided",
-      };
 
-  evaluations.push(keywordMatch);
-
-  // 🔵 Experience Match
-  const experienceMatch = isJDProvided
-    ? await safeEval("experienceMatch", () =>
-        experienceEvaluator({
-          candidateExperienceText: parseExperience(resumeData.experience),
-          jobDescription,
+    // 🔵 Experience Match
+    isJDProvided
+      ? safeEval("experienceMatch", () =>
+          experienceEvaluator({
+            candidateExperienceText: parseExperience(resumeData.experience),
+            jobDescription,
+          }),
+        )
+      : Promise.resolve({
+          score: null,
+          name: "experienceMatch",
+          message: "No job description provided",
         }),
-      )
-    : {
-        score: null,
-        name: "experienceMatch",
-        message: "No job description provided",
-      };
 
-  evaluations.push(experienceMatch);
+    // 🌀 Semantic Match
+    (async () => {
+      const hasHFKey = !!process.env.HF_API_TOKEN;
+      if (!isJDProvided) {
+        return {
+          score: null,
+          name: "semanticMatch",
+          message: "No job description provided",
+        };
+      } else if (!hasHFKey) {
+        return {
+          score: 0,
+          name: "semanticMatch",
+          key: "semanticMatch",
+          label: "Semantic Match",
+          weight: 0,
+          weightedScore: 0,
+          summary: "Semantic evaluation skipped — no API key",
+          details: {},
+          meta: {},
+        };
+      } else {
+        return await safeEval("semanticMatch", () =>
+          semanticEvaluator({
+            resumeText,
+            jobDescription,
+          }),
+        );
+      }
+    })(),
 
-  // 🌀 Semantic Match
-  const hasHFKey = !!process.env.HF_API_TOKEN;
-  let semanticMatch;
-
-  if (!isJDProvided) {
-    semanticMatch = {
-      score: null,
-      name: "semanticMatch",
-      message: "No job description provided",
-    };
-  } else if (!hasHFKey) {
-    semanticMatch = {
-      score: 0,
-      name: "semanticMatch",
-      key: "semanticMatch",
-      label: "Semantic Match",
-      weight: 0,
-      weightedScore: 0,
-      summary: "Semantic evaluation skipped — no API key",
-      details: {},
-      meta: {},
-    };
-  } else {
-    semanticMatch = await safeEval("semanticMatch", () =>
-      semanticEvaluator({
+    // 🟣 Consistency Match
+    safeEval("consistencyMatch", () =>
+      consistencyEvaluator({
         resumeText,
-        jobDescription,
       }),
-    );
-  }
+    ),
 
-  evaluations.push(semanticMatch);
+    // 🟠 Readability Match
+    safeEval("readabilityMatch", () =>
+      readabilityEvaluator({
+        resumeText,
+      }),
+    ),
 
-  // 🟣 Consistency Match
-  const consistencyMatch = await safeEval("consistencyMatch", () =>
-    consistencyEvaluator({
-      resumeText,
-    }),
+    // 💥 Impact Match
+    safeEval("impactMatch", () =>
+      impactEvaluator({
+        resumeText,
+      }),
+    ),
+
+    // 🏗️ ATS Optimization
+    safeEval("atsOptimization", () =>
+      atsOptimizationEvaluator({
+        resumeData,
+      }),
+    ),
+
+    // 🏛️ Tech Standard
+    safeEval("techStandard", () =>
+      techStandardEvaluator({
+        resumeText,
+      }),
+    ),
+  ]);
+
+  const semanticMatch = semanticMatchResult;
+
+  evaluations.push(
+    skillMatch,
+    keywordMatch,
+    experienceMatch,
+    semanticMatch,
+    { ...consistencyMatch, name: "consistencyMatch" },
+    { ...readabilityMatch, name: "readabilityMatch" },
+    impactMatch,
+    atsOptimization,
+    techStandard
   );
-  evaluations.push({ ...consistencyMatch, name: "consistencyMatch" });
-
-  // 🟠 Readability Match
-  const readabilityMatch = await safeEval("readabilityMatch", () =>
-    readabilityEvaluator({
-      resumeText,
-    }),
-  );
-  evaluations.push({ ...readabilityMatch, name: "readabilityMatch" });
-
-  // 🔥 Advanced Evaluators
-
-  // 💥 Impact Match
-  const impactMatch = await safeEval("impactMatch", () =>
-    impactEvaluator({
-      resumeText,
-    }),
-  );
-  evaluations.push(impactMatch);
-
-  // 🏗️ ATS Optimization
-  const atsOptimization = await safeEval("atsOptimization", () =>
-    atsOptimizationEvaluator({
-      resumeData,
-    }),
-  );
-  evaluations.push(atsOptimization);
-
-  // 🏛️ Tech Standard
-  const techStandard = await safeEval("techStandard", () =>
-    techStandardEvaluator({
-      resumeText,
-    }),
-  );
-  evaluations.push(techStandard);
 
   // 🧠 Aggregate
   const result = aggregateResults(evaluations, isJDProvided);

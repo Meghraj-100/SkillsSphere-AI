@@ -141,6 +141,9 @@ jobPostingSchema.path("salary.max").validate(function (value) {
 jobPostingSchema.index({ title: "text" });
 jobPostingSchema.index({ "salary.min": 1, "salary.max": 1 });
 jobPostingSchema.index({ status: 1, createdAt: -1 });
+jobPostingSchema.index({ jobLevel: 1 });
+jobPostingSchema.index({ "location.city": 1 });
+jobPostingSchema.index({ skills: 1 });
 
 const JobPosting = mongoose.model("JobPosting", jobPostingSchema);
 export default JobPosting;

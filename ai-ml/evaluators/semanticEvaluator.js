@@ -1,17 +1,12 @@
-/**
- * Semantic Evaluator — Hugging Face Inference API
- *
- * Uses the sentence-transformers/all-MiniLM-L6-v2 model via the
- * HF sentence-similarity pipeline to compute semantic similarity
- * between a resume and a job description.
- *
- * Requires: HF_API_TOKEN environment variable (free tier)
- */
+import crypto from "crypto";
+import SemanticCache from "../../server/src/database/models/SemanticCache.js";
 
 const HF_MODEL_URL =
   "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/sentence-similarity";
 
 const roundToTwo = (value) => Number(value.toFixed(2));
+
+const getHash = (text) => crypto.createHash("md5").update(text.trim()).digest("hex");
 
 /**
  * Calls the HF sentence-similarity pipeline directly.
@@ -97,13 +92,33 @@ export const semanticEvaluator = async ({ resumeText = "", jobDescription = "" }
   }
 
   try {
+    const resumeHash = getHash(resumeText);
+    const jdHash = getHash(jobDescription);
+
+    // 🔍 Check cache first
+    const cachedResult = await SemanticCache.findOne({ resumeHash, jdHash });
+    if (cachedResult) {
+      console.log("[semanticEvaluator] ⚡ Cache hit! Skipping API call.");
+      return {
+        key: KEY,
+        label: LABEL,
+        score: cachedResult.score,
+        summary: cachedResult.summary,
+        details: cachedResult.details,
+        meta: {
+          ...cachedResult.meta,
+          cached: true
+        }
+      };
+    }
+
     const similarity = await computeSimilarity(resumeText, jobDescription);
     const normalized = Math.max(0, Math.min(1, similarity));
     const score = roundToTwo(normalized * 100);
 
     const feedback = buildFeedback(score);
 
-    return {
+    const result = {
       key: KEY,
       label: LABEL,
       score,
@@ -116,6 +131,19 @@ export const semanticEvaluator = async ({ resumeText = "", jobDescription = "" }
         provider: "huggingface"
       }
     };
+
+    // 💾 Save to cache
+    await SemanticCache.create({
+      resumeHash,
+      jdHash,
+      similarity: normalized,
+      score,
+      summary: feedback,
+      details: result.details,
+      meta: result.meta,
+    });
+
+    return result;
   } catch (error) {
     throw new Error(`Semantic evaluation failed: ${error.message}`);
   }
