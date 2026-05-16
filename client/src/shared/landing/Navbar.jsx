@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Home, FileText, LayoutDashboard, MessageSquare, LogIn, UserPlus, X, Menu, LogOut, User, ChevronDown, Briefcase, Moon, Sun, Sparkles } from 'lucide-react';
+import { Home, FileText, LayoutDashboard, MessageSquare, LogIn, UserPlus, X, Menu, LogOut, User, ChevronDown, Briefcase, Moon, Sun, Sparkles, Rocket } from 'lucide-react';
 import Button from './Button';
 import { logout } from '../../features/auth/authSlice';
 import { getProtectedAssetUrl } from '../../utils/protectedAssetUrl';
@@ -58,7 +58,8 @@ const Navbar = () => {
       : [
           { name: 'Job Board', path: '/jobs', icon: <Briefcase size={20} /> },
           { name: 'Job Match', path: '/job-matcher', icon: <Sparkles size={20} /> },
-          { name: 'Resume Analyzer', path: '/resume-analyzer', icon: <FileText size={20} /> }
+          { name: 'Resume Analyzer', path: '/resume-analyzer', icon: <FileText size={20} /> },
+          { name: 'Roadmap', path: '/roadmap', icon: <Rocket size={20} /> }
         ]
     ),
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
