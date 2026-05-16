@@ -43,9 +43,9 @@ const RoadmapPage = () => {
     }
   };
 
-  if (loading) return <LoadingState message="Mapping your career path..." />;
+  if (loading) return <LoadingState title="Mapping your career path..." description="Gathering insights from your profile" />;
 
-  if (!roadmap) {
+  if (!roadmap || !roadmap.roadmap) {
     return (
       <div className="min-h-screen bg-dark-bg text-white">
         <Navbar />
