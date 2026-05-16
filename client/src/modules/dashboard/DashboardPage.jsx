@@ -44,6 +44,7 @@ import { getRecruiterJobs } from "../recruiter-jobs/services/jobPostingService";
 import SuggestionItem from "./components/SuggestionItem";
 import StatCard from "./components/StatCard";
 import PerformanceTrend from "./components/PerformanceTrend";
+import VersionComparisonModal from "./components/VersionComparisonModal";
 
 const ROLE_LABELS = {
   student: "Student",
@@ -503,7 +504,20 @@ const DashboardPage = () => {
                     <Clock className="text-violet-400" size={20} />
                     <h2 className="text-lg font-bold">Analysis History</h2>
                   </div>
-                  <span className="text-xs font-medium text-gray-500 dark:text-slate-500">{history.length} records found</span>
+                  <div className="flex items-center gap-4">
+                    {selectedVersions.length === 2 && (
+                      <Button 
+                        size="xs" 
+                        variant="primary" 
+                        leftIcon={<TrendingUp size={12} />}
+                        onClick={() => setShowComparison(true)}
+                        className="bg-blue-600 hover:bg-blue-500 animate-in zoom-in-95 duration-200"
+                      >
+                        Compare Selected ({selectedVersions.length})
+                      </Button>
+                    )}
+                    <span className="text-xs font-medium text-gray-500 dark:text-slate-500">{history.length} records found</span>
+                  </div>
                 </div>
                 
                 <div className="overflow-x-auto">
@@ -717,100 +731,44 @@ const DashboardPage = () => {
         </section>
       </div>
 
-      {/* Floating Comparison Bar */}
-      {selectedVersions.length === 2 && !showComparison && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-blue-500/50 p-4 rounded-2xl shadow-[0_0_30px_rgba(59,130,246,0.3)] flex items-center gap-6 animate-slide-up">
-          <div className="text-sm font-bold">
-            <span className="text-blue-400">2 Versions Selected</span>
+      {/* Comparison Modal */}
+      <VersionComparisonModal 
+        isOpen={showComparison}
+        onClose={() => setShowComparison(false)}
+        versions={compareData}
+      />
+
+      {/* Floating Selection Bar */}
+      {selectedVersions.length > 0 && !showComparison && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-blue-500/30 p-4 rounded-2xl shadow-2xl flex items-center gap-6 animate-slide-up">
+          <div className="flex items-center gap-3">
+            <div className="flex -space-x-2">
+              {selectedVersions.map((_, i) => (
+                <div key={i} className="h-8 w-8 rounded-full bg-blue-600 border-2 border-slate-900 flex items-center justify-center text-[10px] font-black">
+                  V{i + 1}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs font-bold text-white whitespace-nowrap">
+              {selectedVersions.length} {selectedVersions.length === 1 ? 'version' : 'versions'} selected
+            </p>
           </div>
-          <div className="h-8 w-px bg-white/10"></div>
-          <div className="flex gap-3">
+          
+          <div className="flex items-center gap-2 border-l border-white/10 pl-4">
             <button 
               onClick={() => setSelectedVersions([])}
               className="px-4 py-2 text-xs font-bold uppercase text-slate-400 hover:text-white transition-colors"
             >
               Clear
             </button>
-            <button 
-              onClick={() => setShowComparison(true)}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase rounded-xl transition-all shadow-lg"
-            >
-              Compare Now
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Comparison Overlay */}
-      {showComparison && compareData && (
-        <div className="fixed inset-0 z-[60] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-300">
-          <div className="bg-slate-900 border border-white/10 w-full max-w-5xl rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
-              <h2 className="text-2xl font-black italic">Version <span className="text-blue-400">Comparison</span></h2>
+            {selectedVersions.length === 2 && (
               <button 
-                onClick={() => setShowComparison(false)}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                onClick={() => setShowComparison(true)}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase rounded-xl transition-all shadow-lg shadow-blue-600/20"
               >
-                <PlusCircle className="rotate-45 text-slate-400" size={24} />
+                Compare Now
               </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
-                <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/10 -translate-x-1/2 hidden md:block"></div>
-                
-                {compareData.map((version, i) => (
-                  <div key={i} className="space-y-8">
-                    <div className="text-center">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Version {i + 1}</p>
-                      <h3 className="text-lg font-bold">{version ? new Date(version.createdAt).toLocaleString() : 'N/A'}</h3>
-                    </div>
-                    
-                    {/* Score Metric */}
-                    <div className="bg-white/5 border border-white/5 rounded-2xl p-6 text-center">
-                       <div className={`text-5xl font-black mb-2 ${version?.score >= 70 ? 'text-emerald-400' : version?.score >= 40 ? 'text-yellow-400' : 'text-red-400'}`}>
-                         {version?.score || 0}%
-                       </div>
-                       <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{version?.classification}</p>
-                    </div>
-
-                    {/* Detail breakdown */}
-                    <div className="space-y-4">
-                      {['impactMatch', 'readabilityMatch', 'keywordMatch'].map(key => {
-                        const score = version?.breakdown?.[key] || 0;
-                        const label = key.replace(/([A-Z])/g, ' $1').trim();
-                        return (
-                          <div key={key} className="space-y-1.5">
-                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight text-slate-400">
-                              <span className="capitalize">{label}</span>
-                              <span>{score}%</span>
-                            </div>
-                            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                              <div 
-                                className={`h-full transition-all duration-1000 ${score >= 70 ? 'bg-emerald-500' : score >= 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                style={{ width: `${score}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Top Skills */}
-                    <div className="space-y-2">
-                       <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Key Skills Found</h4>
-                       <div className="flex flex-wrap gap-1.5">
-                          {version?.skills?.slice(0, 5).map((s, idx) => (
-                            <span key={idx} className="px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold rounded">
-                              {s}
-                            </span>
-                          ))}
-                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
