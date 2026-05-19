@@ -59,8 +59,20 @@ const learningProgressSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
+
+// Virtual to check if any tutor has assigned custom resources on this roadmap
+learningProgressSchema.virtual("hasTutorResources").get(function () {
+  if (!this.roadmap) return false;
+  return this.roadmap.some(topic => 
+    topic.resources && topic.resources.some(res => res.tutorAssigned)
+  );
+});
 
 // Middleware to calculate overall progress before saving
 learningProgressSchema.pre("save", function (next) {

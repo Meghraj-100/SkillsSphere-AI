@@ -7,10 +7,11 @@ import Navbar from "../../../shared/landing/Navbar";
 import { 
   getStudentsRoadmaps, getStudentRoadmap, assignTutorResource, verifyTopic 
 } from "../services/roadmapService";
-import LoadingState from "../../../shared/components/LoadingState";
+import { LoadingState, useToast } from "../../../shared/components";
 
 export default function TutorRoadmapLobby() {
   const { user } = useSelector((state) => state.auth);
+  const { success: showSuccess, error: showError } = useToast();
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentDetails, setStudentDetails] = useState(null);
@@ -66,9 +67,11 @@ export default function TutorRoadmapLobby() {
         setStudentDetails(response.data);
         // Refresh local student progress list
         setStudents(prev => prev.map(s => s._id === studentDetails._id ? response.data : s));
+        showSuccess(nextVerifyState ? "Milestone verified successfully!" : "Milestone verification removed.");
       }
     } catch (err) {
       console.error("Failed to toggle verification:", err);
+      showError(err.message || "Failed to update milestone verification state.");
     }
   };
 
@@ -92,9 +95,11 @@ export default function TutorRoadmapLobby() {
         setResourceTitle("");
         setResourceUrL("");
         setActiveTopicId(null);
+        showSuccess("Custom resource link assigned successfully!");
       }
     } catch (err) {
       console.error("Failed to assign resource:", err);
+      showError(err.message || "Failed to assign learning resource. Please verify input data.");
     } finally {
       setActionLoading(false);
     }

@@ -3,10 +3,11 @@ import { useSelector } from "react-redux";
 import { CheckCircle2, Circle, Clock, Rocket, Target, Award, ArrowRight } from "lucide-react";
 import Navbar from "../../../shared/landing/Navbar";
 import { getMyRoadmap, updateTopicStatus } from "../services/roadmapService";
-import LoadingState from "../../../shared/components/LoadingState";
+import { LoadingState, useToast } from "../../../shared/components";
 
 const RoadmapPage = () => {
   const { user } = useSelector((state) => state.auth);
+  const { success: showSuccess, error: showError } = useToast();
   const [roadmap, setRoadmap] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
@@ -35,9 +36,11 @@ const RoadmapPage = () => {
       const response = await updateTopicStatus(topicId, nextStatus);
       if (response.success) {
         setRoadmap(response.data);
+        showSuccess(`Milestone marked as ${nextStatus === "completed" ? "Completed" : "In Progress"}.`);
       }
     } catch (err) {
       console.error("Update failed:", err);
+      showError(err.message || "Failed to update milestone status.");
     } finally {
       setUpdatingId(null);
     }

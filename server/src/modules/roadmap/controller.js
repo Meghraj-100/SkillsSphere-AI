@@ -163,10 +163,19 @@ export const assignTutorResource = asyncHandler(async (req, res) => {
     throw new AppError("Topic not found in student's roadmap", 404);
   }
 
+  // Prevent duplicate resource links on the same topic
+  const urlTrimmed = url.trim().toLowerCase();
+  const isDuplicate = topic.resources.some(
+    (res) => res.url.trim().toLowerCase() === urlTrimmed
+  );
+  if (isDuplicate) {
+    throw new AppError("This resource URL has already been assigned to this topic", 400);
+  }
+
   // Push new resource with tutorAssigned: true
   topic.resources.push({
-    title,
-    url,
+    title: title.trim(),
+    url: url.trim(),
     type,
     tutorAssigned: true,
     assignedBy: req.user._id

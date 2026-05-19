@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import * as jobService from "../service.js";
 import JobPosting from "../../../database/models/JobPosting.js";
 import JobApplication from "../../../database/models/JobApplication.js";
+import Resume from "../../../database/models/Resume.js";
 import AppError from "../../../utils/AppError.js";
+import * as resumeService from "../../resumes/service.js";
+import matchingService from "../../matching/service.js";
 
 describe("Job Service", () => {
   afterEach(() => {
@@ -128,6 +131,62 @@ describe("Job Service", () => {
           return true;
         }
       );
+    });
+  });
+
+  describe("getJobRecommendations", () => {
+    it("should return job recommendations successfully and call DB limit(100)", async () => {
+      const mockUser = { _id: "user123" };
+      const mockResume = {
+        _id: "resume123",
+        skills: ["React"],
+        keywords: ["Developer"]
+      };
+
+      const mockQuery = {
+        select: mock.fn(() => mockQuery),
+        lean: mock.fn(async () => mockResume)
+      };
+      mock.method(Resume, "findOne", () => mockQuery);
+
+      const mockJobs = [
+        {
+          _id: "job123",
+          title: "Software Engineer",
+          skills: ["React"],
+          description: "Develop React apps",
+          _doc: { _id: "job123", title: "Software Engineer", skills: ["React"], description: "Develop React apps" }
+        }
+      ];
+
+      const mockLimitFn = mock.fn(async () => mockJobs);
+      mock.method(JobPosting, "find", () => ({
+        limit: mockLimitFn
+      }));
+
+      const mockMatchResult = {
+        recommendations: [
+          {
+            job: "job123",
+            score: 85,
+            breakdown: { skill: 90, experience: 80 },
+            skillMatch: { feedback: ["Great match"] }
+          }
+        ]
+      };
+      mock.method(matchingService, "evaluateMatches", async () => mockMatchResult);
+
+      const result = await jobService.getJobRecommendations(mockUser);
+
+      assert.equal(Resume.findOne.mock.calls.length, 1);
+      assert.equal(JobPosting.find.mock.calls.length, 1);
+      assert.equal(mockLimitFn.mock.calls.length, 1);
+      assert.equal(mockLimitFn.mock.calls[0].arguments[0], 100);
+      assert.equal(matchingService.evaluateMatches.mock.calls.length, 1);
+      assert.equal(result.success, true);
+      assert.equal(result.jobs.length, 1);
+      assert.equal(result.jobs[0].matchScore, 85);
+      assert.equal(result.jobs[0].relevanceInsights, "Great match");
     });
   });
 });
