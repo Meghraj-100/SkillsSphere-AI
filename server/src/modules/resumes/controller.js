@@ -17,8 +17,6 @@ import {
 import * as resumeService from "./service.js";
 import AnalysisHistory from "../../database/models/AnalysisHistory.js";
 import { verifyLinks } from "../../utils/linkVerifier.js";
-import { buildResumeFileUrl } from "../../utils/uploadPaths.js";
-import { generateComparisonInsights } from "../../utils/aiComparison.js";
 
 const defaultDependencies = {
   parseResume,
