@@ -91,6 +91,10 @@ export const semanticEvaluator = async ({ resumeText = "", jobDescription = "" }
     };
   }
 
+  if (!process.env.HF_API_TOKEN) {
+    throw new Error("HF_API_TOKEN environment variable is not set");
+  }
+
   try {
     const resumeHash = getHash(resumeText);
     const jdHash = getHash(jobDescription);
