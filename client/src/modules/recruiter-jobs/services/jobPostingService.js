@@ -10,7 +10,15 @@ import { apiRequest, normalizeApiError } from "../../../services/apiClient";
  * Normalize service errors for consistent frontend handling
  */
 const handleServiceError = (error) => {
-  const normalized = normalizeApiError(error);
+  let normalized = normalizeApiError(error);
+
+  if (!normalized || typeof normalized !== "object") {
+    normalized = {
+      message: error?.message || "Something went wrong",
+      status: error?.status || 500,
+      errors: error?.errors || {},
+    };
+  }
 
   // Map status codes to user-friendly messages
   if (normalized.status === 401 || normalized.status === 403) {
