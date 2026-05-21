@@ -6,6 +6,7 @@ import store from '../store/index';
 import App from './App.jsx';
 import './index.css';
 import { ToastProvider } from '../shared/components';
+import ErrorBoundary from '../components/ErrorBoundary.jsx';
 if (import.meta.env.DEV && typeof window !== 'undefined') {
   const originalError = console.error;
   console.error = (...args) => {
@@ -31,7 +32,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <BrowserRouter>
         <ToastProvider>
-          <App />
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
         </ToastProvider>
       </BrowserRouter>
     </Provider>

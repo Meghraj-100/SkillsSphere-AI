@@ -50,16 +50,16 @@ function App() {
   return (
     <div className="min-h-screen bg-white text-black dark:bg-dark-bg dark:text-text-main transition-colors duration-300">
       <SocketNotificationListener />
-      
+
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route 
-          path="/job-matcher" 
+        <Route
+          path="/job-matcher"
           element={
             <ProtectedRoute requiredRole="student">
               <JobMatcherPage />
             </ProtectedRoute>
-          } 
+          }
         />
         <Route
           path="/my-applications"
@@ -69,22 +69,24 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {import.meta.env.DEV && <Route path="/demo" element={<ComponentDemo />} />}
-        <Route 
-          path="/resume-analyzer" 
+        {import.meta.env.DEV && (
+          <Route path="/demo" element={<ComponentDemo />} />
+        )}
+        <Route
+          path="/resume-analyzer"
           element={
             <ProtectedRoute requiredRole="student">
               <ResumeAnalyzerPage />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/cover-letters" 
+        <Route
+          path="/cover-letters"
           element={
             <ProtectedRoute requiredRole="student">
               <CoverLetterHistoryPage />
             </ProtectedRoute>
-          } 
+          }
         />
         <Route
           path="/dashboard"
@@ -167,7 +169,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* Tutor Roadmap Lobby */}
         <Route
           path="/tutor/roadmaps"
@@ -177,7 +179,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* Live Classrooms */}
         <Route
           path="/classrooms"
@@ -229,7 +231,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* Tutor Interview Console */}
         <Route
           path="/tutor/interviews"

@@ -5,17 +5,23 @@ export function initClassroomSockets(io) {
     console.log(`Socket connected: ${socket.id}`);
 
     // Join a specific room
-    socket.on("join-room", ({ roomId }) => {
+    socket.on("join-room", async ({ roomId }) => {
       socket.join(roomId);
-      
-      // Store user info in socket instance to easily retrieve later
-      const user = socket.user; // Secure, derived from JWT
-      socket.data = { roomId, user };
+
+      try {
+        // Store user info in socket instance to easily retrieve later
+        const user = socket.user; // Secure, derived from JWT
+        socket.data = { roomId, user };
 
         // Validate session in database
-        const session = await ClassroomSession.findOne({ roomId, status: "active" });
+        const session = await ClassroomSession.findOne({
+          roomId,
+          status: "active",
+        });
         if (!session) {
-          socket.emit("unauthorized", { message: "Classroom session not found or has already ended" });
+          socket.emit("unauthorized", {
+            message: "Classroom session not found or has already ended",
+          });
           socket.disconnect(true);
           return;
         }
@@ -23,29 +29,33 @@ export function initClassroomSockets(io) {
         // Use authenticated user from middleware
         const currentUser = socket.user || user;
         if (!currentUser) {
-          socket.emit("unauthorized", { message: "User authentication required" });
+          socket.emit("unauthorized", {
+            message: "User authentication required",
+          });
           socket.disconnect(true);
           return;
         }
 
         socket.join(roomId);
-        
+
         // Store validated user and roomId info in socket instance
-        socket.data = { 
-          roomId, 
-          user: { 
-            id: currentUser._id || currentUser.id, 
+        socket.data = {
+          roomId,
+          user: {
+            id: currentUser._id || currentUser.id,
             name: currentUser.name || currentUser.email,
-            role: currentUser.role
-          } 
+            role: currentUser.role,
+          },
         };
 
-        console.log(`User ${socket.data.user.name} (${socket.id}) joined room ${roomId}`);
+        console.log(
+          `User ${socket.data.user.name} (${socket.id}) joined room ${roomId}`,
+        );
 
         // Notify others in the room that a new user joined
         socket.to(roomId).emit("user-joined", {
           socketId: socket.id,
-          user: socket.data.user
+          user: socket.data.user,
         });
 
         // Get all clients currently in the room
@@ -57,7 +67,7 @@ export function initClassroomSockets(io) {
             if (clientSocket && clientSocket.data?.user) {
               participants.push({
                 socketId: clientId,
-                user: clientSocket.data.user
+                user: clientSocket.data.user,
               });
             }
           }
@@ -76,14 +86,16 @@ export function initClassroomSockets(io) {
     socket.on("chat-message", ({ roomId, message }) => {
       // Validate that the socket is actually joined to this roomId
       if (!socket.data || socket.data.roomId !== roomId) {
-        socket.emit("unauthorized", { message: "Cross-classroom action detected" });
+        socket.emit("unauthorized", {
+          message: "Cross-classroom action detected",
+        });
         return;
       }
 
       socket.to(roomId).emit("chat-message", {
         sender: socket.data.user,
         message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     });
 
@@ -91,14 +103,16 @@ export function initClassroomSockets(io) {
     socket.on("toggle-hand-raise", ({ roomId, isRaised }) => {
       // Validate that the socket is actually joined to this roomId
       if (!socket.data || socket.data.roomId !== roomId) {
-        socket.emit("unauthorized", { message: "Cross-classroom action detected" });
+        socket.emit("unauthorized", {
+          message: "Cross-classroom action detected",
+        });
         return;
       }
 
       // Broadcast hand raise status to others
       socket.to(roomId).emit("hand-raise-toggled", {
         socketId: socket.id,
-        isRaised
+        isRaised,
       });
     });
 
@@ -107,7 +121,7 @@ export function initClassroomSockets(io) {
       socket.to(targetSocketId).emit("webrtc-offer", {
         callerSocketId: socket.id,
         callerUser: socket.data ? socket.data.user : socket.user,
-        offer
+        offer,
       });
     });
 
@@ -119,14 +133,20 @@ export function initClassroomSockets(io) {
       }
 
       const targetSocket = io.sockets.sockets.get(targetSocketId);
-      if (!targetSocket || !targetSocket.data || targetSocket.data.roomId !== socket.data.roomId) {
-        socket.emit("unauthorized", { message: "Target user is not in your classroom" });
+      if (
+        !targetSocket ||
+        !targetSocket.data ||
+        targetSocket.data.roomId !== socket.data.roomId
+      ) {
+        socket.emit("unauthorized", {
+          message: "Target user is not in your classroom",
+        });
         return;
       }
 
       socket.to(targetSocketId).emit("webrtc-answer", {
         answererSocketId: socket.id,
-        answer
+        answer,
       });
     });
 
@@ -135,19 +155,23 @@ export function initClassroomSockets(io) {
     // Draw stroke event
     socket.on("draw-stroke", ({ roomId, strokeData }) => {
       if (!socket.data || socket.data.roomId !== roomId) {
-        socket.emit("unauthorized", { message: "Cross-classroom action detected" });
+        socket.emit("unauthorized", {
+          message: "Cross-classroom action detected",
+        });
         return;
       }
       socket.to(roomId).emit("draw-stroke", {
         strokeData,
-        sender: socket.data.user
+        sender: socket.data.user,
       });
     });
 
     // Clear canvas event
     socket.on("clear-canvas", ({ roomId }) => {
       if (!socket.data || socket.data.roomId !== roomId) {
-        socket.emit("unauthorized", { message: "Cross-classroom action detected" });
+        socket.emit("unauthorized", {
+          message: "Cross-classroom action detected",
+        });
         return;
       }
       socket.to(roomId).emit("clear-canvas");
@@ -156,7 +180,9 @@ export function initClassroomSockets(io) {
     // Code change event
     socket.on("code-change", ({ roomId, code }) => {
       if (!socket.data || socket.data.roomId !== roomId) {
-        socket.emit("unauthorized", { message: "Cross-classroom action detected" });
+        socket.emit("unauthorized", {
+          message: "Cross-classroom action detected",
+        });
         return;
       }
       socket.to(roomId).emit("code-change", { code });
@@ -165,13 +191,15 @@ export function initClassroomSockets(io) {
     // Code cursor event
     socket.on("code-cursor", ({ roomId, cursorPosition }) => {
       if (!socket.data || socket.data.roomId !== roomId) {
-        socket.emit("unauthorized", { message: "Cross-classroom action detected" });
+        socket.emit("unauthorized", {
+          message: "Cross-classroom action detected",
+        });
         return;
       }
       socket.to(roomId).emit("code-cursor", {
         cursorPosition,
         senderId: socket.id,
-        senderName: socket.data.user?.name || "Participant"
+        senderName: socket.data.user?.name || "Participant",
       });
     });
 
@@ -182,7 +210,7 @@ export function initClassroomSockets(io) {
         const { roomId, user } = socket.data;
         socket.to(roomId).emit("user-left", {
           socketId: socket.id,
-          user
+          user,
         });
       }
     });
