@@ -9,7 +9,7 @@ import { generateCoverLetter } from "../../utils/geminiService.js";
 export const generateCoverLetterForResume = async (req, res, next) => {
   try {
     const resumeId = req.params.id;
-    const { jobDescription } = req.body;
+    const { jobDescription, tone } = req.body;
     const userId = req.user?.id || req.user?._id;
 
     if (!jobDescription?.trim()) {
@@ -44,7 +44,8 @@ export const generateCoverLetterForResume = async (req, res, next) => {
         skills: { present: resume.skills },
         atsAnalysis: resume.atsOptimization
       },
-      jobDescription
+      jobDescription,
+      tone
     });
 
     console.log("Generated Prompt:", prompt);

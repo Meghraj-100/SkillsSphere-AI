@@ -2,7 +2,7 @@
  * Utility to dynamically generate AI prompts for Cover Letter generation.
  */
 
-export const buildCoverLetterPrompt = ({ resumeData, analysisData, jobDescription }) => {
+export const buildCoverLetterPrompt = ({ resumeData, analysisData, jobDescription, tone = "Professional" }) => {
   const candidateName = resumeData?.personalInfo?.name || "[Your Name]";
   const candidateSkills = analysisData?.skills?.present || resumeData?.skills || [];
   
@@ -36,11 +36,21 @@ export const buildCoverLetterPrompt = ({ resumeData, analysisData, jobDescriptio
 
   const currentDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
+  const toneInstructions = {
+    "Professional": "Maintain a highly professional, formal, and respectful tone appropriate for corporate environments.",
+    "Formal": "Use strictly formal, traditional business language. Avoid colloquialisms or casual phrasing.",
+    "Confident": "Write with strong conviction, using active verbs and a highly self-assured, persuasive tone.",
+    "Concise": "Be extremely direct and brief. Cut all fluff. Focus only on high-impact facts and numbers.",
+    "Startup-Friendly": "Use a modern, dynamic, and energetic tone. Show passion for innovation and a fast-paced environment.",
+    "Creative": "Be engaging, slightly unconventional, and memorable while maintaining professionalism. Show personality."
+  };
+  const selectedToneInstruction = toneInstructions[tone] || toneInstructions["Professional"];
+
   return `You are an expert career coach and professional copywriter specializing in ATS-optimized job applications.
 Your task is to write a highly professional, compelling, and concise cover letter for the candidate based on their resume data and the target job description.
 
 ### INSTRUCTIONS:
-1. **Professional Tone**: Maintain a formal yet enthusiastic tone.
+1. **Writing Tone**: ${selectedToneInstruction}
 2. **Conciseness**: Keep the cover letter under 400 words. Use clear, impactful language.
 3. **Relevance**: Connect the candidate's specific experiences and skills to the core requirements mentioned in the Job Description.
 4. **Measurable Impact**: Highlight their measurable impact and key projects naturally.
