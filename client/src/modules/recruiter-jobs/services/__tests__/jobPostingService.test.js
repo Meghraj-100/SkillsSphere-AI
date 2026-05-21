@@ -55,7 +55,7 @@ describe("jobPostingService", () => {
 
       await createJobPosting(validJobData, mockToken);
 
-      expect(apiRequest).toHaveBeenCalledWith("/api/recruiter/jobs", {
+      expect(apiRequest).toHaveBeenCalledWith("/api/jobs", {
         method: "POST",
         body: validJobData,
         token: mockToken,
@@ -171,7 +171,7 @@ describe("jobPostingService", () => {
 
       await getRecruiterJobs(mockToken);
 
-      expect(apiRequest).toHaveBeenCalledWith("/api/recruiter/jobs", {
+      expect(apiRequest).toHaveBeenCalledWith("/api/jobs/recruiter?page=1&limit=10", {
         token: mockToken,
       });
     });
@@ -218,7 +218,7 @@ describe("jobPostingService", () => {
 
       await getJobPostingById("123", mockToken);
 
-      expect(apiRequest).toHaveBeenCalledWith("/api/recruiter/jobs/123", {
+      expect(apiRequest).toHaveBeenCalledWith("/api/jobs/123", {
         token: mockToken,
       });
     });

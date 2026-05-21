@@ -1,35 +1,34 @@
-import { jest } from "@jest/globals";
+import { describe, it, afterEach, mock } from "node:test";
+import assert from "node:assert/strict";
 import * as jobService from "../service.js";
 import JobPosting from "../../../database/models/JobPosting.js";
 import JobApplication from "../../../database/models/JobApplication.js";
+import Resume from "../../../database/models/Resume.js";
 import AppError from "../../../utils/AppError.js";
-
-// Mock the models
-jest.mock("../../../database/models/JobPosting.js");
-jest.mock("../../../database/models/JobApplication.js");
-jest.mock("../../resumes/service.js");
-jest.mock("../../matching/service.js");
+import * as resumeService from "../../resumes/service.js";
+import matchingService from "../../matching/service.js";
 
 describe("Job Service", () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    mock.restoreAll();
   });
 
   describe("createJob", () => {
     it("should successfully create a job posting", async () => {
       const mockJobData = { title: "Software Engineer", skills: ["React", "Node"] };
       const mockRecruiterId = "recruiter123";
-      
+
       const mockCreatedJob = { ...mockJobData, recruiter: mockRecruiterId, _id: "job123" };
-      JobPosting.create = jest.fn().mockResolvedValue(mockCreatedJob);
+      mock.method(JobPosting, "create", () => mockCreatedJob);
 
       const result = await jobService.createJob(mockJobData, mockRecruiterId);
 
-      expect(JobPosting.create).toHaveBeenCalledWith({
+      assert.equal(JobPosting.create.mock.calls.length, 1);
+      assert.deepEqual(JobPosting.create.mock.calls[0].arguments[0], {
         ...mockJobData,
         recruiter: mockRecruiterId,
       });
-      expect(result).toEqual(mockCreatedJob);
+      assert.deepEqual(result, mockCreatedJob);
     });
   });
 
@@ -42,33 +41,47 @@ describe("Job Service", () => {
       const mockExistingJob = { _id: mockJobId, recruiter: { toString: () => mockRecruiterId } };
       const mockUpdatedJob = { ...mockExistingJob, ...mockUpdateData };
 
-      JobPosting.findById = jest.fn().mockResolvedValue(mockExistingJob);
-      JobPosting.findByIdAndUpdate = jest.fn().mockResolvedValue(mockUpdatedJob);
+      mock.method(JobPosting, "findById", () => mockExistingJob);
+      mock.method(JobPosting, "findByIdAndUpdate", () => mockUpdatedJob);
 
       const result = await jobService.updateJob(mockJobId, mockUpdateData, mockRecruiterId);
 
-      expect(JobPosting.findById).toHaveBeenCalledWith(mockJobId);
-      expect(JobPosting.findByIdAndUpdate).toHaveBeenCalledWith(
+      assert.equal(JobPosting.findById.mock.calls.length, 1);
+      assert.equal(JobPosting.findById.mock.calls[0].arguments[0], mockJobId);
+      assert.equal(JobPosting.findByIdAndUpdate.mock.calls.length, 1);
+      assert.deepEqual(JobPosting.findByIdAndUpdate.mock.calls[0].arguments, [
         mockJobId,
         mockUpdateData,
         { new: true, runValidators: true }
-      );
-      expect(result).toEqual(mockUpdatedJob);
+      ]);
+      assert.deepEqual(result, mockUpdatedJob);
     });
 
     it("should throw AppError(404) if job not found", async () => {
-      JobPosting.findById = jest.fn().mockResolvedValue(null);
+      mock.method(JobPosting, "findById", () => null);
 
-      await expect(jobService.updateJob("invalidId", {}, "recruiter123")).rejects.toThrow(AppError);
-      await expect(jobService.updateJob("invalidId", {}, "recruiter123")).rejects.toMatchObject({ statusCode: 404 });
+      await assert.rejects(
+        () => jobService.updateJob("invalidId", {}, "recruiter123"),
+        (err) => {
+          assert.ok(err instanceof AppError);
+          assert.equal(err.statusCode, 404);
+          return true;
+        }
+      );
     });
 
     it("should throw AppError(403) if recruiter is not the owner", async () => {
       const mockExistingJob = { _id: "job123", recruiter: { toString: () => "differentRecruiter" } };
-      JobPosting.findById = jest.fn().mockResolvedValue(mockExistingJob);
+      mock.method(JobPosting, "findById", () => mockExistingJob);
 
-      await expect(jobService.updateJob("job123", {}, "recruiter123")).rejects.toThrow(AppError);
-      await expect(jobService.updateJob("job123", {}, "recruiter123")).rejects.toMatchObject({ statusCode: 403 });
+      await assert.rejects(
+        () => jobService.updateJob("job123", {}, "recruiter123"),
+        (err) => {
+          assert.ok(err instanceof AppError);
+          assert.equal(err.statusCode, 403);
+          return true;
+        }
+      );
     });
   });
 
@@ -78,16 +91,102 @@ describe("Job Service", () => {
       const mockRecruiterId = "recruiter123";
 
       const mockExistingJob = { _id: mockJobId, recruiter: { toString: () => mockRecruiterId } };
-      
-      JobPosting.findById = jest.fn().mockResolvedValue(mockExistingJob);
-      JobApplication.deleteMany = jest.fn().mockResolvedValue({ deletedCount: 5 });
-      JobPosting.findByIdAndDelete = jest.fn().mockResolvedValue(mockExistingJob);
+
+      mock.method(JobPosting, "findById", () => mockExistingJob);
+      mock.method(JobApplication, "deleteMany", () => ({ deletedCount: 5 }));
+      mock.method(JobPosting, "findByIdAndDelete", () => mockExistingJob);
 
       await jobService.deleteJob(mockJobId, mockRecruiterId);
 
-      expect(JobPosting.findById).toHaveBeenCalledWith(mockJobId);
-      expect(JobApplication.deleteMany).toHaveBeenCalledWith({ job: mockJobId });
-      expect(JobPosting.findByIdAndDelete).toHaveBeenCalledWith(mockJobId);
+      assert.equal(JobPosting.findById.mock.calls.length, 1);
+      assert.equal(JobPosting.findById.mock.calls[0].arguments[0], mockJobId);
+      assert.equal(JobApplication.deleteMany.mock.calls.length, 1);
+      assert.deepEqual(JobApplication.deleteMany.mock.calls[0].arguments, [{ job: mockJobId }]);
+      assert.equal(JobPosting.findByIdAndDelete.mock.calls.length, 1);
+      assert.equal(JobPosting.findByIdAndDelete.mock.calls[0].arguments[0], mockJobId);
+    });
+
+    it("should throw AppError(404) if job not found for deletion", async () => {
+      mock.method(JobPosting, "findById", () => null);
+
+      await assert.rejects(
+        () => jobService.deleteJob("invalidId", "recruiter123"),
+        (err) => {
+          assert.ok(err instanceof AppError);
+          assert.equal(err.statusCode, 404);
+          return true;
+        }
+      );
+    });
+
+    it("should throw AppError(403) if recruiter does not own the job for deletion", async () => {
+      const mockExistingJob = { _id: "job123", recruiter: { toString: () => "differentRecruiter" } };
+      mock.method(JobPosting, "findById", () => mockExistingJob);
+
+      await assert.rejects(
+        () => jobService.deleteJob("job123", "recruiter123"),
+        (err) => {
+          assert.ok(err instanceof AppError);
+          assert.equal(err.statusCode, 403);
+          return true;
+        }
+      );
+    });
+  });
+
+  describe("getJobRecommendations", () => {
+    it("should return job recommendations successfully and call DB limit(100)", async () => {
+      const mockUser = { _id: "user123" };
+      const mockResume = {
+        _id: "resume123",
+        skills: ["React"],
+        keywords: ["Developer"]
+      };
+
+      const mockQuery = {
+        select: mock.fn(() => mockQuery),
+        lean: mock.fn(async () => mockResume)
+      };
+      mock.method(Resume, "findOne", () => mockQuery);
+
+      const mockJobs = [
+        {
+          _id: "job123",
+          title: "Software Engineer",
+          skills: ["React"],
+          description: "Develop React apps",
+          _doc: { _id: "job123", title: "Software Engineer", skills: ["React"], description: "Develop React apps" }
+        }
+      ];
+
+      const mockLimitFn = mock.fn(async () => mockJobs);
+      mock.method(JobPosting, "find", () => ({
+        limit: mockLimitFn
+      }));
+
+      const mockMatchResult = {
+        recommendations: [
+          {
+            job: "job123",
+            score: 85,
+            breakdown: { skill: 90, experience: 80 },
+            skillMatch: { feedback: ["Great match"] }
+          }
+        ]
+      };
+      mock.method(matchingService, "evaluateMatches", async () => mockMatchResult);
+
+      const result = await jobService.getJobRecommendations(mockUser);
+
+      assert.equal(Resume.findOne.mock.calls.length, 1);
+      assert.equal(JobPosting.find.mock.calls.length, 1);
+      assert.equal(mockLimitFn.mock.calls.length, 1);
+      assert.equal(mockLimitFn.mock.calls[0].arguments[0], 100);
+      assert.equal(matchingService.evaluateMatches.mock.calls.length, 1);
+      assert.equal(result.success, true);
+      assert.equal(result.jobs.length, 1);
+      assert.equal(result.jobs[0].matchScore, 85);
+      assert.equal(result.jobs[0].relevanceInsights, "Great match");
     });
   });
 });
