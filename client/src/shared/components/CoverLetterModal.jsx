@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { X, Copy, Download, Check, Sparkles } from "lucide-react";
+import { X, Copy, Download, Check, Sparkles, FileText, Loader2 } from "lucide-react";
+import html2pdf from "html2pdf.js";
 
 export default function CoverLetterModal({ isOpen, onClose, initialText }) {
   const [text, setText] = useState(initialText || "");
   const [copied, setCopied] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -31,6 +33,32 @@ export default function CoverLetterModal({ isOpen, onClose, initialText }) {
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsExportingPDF(true);
+    try {
+      const paragraphs = text.split('\n').filter(p => p.trim() !== '');
+      const htmlContent = `
+        <div style="font-family: 'Inter', 'Helvetica', 'Arial', sans-serif; font-size: 11pt; color: #000; line-height: 1.7; padding: 20px; max-width: 700px; margin: 0 auto;">
+          ${paragraphs.map(p => `<p style="margin-bottom: 18px; text-align: justify;">${p}</p>`).join('')}
+        </div>
+      `;
+      
+      const opt = {
+        margin:       [20, 20, 20, 20], // top, left, bottom, right
+        filename:     'Professional_Cover_Letter.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(htmlContent).save();
+    } catch (err) {
+      console.error("Failed to generate PDF:", err);
+    } finally {
+      setIsExportingPDF(false);
+    }
   };
 
   return (
@@ -68,10 +96,10 @@ export default function CoverLetterModal({ isOpen, onClose, initialText }) {
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-end gap-4 p-6 border-t border-border bg-surface/50">
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-border bg-surface/50">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 text-sm font-semibold text-text-muted hover:text-text-main transition-colors"
+            className="px-5 py-2.5 text-sm font-semibold text-text-muted hover:text-text-main transition-colors mr-auto"
           >
             Close
           </button>
@@ -81,15 +109,28 @@ export default function CoverLetterModal({ isOpen, onClose, initialText }) {
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-text-main bg-dark-bg border border-border hover:border-primary/50 hover:text-primary rounded-xl transition-all shadow-sm active:scale-95"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-            {copied ? "Copied!" : "Copy to Clipboard"}
+            {copied ? "Copied!" : "Copy"}
           </button>
           
           <button
             onClick={handleDownload}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary-hover shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 rounded-xl transition-all active:scale-95"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-text-main bg-dark-bg border border-border hover:border-primary/50 hover:text-primary rounded-xl transition-all shadow-sm active:scale-95"
           >
-            <Download className="w-4 h-4" />
-            Download TXT
+            <FileText className="w-4 h-4" />
+            Save TXT
+          </button>
+
+          <button
+            onClick={handleDownloadPDF}
+            disabled={isExportingPDF}
+            className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary-hover disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 rounded-xl transition-all active:scale-95"
+          >
+            {isExportingPDF ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            {isExportingPDF ? "Exporting..." : "Download PDF"}
           </button>
         </div>
 

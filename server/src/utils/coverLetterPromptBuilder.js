@@ -3,8 +3,7 @@
  */
 
 export const buildCoverLetterPrompt = ({ resumeData, analysisData, jobDescription }) => {
-  // Extract candidate information safely
-  const candidateName = resumeData?.personalInfo?.name || "The Candidate";
+  const candidateName = resumeData?.personalInfo?.name || "[Your Name]";
   const candidateSkills = analysisData?.skills?.present || resumeData?.skills || [];
   
   // Format skills as a comma-separated list or bullet points
@@ -16,9 +15,9 @@ export const buildCoverLetterPrompt = ({ resumeData, analysisData, jobDescriptio
   const experiences = resumeData?.experience || [];
   const experienceHighlights = experiences.map((exp, index) => {
     const role = exp.role || exp.title || "Professional";
-    const company = exp.company || "Previous Company";
+    const company = exp.company || "";
     const impact = exp.description || exp.responsibilities || "Delivered strong results.";
-    return `- ${role} at ${company}: ${impact}`;
+    return `- ${role}${company ? ` at ${company}` : ''}: ${impact}`;
   }).join("\n");
 
   // Extract projects safely
@@ -35,6 +34,8 @@ export const buildCoverLetterPrompt = ({ resumeData, analysisData, jobDescriptio
     ? atsInsights.map(insight => `- ${insight}`).join("\n") 
     : "";
 
+  const currentDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
   return `You are an expert career coach and professional copywriter specializing in ATS-optimized job applications.
 Your task is to write a highly professional, compelling, and concise cover letter for the candidate based on their resume data and the target job description.
 
@@ -46,6 +47,8 @@ Your task is to write a highly professional, compelling, and concise cover lette
 5. **ATS-Friendly**: Use standard paragraph structures. Do not use overly complex formatting or markdown tables.
 6. **No Placeholders for Name if provided**: Use the candidate's real name if available.
 7. **Address**: Address it to "Hiring Team" or "Hiring Manager" if a specific name is not provided in the JD.
+8. **CRITICAL - NO HALLUCINATIONS**: Do not fabricate experiences, company names, metrics, or achievements not present in the resume data. Only use provided resume information. Do not invent a "Previous Company".
+9. **Date**: At the very top of the cover letter, include today's date: ${currentDate}
 
 ---
 
