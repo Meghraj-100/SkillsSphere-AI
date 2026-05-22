@@ -43,7 +43,7 @@ const ResumeAnalyzerPage = () => {
       if (result.classification?.level && result.gapAnalysis?.suggestions) {
         const topics = result.gapAnalysis.suggestions
           .slice(0, 5)
-          .map((s) => ({ topicName: s.text, type: s.type || "learning" }));
+          .map((s) => ({ text: s.text, type: s.type || "learning" }));
         await syncRoadmap(result.classification.level, topics);
       }
 

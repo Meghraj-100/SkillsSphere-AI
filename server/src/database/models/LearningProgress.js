@@ -5,6 +5,11 @@ const topicProgressSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  type: {
+    type: String,
+    enum: ["learning", "contribution"],
+    default: "learning",
+  },
   status: {
     type: String,
     enum: ["not_started", "in_progress", "completed"],

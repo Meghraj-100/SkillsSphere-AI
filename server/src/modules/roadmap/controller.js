@@ -35,7 +35,7 @@ export const syncRoadmap = asyncHandler(async (req, res) => {
   let progress = await LearningProgress.findOne({ user: req.user._id });
 
   const roadmapData = topics.map(topic => {
-    const topicName = typeof topic === "string" ? topic : topic.topicName;
+    const topicName = typeof topic === "string" ? topic : topic.text;
     const type = typeof topic === "string" ? "learning" : topic.type;
     return {
       topicName,
@@ -50,7 +50,7 @@ export const syncRoadmap = asyncHandler(async (req, res) => {
     
     progress.targetRole = targetRole;
     progress.roadmap = topics.map(topic => {
-      const topicName = typeof topic === "string" ? topic : topic.topicName;
+      const topicName = typeof topic === "string" ? topic : topic.text;
       const type = typeof topic === "string" ? "learning" : topic.type;
       if (existingTopics.has(topicName)) {
         return existingTopics.get(topicName);
