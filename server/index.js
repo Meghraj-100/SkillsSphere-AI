@@ -18,7 +18,6 @@ import notificationRoutes from "./src/modules/notifications/routes.js";
 import userRoutes from "./src/modules/users/routes.js";
 import interviewRoutes from "./src/modules/interviews/routes.js";
 import fileRoutes from "./src/modules/files/routes.js";
-import notificationRoutes from "./src/modules/notifications/routes.js";
 import { initClassroomSockets } from "./src/modules/classrooms/socket.js";
 import { initInterviewSockets } from "./src/modules/interviews/socket.js";
 import globalErrorHandler from "./src/middleware/errorMiddleware.js";

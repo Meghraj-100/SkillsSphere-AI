@@ -31,12 +31,4 @@ router.patch("/mark-all/read", markAllAsRead);
 router.delete("/:id", deleteNotificationById);
 
 router.delete("/", deleteAllNotificationsForUser);
-import { getNotifications, markAsRead } from "./controller.js";
-
-const router = express.Router();
-
-router.use(protect);
-router.get("/", getNotifications);
-router.post("/read", markAsRead);
-
 export default router;

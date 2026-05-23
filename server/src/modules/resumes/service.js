@@ -1,4 +1,5 @@
 import Resume from "../../database/models/Resume.js";
+import SemanticCache from "../../database/models/SemanticCache.js";
 
 /**
  * Upsert a resume for a user.
@@ -49,4 +50,29 @@ export const getLatestResume = async (userId, includeText = false) => {
   }
 
   return await query.lean();
+};
+
+/**
+ * Find a cached analysis result by resume and job description hashes.
+ * 
+ * @param {string} resumeHash - SHA-256 hash of resume text
+ * @param {string} jdHash - SHA-256 hash of job description
+ * @returns {Promise<Object|null>} The cached document or null
+ */
+export const findCachedAnalysis = async (resumeHash, jdHash) => {
+  return await SemanticCache.findOne({ resumeHash, jdHash }).lean();
+};
+
+/**
+ * Save an analysis result to semantic cache.
+ * 
+ * @param {Object} cacheData - The caching payload
+ * @returns {Promise<Object>} The saved cache document
+ */
+export const saveCachedAnalysis = async (cacheData) => {
+  return await SemanticCache.findOneAndUpdate(
+    { resumeHash: cacheData.resumeHash, jdHash: cacheData.jdHash },
+    cacheData,
+    { new: true, upsert: true, runValidators: true }
+  );
 };
