@@ -32,6 +32,10 @@ export const syncRoadmap = asyncHandler(async (req, res) => {
     throw new AppError("Target role and topics are required", 400);
   }
 
+  if (topics.length > 50) {
+    throw new AppError("Roadmap topics exceed the maximum allowed limit of 50", 413);
+  }
+
   let progress = await LearningProgress.findOne({ user: req.user._id });
 
   const roadmapData = topics.map(topic => {
