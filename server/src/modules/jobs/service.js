@@ -129,6 +129,13 @@ export const updateJob = async (id, updateData, recruiterId) => {
     throw new AppError("You do not have permission to update this job", 403);
   }
 
+  // Prevent Mass Assignment: Remove protected fields
+  delete updateData.recruiter;
+  delete updateData._id;
+  delete updateData.createdAt;
+  delete updateData.updatedAt;
+  delete updateData.__v;
+
   const updatedJob = await JobPosting.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
