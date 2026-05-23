@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   useToast,
   LoadingState,
@@ -10,9 +10,9 @@ import AnalysisResult from "../components/AnalysisResult";
 import DragDropUpload from "../components/DragDropUpload";
 import JobDescriptionInput from "../components/JobDescriptionInput";
 import ResumeSkeleton from "../components/ResumeSkeleton";
-import { analyzeResume } from "../services/resumeService";
+import { analyzeResume, getLatestResumeAnalysis } from "../services/resumeService";
 import { syncRoadmap } from "../../roadmap/services/roadmapService";
-import { FileText, Sparkles } from "lucide-react";
+import { FileText, Sparkles, RefreshCw, Clock } from "lucide-react";
 
 const ResumeAnalyzerPage = () => {
   const { success, error: showError, warning } = useToast();
@@ -21,6 +21,36 @@ const ResumeAnalyzerPage = () => {
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [jobDescription, setJobDescription] = useState("");
+
+  // Track whether we are showing a DB-loaded scan (not a fresh live analysis)
+  const [isLoadingLatest, setIsLoadingLatest] = useState(true);
+  const [isViewingLatest, setIsViewingLatest] = useState(false);
+  const [latestScanDate, setLatestScanDate] = useState(null);
+
+  // On mount, attempt to load the student's latest stored analysis
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadLatest = async () => {
+      try {
+        const data = await getLatestResumeAnalysis();
+        if (cancelled) return;
+
+        if (data) {
+          setResult(data);
+          setIsViewingLatest(true);
+          setLatestScanDate(data.updatedAt || data.createdAt || null);
+        }
+      } catch {
+        // Silently ignore — first-time users have no stored scan
+      } finally {
+        if (!cancelled) setIsLoadingLatest(false);
+      }
+    };
+
+    loadLatest();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleFileUpload = (file) => {
     setSelectedFile(file);
@@ -38,6 +68,7 @@ const ResumeAnalyzerPage = () => {
     try {
       const result = await analyzeResume(selectedFile, jobDescription);
       setResult(result);
+      setIsViewingLatest(false); // Fresh live result — hide the "latest scan" banner
 
       // Sync Roadmap if classification and suggestions exist
       if (result.classification?.level && result.gapAnalysis?.suggestions) {
@@ -62,7 +93,21 @@ const ResumeAnalyzerPage = () => {
     setSelectedFile(null);
     setError(null);
     setJobDescription("");
+    setIsViewingLatest(false);
     warning("Resume analyzer has been reset.");
+  };
+
+  const formatScanDate = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      return new Date(dateStr).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    } catch {
+      return "";
+    }
   };
 
   return (
@@ -85,17 +130,46 @@ const ResumeAnalyzerPage = () => {
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
 
           <div className="relative z-10">
-            {loading ? (
+            {isLoadingLatest ? (
+              <ResumeSkeleton />
+            ) : loading ? (
               <ResumeSkeleton />
             ) : error ? (
               <ErrorState description={error} onRetry={resetAnalyzer} />
             ) : result ? (
-              <AnalysisResult
-                result={result}
-                file={selectedFile}
-                jobDescription={jobDescription}
-                onReset={resetAnalyzer}
-              />
+              <div className="space-y-6">
+                {/* Latest Scan Banner — only shown for DB-loaded results */}
+                {isViewingLatest && (
+                  <div className="flex items-center justify-between gap-4 px-5 py-3 bg-primary/5 border border-primary/15 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center gap-2.5 text-sm text-text-muted">
+                      <Clock className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span>
+                        Viewing your latest scan
+                        {latestScanDate && (
+                          <span className="font-semibold text-text-main">
+                            {" "}· {formatScanDate(latestScanDate)}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <button
+                      id="upload-new-resume-btn"
+                      onClick={resetAnalyzer}
+                      className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-primary border border-primary/30 rounded-xl hover:bg-primary/10 hover:border-primary/60 transition-all active:scale-95"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Upload New Resume
+                    </button>
+                  </div>
+                )}
+
+                <AnalysisResult
+                  result={result}
+                  file={selectedFile}
+                  jobDescription={jobDescription || result.jobDescription || ""}
+                  onReset={resetAnalyzer}
+                />
+              </div>
             ) : (
               <div className="space-y-10">
                 {/* Job Description Input */}
@@ -133,6 +207,7 @@ const ResumeAnalyzerPage = () => {
                       </div>
 
                       <button
+                        id="analyze-resume-btn"
                         onClick={handleAnalyze}
                         disabled={loading}
                         className="w-full sm:w-auto px-8 py-3 bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
