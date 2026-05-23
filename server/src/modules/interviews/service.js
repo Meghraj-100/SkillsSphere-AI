@@ -7,6 +7,7 @@ import {
   transcribeAudio,
   evaluateAnswer,
 } from "../../integrations/aiInterviewService.js";
+import cache from "../../utils/cache.js";
 
 /**
  * Select random questions from the bank for a given topic and difficulty.
@@ -368,6 +369,10 @@ export const getSessionResults = async (sessionId, userId) => {
  * List all available interview topics from the question bank.
  */
 export const listAvailableTopics = async () => {
+  const CACHE_KEY = "interview_topics";
+  const cachedData = cache.get(CACHE_KEY);
+  if (cachedData) return cachedData;
+
   const topics = await QuestionBank.aggregate([
     {
       $group: {
@@ -387,6 +392,7 @@ export const listAvailableTopics = async () => {
     { $sort: { topic: 1 } },
   ]);
 
+  cache.set(CACHE_KEY, topics, 1800); // Cache for 30 minutes
   return topics;
 };
 

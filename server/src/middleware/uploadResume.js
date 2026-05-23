@@ -50,8 +50,9 @@ export const removeUploadedFile = (filePath) => {
 };
 
 const buildStoredFilename = (originalName) => {
-  const ext = path.extname(originalName);
-  const name = originalName.replace(ext, "").replace(/\s+/g, "-");
+  const safeName = path.basename(originalName);
+  const ext = path.extname(safeName);
+  const name = safeName.replace(ext, "").replace(/\s+/g, "-");
   return `${Date.now()}-${name}${ext}`;
 };
 

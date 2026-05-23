@@ -44,3 +44,4 @@ venv/
 
 # Local emergency scripts
 server/reset-auth.js
+

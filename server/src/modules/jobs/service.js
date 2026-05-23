@@ -9,6 +9,7 @@ import AppError from "../../utils/AppError.js";
 import { getIO } from "../../utils/socketIO.js";
 import recruiterIntelligenceService from "../recruiterIntelligence/service.js";
 import Resume from "../../database/models/Resume.js";
+import cache from "../../utils/cache.js";
 
 
 /**
@@ -37,8 +38,9 @@ export const getAllJobs = async (queryParams = {}) => {
   const filters = { status: "open" };
 
   // Filter by designation (case-insensitive regex search on title)
-  if (designation) {
-    filters.title = { $regex: designation, $options: "i" };
+  if (designation && typeof designation === "string") {
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    filters.title = { $regex: escapeRegex(designation), $options: "i" };
   }
 
   // Filter by Salary Range
@@ -130,6 +132,13 @@ export const updateJob = async (id, updateData, recruiterId) => {
     throw new AppError("You do not have permission to update this job", 403);
   }
 
+  // Prevent Mass Assignment: Remove protected fields
+  delete updateData.recruiter;
+  delete updateData._id;
+  delete updateData.createdAt;
+  delete updateData.updatedAt;
+  delete updateData.__v;
+
   const updatedJob = await JobPosting.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
@@ -143,6 +152,10 @@ export const updateJob = async (id, updateData, recruiterId) => {
  * @returns {Promise<Array>} Array of { skill: string, count: number }
  */
 export const getSkillTrends = async () => {
+  const CACHE_KEY = "global_skill_trends";
+  const cachedData = cache.get(CACHE_KEY);
+  if (cachedData) return cachedData;
+
   const trends = await JobPosting.aggregate([
     { $match: { status: "open" } },
     { $unwind: "$skills" },
@@ -162,6 +175,8 @@ export const getSkillTrends = async () => {
       },
     },
   ]);
+  
+  cache.set(CACHE_KEY, trends, 900); // Cache for 15 minutes
   return trends;
 };
 
@@ -281,6 +296,10 @@ export const getJobRecommendations = async (user) => {
  * @returns {Promise<Object>} - Analytics data
  */
 export const getRecruiterAnalytics = async (recruiterId) => {
+  const CACHE_KEY = `recruiter_analytics_${recruiterId.toString()}`;
+  const cachedData = cache.get(CACHE_KEY);
+  if (cachedData) return cachedData;
+
   // Get all jobs for this recruiter
   const allJobs = await JobPosting.find({ recruiter: recruiterId })
     .sort({ createdAt: -1 })
@@ -349,13 +368,16 @@ export const getRecruiterAnalytics = async (recruiterId) => {
     createdAt: job.createdAt,
   }));
 
-  return {
+  const result = {
     totalJobs: allJobs.length,
     statusBreakdown,
     jobsByMonth,
     topSkills,
     recentJobs,
   };
+
+  cache.set(CACHE_KEY, result, 300); // Cache for 5 minutes
+  return result;
 };
 
 /**

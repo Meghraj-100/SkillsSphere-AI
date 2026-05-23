@@ -14,6 +14,7 @@ import {
   registerUserAndIssueToken,
   resendUserOTP,
   resetUserPassword,
+  verifyUserEmail,
   verifyGoogleToken,
   findOrCreateGoogleUser,
   LOCAL_EMAIL_REGISTERED_MESSAGE,

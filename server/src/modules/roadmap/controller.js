@@ -32,6 +32,10 @@ export const syncRoadmap = asyncHandler(async (req, res) => {
     throw new AppError("Target role and topics are required", 400);
   }
 
+  if (topics.length > 50) {
+    throw new AppError("Roadmap topics exceed the maximum allowed limit of 50", 413);
+  }
+
   let progress = await LearningProgress.findOne({ user: req.user._id });
 
   const roadmapData = topics.map(topic => {
@@ -154,6 +158,11 @@ export const assignTutorResource = asyncHandler(async (req, res) => {
 
   if (!studentId || !topicId || !title || !url || !type) {
     throw new AppError("studentId, topicId, title, url, and type are required", 400);
+  }
+
+  const trimmedUrl = url.trim();
+  if (!/^https?:\/\//i.test(trimmedUrl)) {
+    throw new AppError("Invalid URL: Must start with http:// or https://", 400);
   }
 
   if (!["video", "article", "documentation"].includes(type)) {
