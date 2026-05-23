@@ -8,7 +8,9 @@ import { generateRecommendations } from "../../../../ai-ml/pipeline/recommendati
 import AppError from "../../utils/AppError.js";
 import { getIO } from "../../utils/socketIO.js";
 import recruiterIntelligenceService from "../recruiterIntelligence/service.js";
+import Resume from "../../database/models/Resume.js";
 import cache from "../../utils/cache.js";
+
 
 /**
  * Create a new job posting
@@ -477,7 +479,7 @@ export const applyToJob = async (jobId, applicantId, options = {}) => {
  * @param {string} sortBy - Optional sort strategy ("matchScore", "newest", "oldest")
  * @returns {Promise<Array>} - List of applications
  */
-export const getJobApplications = async (jobId, recruiterId, status, sortBy = "matchScore") => {
+export const getJobApplications = async (jobId, recruiterId, statusOrParams, sortByParam = "matchScore") => {
   const job = await JobPosting.findById(jobId);
   if (!job) {
     throw new AppError("Job not found", 404);
@@ -487,9 +489,135 @@ export const getJobApplications = async (jobId, recruiterId, status, sortBy = "m
     throw new AppError("You do not have permission to view these applications", 403);
   }
 
+  // Normalize inputs to support legacy positional calls and object-based query formats
+  let status = "";
+  let sortBy = "matchScore";
+  let filters = {};
+
+  if (statusOrParams && typeof statusOrParams === "object") {
+    filters = statusOrParams;
+    status = filters.status || "";
+    sortBy = filters.sortBy || "matchScore";
+  } else {
+    status = statusOrParams || "";
+    sortBy = sortByParam || "matchScore";
+    filters = { status, sortBy };
+  }
+
   const query = { job: jobId };
   if (status) {
     query.status = status;
+  }
+
+  // AI Match Score Range Filters
+  if (filters.minScore !== undefined && filters.minScore !== "") {
+    query.aiMatchScore = { ...query.aiMatchScore, $gte: Number(filters.minScore) };
+  }
+  if (filters.maxScore !== undefined && filters.maxScore !== "") {
+    query.aiMatchScore = { ...query.aiMatchScore, $lte: Number(filters.maxScore) };
+  }
+
+  // ATS Compatibility Score Filters
+  if (filters.minAtsScore !== undefined && filters.minAtsScore !== "") {
+    query["matchBreakdown.atsCompatibility"] = { ...query["matchBreakdown.atsCompatibility"], $gte: Number(filters.minAtsScore) };
+  }
+  if (filters.maxAtsScore !== undefined && filters.maxAtsScore !== "") {
+    query["matchBreakdown.atsCompatibility"] = { ...query["matchBreakdown.atsCompatibility"], $lte: Number(filters.maxAtsScore) };
+  }
+
+  // Match Category Filters
+  if (filters.matchCategory) {
+    const categoryMap = {
+      excellent: "Excellent Match",
+      moderate: "Moderate Match",
+      growth: "Growth Potential",
+      weak: "Weak Alignment",
+      "excellent match": "Excellent Match",
+      "moderate match": "Moderate Match",
+      "growth potential": "Growth Potential",
+      "weak alignment": "Weak Alignment"
+    };
+
+    const requestedCategories = Array.isArray(filters.matchCategory)
+      ? filters.matchCategory
+      : filters.matchCategory.split(",").map(c => c.trim().toLowerCase());
+
+    const mappedCategories = requestedCategories
+      .map(c => categoryMap[c] || c)
+      .filter(Boolean);
+
+    if (mappedCategories.length > 0) {
+      query.matchCategory = { $in: mappedCategories };
+    }
+  }
+
+  // Contribution Activity Filters
+  if (filters.contributorOnly === "true" || filters.contributorOnly === true) {
+    query["matchBreakdown.contributionActivity"] = { $in: ["High", "Medium"] };
+  } else if (filters.contributionLevel) {
+    const levels = Array.isArray(filters.contributionLevel)
+      ? filters.contributionLevel
+      : filters.contributionLevel.split(",").map(l => l.trim());
+    query["matchBreakdown.contributionActivity"] = { $in: levels };
+  }
+
+  // Career Readiness Filters
+  if (filters.careerReadiness) {
+    const readinessLevels = Array.isArray(filters.careerReadiness)
+      ? filters.careerReadiness
+      : filters.careerReadiness.split(",").map(r => r.trim());
+    query["matchBreakdown.careerReadiness"] = { $in: readinessLevels };
+  }
+
+  // Specialization Filters (using subqueries on the Resume collection)
+  if (filters.specialization) {
+    const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const specMap = {
+      frontend: ['html', 'css', 'react', 'angular', 'vue', 'javascript', 'typescript', 'tailwind', 'next.js', 'nextjs', 'redux', 'frontend', 'front-end'],
+      backend: ['node.js', 'nodejs', 'express', 'python', 'django', 'fastapi', 'java', 'spring', 'ruby', 'rails', 'go', 'golang', 'php', 'backend', 'back-end'],
+      devops: ['docker', 'kubernetes', 'aws', 'gcp', 'azure', 'ci/cd', 'cicd', 'git', 'github actions', 'terraform', 'ansible', 'devops'],
+      aiml: ['machine learning', 'deep learning', 'pytorch', 'tensorflow', 'scikit-learn', 'nlp', 'computer vision', 'ai', 'ml', 'artificial intelligence'],
+      database: ['sql', 'mysql', 'postgresql', 'postgres', 'mongodb', 'redis', 'oracle', 'sqlite', 'cassandra', 'dynamodb', 'database']
+    };
+
+    const requestedSpecs = Array.isArray(filters.specialization)
+      ? filters.specialization
+      : filters.specialization.split(",").map(s => s.trim().toLowerCase());
+
+    const resumeQueryConditions = [];
+
+    requestedSpecs.forEach(spec => {
+      if (spec === "fullstack") {
+        resumeQueryConditions.push({
+          $and: [
+            { skills: { $in: specMap.frontend.map(s => new RegExp(`^${escapeRegex(s)}$`, "i")) } },
+            { skills: { $in: specMap.backend.map(s => new RegExp(`^${escapeRegex(s)}$`, "i")) } }
+          ]
+        });
+      } else if (specMap[spec]) {
+        resumeQueryConditions.push({
+          skills: { $in: specMap[spec].map(s => new RegExp(`^${escapeRegex(s)}$`, "i")) }
+        });
+      }
+    });
+
+    if (resumeQueryConditions.length > 0) {
+      const matchingResumes = await Resume.find({ $or: resumeQueryConditions }).select("_id").lean();
+      const resumeIds = matchingResumes.map(r => r._id);
+      query.resume = { $in: resumeIds };
+    }
+  }
+
+  // Direct skills keyword filtering
+  if (filters.skills) {
+    const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const skillList = Array.isArray(filters.skills)
+      ? filters.skills
+      : filters.skills.split(",").map(s => s.trim());
+    const skillRegexes = skillList.map(s => new RegExp(`^${escapeRegex(s)}$`, "i"));
+    const matchingResumes = await Resume.find({ skills: { $in: skillRegexes } }).select("_id").lean();
+    const resumeIds = matchingResumes.map(r => r._id);
+    query.resume = { ...query.resume, $in: resumeIds };
   }
 
   let sortConfig = { createdAt: -1 };

@@ -253,8 +253,7 @@ export const applyToJobPosting = asyncHandler(async (req, res) => {
  * @access  Private (Recruiters only)
  */
 export const getApplications = asyncHandler(async (req, res) => {
-  const { status, sortBy } = req.query;
-  const applications = await getJobAppsService(req.params.id, req.user._id, status, sortBy);
+  const applications = await getJobAppsService(req.params.id, req.user._id, req.query);
 
   res.status(200).json({
     success: true,

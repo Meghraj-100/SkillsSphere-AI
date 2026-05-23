@@ -198,12 +198,27 @@ export const deleteJobPosting = async (id, token) => {
  * @param {string} sortBy - Optional sorting option
  * @returns {Promise<{success: boolean, applications: Array}>}
  */
-export const getJobApplications = async (jobId, token, status = "", sortBy = "matchScore") => {
+export const getJobApplications = async (jobId, token, statusOrFilters = "", sortBy = "matchScore") => {
   try {
-    let url = `/api/jobs/${jobId}/applications?sortBy=${encodeURIComponent(sortBy)}`;
-    if (status) {
-      url += `&status=${encodeURIComponent(status)}`;
+    const params = new URLSearchParams();
+    
+    if (statusOrFilters && typeof statusOrFilters === "object") {
+      const filters = statusOrFilters;
+      Object.entries(filters).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== "") {
+          params.append(key, val);
+        }
+      });
+    } else {
+      if (statusOrFilters) {
+        params.append("status", statusOrFilters);
+      }
+      if (sortBy) {
+        params.append("sortBy", sortBy);
+      }
     }
+    
+    const url = `/api/jobs/${jobId}/applications?${params.toString()}`;
     const response = await apiRequest(url, { token });
     return {
       success: true,
