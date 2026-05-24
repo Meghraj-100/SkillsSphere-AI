@@ -6,6 +6,7 @@ import {
   BadgeCheck,
   FileText,
   LogOut,
+  Menu,
   Mail,
   Shield,
   User,
@@ -56,6 +57,13 @@ const ROLE_LABELS = {
   tutor: "Tutor",
   recruiter: "Recruiter",
 };
+
+const DASHBOARD_SIDEBAR_ITEMS = [
+  { label: "Update Resume", icon: FileText, to: "/resume-analyzer" },
+  { label: "Find Matches", icon: Target, to: "/job-matcher" },
+  { label: "Applied Jobs", icon: Briefcase, to: "/my-applications" },
+  { label: "Live Classrooms", icon: Video, to: "/classrooms" },
+];
 
 const DashboardPage = () => {
   const dispatch = useDispatch();
@@ -171,62 +179,91 @@ const DashboardPage = () => {
   }, [recruiterJobs, isRecruiter]);
 
   return (
-    <main className="min-h-screen bg-white dark:bg-[radial-gradient(circle_at_top_left,#0f172a,#020617)] p-3 sm:p-5 pt-20 sm:pt-28 text-gray-900 dark:text-slate-100">
+    <main className="relative min-h-screen w-full overflow-hidden bg-[#d8dde5] px-3 pb-6 pt-20 text-gray-900 dark:bg-slate-950 dark:text-slate-100 sm:px-6 sm:pb-8 sm:pt-24">
+      <div className="pointer-events-none absolute -left-28 top-12 h-72 w-72 rounded-full bg-emerald-400/30 blur-3xl dark:bg-emerald-500/20" />
+      <div className="pointer-events-none absolute -right-24 top-28 h-80 w-80 rounded-full bg-violet-400/25 blur-3xl dark:bg-violet-500/20" />
+      <div className="pointer-events-none absolute bottom-8 left-1/3 h-72 w-72 rounded-full bg-gradient-to-br from-emerald-400/20 to-violet-400/20 blur-3xl dark:from-emerald-500/15 dark:to-violet-500/15" />
       <Navbar />
 
       {loading ? (
-        <div className="mx-auto w-full max-w-6xl py-6 sm:py-8 px-0 sm:px-2">
+        <div className="w-full py-4 sm:py-6">
           <DashboardSkeleton />
         </div>
       ) : (
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 sm:gap-8 py-6 sm:py-8 px-0 sm:px-2">
-          {/* Header Section */}
-          <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="h-2 w-2 rounded-full bg-blue-500 dark:bg-blue-500/20 animate-pulse"></div>
-                <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-300 uppercase tracking-wider">
-                  Professional Intelligence
+        <div className="w-full py-4 sm:py-6">
+          <div className="grid gap-4 lg:min-h-[calc(100vh-8.5rem)] lg:grid-cols-[240px_minmax(0,1fr)]">
+            <aside className="rounded-xl bg-[#0f3558] px-5 py-10 text-white shadow-[0_20px_40px_rgba(12,26,47,0.25)] dark:bg-slate-900 dark:shadow-[0_20px_40px_rgba(0,0,0,0.5)] lg:min-h-[calc(100vh-8.5rem)]">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#1a486f] shadow-[0_8px_20px_rgba(0,0,0,0.25)] dark:bg-slate-800">
+                <User size={40} className="text-slate-100" />
+              </div>
+              <h2 className="text-center text-2xl font-semibold uppercase tracking-wide">
+                {user?.name || "Dashboard User"}
+              </h2>
+              <p className="mt-2 break-all text-center text-xs text-blue-100/80 dark:text-slate-400">
+                {user?.email || "john.don@company.com"}
+              </p>
+              <div className="mt-6 text-center">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-blue-200/70 dark:text-slate-400">
+                  Access Role
+                </p>
+                <p className="mt-2 text-sm font-semibold text-white">
+                  {ROLE_LABELS[user?.role] || user?.role || "Member"}
                 </p>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-500 dark:from-white dark:to-slate-400">
-                Welcome, {user?.name || "Learner"}
-              </h1>
-            </div>
 
-            <Button
-              variant="outline"
-              size="md"
-              onClick={handleLogout}
-              leftIcon={<LogOut size={16} />}
-              className="border-gray-300 dark:border-slate-700/50 bg-gray-100 dark:bg-slate-900/40 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white backdrop-blur-sm w-full sm:w-auto transition-all duration-300"
-            >
-              Logout
-            </Button>
-          </div>
+              <nav className="mt-10 space-y-3">
+                {DASHBOARD_SIDEBAR_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.label}
+                      to={item.to}
+                      className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm capitalize text-blue-100/90 transition hover:bg-white/10 hover:text-white dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                    >
+                      <Icon size={15} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </aside>
 
-          {/* User Stats Grid */}
-          <section className="grid gap-4 sm:gap-6 md:grid-cols-3 grid-cols-1 sm:grid-cols-2">
-            <StatCard
-              icon={User}
-              label="Profile Name"
-              value={user?.name || "Not available"}
-              color="blue"
-            />
-            <StatCard
-              icon={Mail}
-              label="Email Address"
-              value={user?.email || "Not available"}
-              color="emerald"
-            />
-            <StatCard
-              icon={Shield}
-              label="Access Role"
-              value={ROLE_LABELS[user?.role] || user?.role || "Not available"}
-              color="violet"
-              className="sm:col-span-2 md:col-span-1"
-            />
-          </section>
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-100 via-violet-100 to-fuchsia-100 p-4 shadow-[0_20px_40px_rgba(12,26,47,0.18)] dark:bg-gradient-to-br dark:from-emerald-950/45 dark:via-violet-950/45 dark:to-fuchsia-950/45 dark:shadow-[0_20px_40px_rgba(0,0,0,0.45)] sm:p-6 lg:min-h-[calc(100vh-8.5rem)]">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-500 via-violet-500 to-fuchsia-500" />
+              <div className="pointer-events-none absolute -left-20 top-20 h-56 w-56 rounded-full bg-emerald-400/20 blur-3xl dark:bg-emerald-500/18" />
+              <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-violet-400/20 blur-3xl dark:bg-violet-500/18" />
+              <div className="pointer-events-none absolute bottom-10 right-1/4 h-52 w-52 rounded-full bg-fuchsia-400/20 blur-3xl dark:bg-fuchsia-500/16" />
+              {/* Header Section */}
+              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h1 className="bg-gradient-to-r from-emerald-600 via-violet-600 to-fuchsia-600 bg-clip-text text-2xl font-semibold text-transparent dark:from-emerald-300 dark:via-violet-300 dark:to-fuchsia-300 sm:text-3xl">
+                    Welcome, {user?.name || "Learner"}
+                  </h1>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-200/85">
+                    {ROLE_LABELS[user?.role] || "Member"} workspace overview
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                    aria-label="Dashboard menu"
+                  >
+                    <Menu size={18} />
+                  </button>
+
+                  <Button
+                    variant="outline"
+                    size="md"
+                    onClick={handleLogout}
+                    leftIcon={<LogOut size={16} />}
+                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                  >
+                    Logout
+                  </Button>
+                </div>
+              </div>
 
           {/* Dynamic Role-Specific Analytics */}
           {analytics && (
@@ -271,7 +308,7 @@ const DashboardPage = () => {
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400">
                       <Briefcase size={20} />
                     </div>
-                    <span className="text-2xl font-black text-white">
+                    <span className="text-2xl font-black text-slate-900 dark:text-white">
                       {jobStats?.total || 0}
                     </span>
                   </div>
@@ -287,7 +324,7 @@ const DashboardPage = () => {
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
                       <CheckCircle size={20} />
                     </div>
-                    <span className="text-2xl font-black text-white">
+                    <span className="text-2xl font-black text-slate-900 dark:text-white">
                       {jobStats?.open || 0}
                     </span>
                   </div>
@@ -303,7 +340,7 @@ const DashboardPage = () => {
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
                       <Clock size={20} />
                     </div>
-                    <span className="text-2xl font-black text-white">
+                    <span className="text-2xl font-black text-slate-900 dark:text-white">
                       {(jobStats?.draft || 0) + (jobStats?.closed || 0)}
                     </span>
                   </div>
@@ -316,7 +353,7 @@ const DashboardPage = () => {
           )}
 
         {/* Analytics Section */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
             {/* Next Roadmap Milestone - Student Only */}
             {isStudent && nextMilestone && (
@@ -332,14 +369,14 @@ const DashboardPage = () => {
                         Next Career Milestone
                       </span>
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-blue-400 transition-colors">
                       Master {nextMilestone.topicName}
                     </h3>
                     <p className="text-sm text-slate-400 max-w-md mb-4 font-medium italic">
                       Completing this milestone will significantly boost your
                       profile strength for {roadmap.targetRole} roles.
                     </p>
-                    <div className="flex items-center gap-2 text-xs font-bold text-white bg-white/5 w-fit px-4 py-2 rounded-xl group-hover:bg-blue-600 transition-all">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-white bg-white/70 dark:bg-white/5 w-fit px-4 py-2 rounded-xl group-hover:bg-blue-100 dark:group-hover:bg-blue-600 transition-all">
                       Continue Learning
                       <ChevronRight
                         size={14}
@@ -359,8 +396,8 @@ const DashboardPage = () => {
                 customTooltip={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-slate-900 border border-gray-200 dark:border-white/10 p-3 rounded-lg shadow-xl backdrop-blur-md">
-                        <p className="text-xs text-slate-400 mb-1">{payload[0].payload.fullDate}</p>
+                      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/10 p-3 rounded-lg shadow-xl backdrop-blur-md">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{payload[0].payload.fullDate}</p>
                         <p className="text-sm font-bold text-blue-400">Score: {payload[0].value}%</p>
                       </div>
                     );
@@ -373,14 +410,14 @@ const DashboardPage = () => {
               {/* Skill Trends - Student Only */}
               {isStudent && (
                 <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-slate-900/50 overflow-hidden backdrop-blur-md">
-                  <div className="border-b border-white/5 bg-white/5 px-6 py-4 flex items-center justify-between">
+                  <div className="border-b border-gray-200 dark:border-white/5 bg-white/70 dark:bg-white/5 px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="text-emerald-400" size={20} />
                       <h2 className="text-lg font-bold">
                         Trending Skills in Market
                       </h2>
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-white/5 px-2 py-1 rounded-md">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-white/70 dark:bg-white/5 px-2 py-1 rounded-md">
                       <Activity size={12} />
                       <span>Real-time Insights</span>
                     </div>
@@ -408,7 +445,7 @@ const DashboardPage = () => {
                             content={({ active, payload }) => {
                               if (active && payload && payload.length) {
                                 return (
-                                  <div className="bg-slate-900 border border-white/10 p-2 rounded shadow-lg text-xs">
+                                  <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/10 p-2 rounded shadow-lg text-xs">
                                     <span className="font-bold text-emerald-400">
                                       {payload[0].value} jobs
                                     </span>{" "}
@@ -495,7 +532,7 @@ const DashboardPage = () => {
                         {recruiterJobs.slice(0, 3).map((job, idx) => (
                           <div
                             key={job.id || idx}
-                            className="flex items-center justify-between p-4 rounded-xl bg-slate-800/50 border border-white/5 hover:bg-slate-800 transition-colors"
+                            className="flex items-center justify-between p-4 rounded-xl bg-white/80 dark:bg-slate-800/50 border border-gray-200 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                           >
                             <div className="flex items-center gap-4">
                               <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
@@ -519,7 +556,7 @@ const DashboardPage = () => {
                               className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                                 job.status === "open" || job.status === "active"
                                   ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                                  : "bg-slate-700 text-gray-700 dark:text-slate-300"
+                                  : "bg-slate-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300"
                               }`}
                             >
                               {job.status || "Active"}
@@ -554,7 +591,7 @@ const DashboardPage = () => {
                   <div className="p-6">
                     {!latestAnalysis ? (
                       <div className="py-12 flex flex-col items-center justify-center text-center">
-                        <div className="h-16 w-16 bg-slate-800 rounded-full flex items-center justify-center mb-4 text-gray-500 dark:text-slate-500">
+                        <div className="h-16 w-16 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 text-gray-500 dark:text-slate-500">
                           <FileText size={32} />
                         </div>
                         <h3 className="text-xl font-semibold mb-2">
@@ -576,7 +613,7 @@ const DashboardPage = () => {
                       <div className="space-y-8">
                         {/* Score and Level */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                          <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-800/50 border border-white/5">
+                          <div className="flex items-center gap-4 p-4 rounded-xl bg-white/80 dark:bg-slate-800/50 border border-gray-200 dark:border-white/5">
                             <div className="relative h-20 w-20 flex items-center justify-center">
                               <svg
                                 className="h-full w-full"
@@ -612,13 +649,13 @@ const DashboardPage = () => {
                                   </span>
                                 )}
                               </div>
-                              <p className="text-2xl font-black text-white">
+                              <p className="text-2xl font-black text-slate-900 dark:text-white">
                                 {latestAnalysis.classification}
                               </p>
                             </div>
                           </div>
 
-                          <div className="flex flex-col justify-center p-4 rounded-xl bg-slate-800/50 border border-white/5">
+                          <div className="flex flex-col justify-center p-4 rounded-xl bg-white/80 dark:bg-slate-800/50 border border-gray-200 dark:border-white/5">
                             <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-2">
                               Target Skills Match
                             </p>
@@ -676,7 +713,7 @@ const DashboardPage = () => {
             {/* History Table - Student Only */}
             {isStudent && (
               <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-slate-900/50 overflow-hidden backdrop-blur-md">
-                <div className="border-b border-white/5 bg-white/5 px-6 py-4 flex items-center justify-between">
+                <div className="border-b border-gray-200 dark:border-white/5 bg-white/70 dark:bg-white/5 px-6 py-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Clock className="text-violet-400" size={20} />
                     <h2 className="text-lg font-bold">Analysis History</h2>
@@ -687,7 +724,7 @@ const DashboardPage = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-800/30 text-[10px] uppercase tracking-widest text-gray-500 dark:text-slate-500">
+                      <tr className="bg-slate-100 dark:bg-slate-800/30 text-[10px] uppercase tracking-widest text-gray-500 dark:text-slate-500">
                         <th className="px-6 py-4 font-bold w-10">Select</th>
                         <th className="px-6 py-4 font-bold">Date</th>
                         <th className="px-6 py-4 font-bold">Score</th>
@@ -695,12 +732,12 @@ const DashboardPage = () => {
                         <th className="px-6 py-4 font-bold">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-gray-200 dark:divide-white/5">
                       {history.length > 0 ? (
                         history.map((item, idx) => (
                           <tr 
                             key={idx} 
-                            className={`hover:bg-white/5 transition-colors group cursor-pointer ${selectedVersions.includes(item._id) ? 'bg-blue-500/10 border-l-2 border-blue-500' : ''}`}
+                            className={`hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group cursor-pointer ${selectedVersions.includes(item._id) ? 'bg-blue-500/10 border-l-2 border-blue-500' : ''}`}
                             onClick={() => toggleVersionSelection(item._id)}
                           >
                             <td className="px-6 py-4 text-center">
@@ -780,192 +817,6 @@ const DashboardPage = () => {
                 </div>
               )}
 
-              {/* Quick Actions Card */}
-              <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gradient-to-br from-blue-600/20 to-blue-900/40 p-6 shadow-xl backdrop-blur-md relative overflow-hidden group">
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 bg-blue-500/20 rounded-full blur-3xl group-hover:bg-blue-500/40 transition-all"></div>
-                <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                  <TrendingUp size={20} className="text-blue-400" />
-                  {isStudent ? "Improve Profile" : isTutor ? "Tutor Hub" : "Recruitment Hub"}
-                </h3>
-                <p className="text-sm text-gray-700 dark:text-blue-100/70 mb-6">
-                  {isStudent
-                    ? "Take the next step in your career journey with our AI-driven tools."
-                    : isTutor
-                    ? "Monitor class performance and review student mock interviews."
-                    : "Manage your hiring pipeline and find the perfect candidates."}
-                </p>
-
-                <div className="space-y-3">
-                  {isStudent ? (
-                    <>
-                      <Link
-                        to="/resume-analyzer"
-                        className="flex items-center justify-between group/link w-full p-4 rounded-xl bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-white/20 transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <FileText size={18} className="text-blue-300" />
-                          <span className="font-semibold text-sm">
-                            Update Resume
-                          </span>
-                        </div>
-                        <ArrowRight
-                          size={16}
-                          className="text-blue-300 group-hover/link:translate-x-1 transition-transform"
-                        />
-                      </Link>
-
-                      <Link
-                        to="/job-matcher"
-                        className="flex items-center justify-between group/link w-full p-4 rounded-xl bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-white/20 transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Target size={18} className="text-emerald-300" />
-                          <span className="font-semibold text-sm">
-                            Find Matches
-                          </span>
-                        </div>
-                        <ArrowRight
-                          size={16}
-                          className="text-emerald-300 group-hover/link:translate-x-1 transition-transform"
-                        />
-                      </Link>
-
-                      <Link
-                        to="/my-applications"
-                        className="flex items-center justify-between group/link w-full p-4 rounded-xl bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-white/20 transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Briefcase size={18} className="text-violet-300" />
-                          <span className="font-semibold text-sm">
-                            Applied Jobs
-                          </span>
-                        </div>
-                        <ArrowRight
-                          size={16}
-                          className="text-violet-300 group-hover/link:translate-x-1 transition-transform"
-                        />
-                      </Link>
-
-                      <Link
-                        to="/classrooms"
-                        className="flex items-center justify-between group/link w-full p-4 rounded-xl bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-white/20 transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Video size={18} className="text-pink-300" />
-                          <span className="font-semibold text-sm">
-                            Live Classrooms
-                          </span>
-                        </div>
-                        <ArrowRight
-                          size={16}
-                          className="text-pink-300 group-hover/link:translate-x-1 transition-transform"
-                        />
-                      </Link>
-                    </>
-                  ) : isTutor ? (
-                    <>
-                      <Link
-                        to="/tutor/analytics"
-                        className="flex items-center justify-between group/link w-full p-4 rounded-xl bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-white/20 transition-all mb-2"
-                      >
-                        <div className="flex items-center gap-3">
-                          <BarChart3 size={18} className="text-violet-300" />
-                          <span className="font-semibold text-sm">
-                            Skill Gap Analytics
-                          </span>
-                        </div>
-                        <ArrowRight
-                          size={16}
-                          className="text-violet-300 group-hover/link:translate-x-1 transition-transform"
-                        />
-                      </Link>
-
-                      <Link
-                        to="/tutor/interviews"
-                        className="flex items-center justify-between group/link w-full p-4 rounded-xl bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-white/20 transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Briefcase size={18} className="text-emerald-300" />
-                          <span className="font-semibold text-sm">
-                            Review Student Interviews
-                          </span>
-                        </div>
-                        <ArrowRight
-                          size={16}
-                          className="text-emerald-300 group-hover/link:translate-x-1 transition-transform"
-                        />
-                      </Link>
-
-                      <Link
-                        to="/tutor/roadmaps"
-                        className="flex items-center justify-between group/link w-full p-4 rounded-xl bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-white/20 transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Target size={18} className="text-indigo-300" />
-                          <span className="font-semibold text-sm">
-                            Student Learning Roadmaps
-                          </span>
-                        </div>
-                        <ArrowRight
-                          size={16}
-                          className="text-indigo-300 group-hover/link:translate-x-1 transition-transform"
-                        />
-                      </Link>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        to="/recruiter/jobs/new"
-                        className="flex items-center justify-between group/link w-full p-4 rounded-xl bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-white/20 transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <PlusCircle size={18} className="text-blue-300" />
-                          <span className="font-semibold text-sm">
-                            Post New Job
-                          </span>
-                        </div>
-                        <ArrowRight
-                          size={16}
-                          className="text-blue-300 group-hover/link:translate-x-1 transition-transform"
-                        />
-                      </Link>
-
-                      <Link
-                        to="/recruiter/jobs"
-                        className="flex items-center justify-between group/link w-full p-4 rounded-xl bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-white/20 transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Briefcase size={18} className="text-emerald-300" />
-                          <span className="font-semibold text-sm">
-                            Manage Jobs
-                          </span>
-                        </div>
-                        <ArrowRight
-                          size={16}
-                          className="text-emerald-300 group-hover/link:translate-x-1 transition-transform"
-                        />
-                      </Link>
-
-                      <Link
-                        to="/recruiter/analytics"
-                        className="flex items-center justify-between group/link w-full p-4 rounded-xl bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-white/20 transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <BarChart3 size={18} className="text-violet-300" />
-                          <span className="font-semibold text-sm">
-                            View Analytics
-                          </span>
-                        </div>
-                        <ArrowRight
-                          size={16}
-                          className="text-violet-300 group-hover/link:translate-x-1 transition-transform"
-                        />
-                      </Link>
-                    </>
-                  )}
-                </div>
-              </div>
-
               {/* Account Status */}
               <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-slate-900/50 p-6 backdrop-blur-md">
                 <h3 className="text-[10px] font-bold text-gray-500 dark:text-slate-500 uppercase tracking-widest mb-4">
@@ -999,6 +850,8 @@ const DashboardPage = () => {
               </div>
             </div>
           </section>
+            </div>
+          </div>
         </div>
       )}
 

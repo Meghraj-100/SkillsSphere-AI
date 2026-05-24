@@ -133,7 +133,7 @@ export async function runPipeline({
         };
       } else if (!hasHFKey) {
         return {
-          score: 0,
+          score: null,
           name: "semanticMatch",
           key: "semanticMatch",
           label: "Semantic Match",
@@ -251,5 +251,7 @@ export async function runPipeline({
     classification,
     isJDProvided,
     mode,
+    semanticRateLimited: semanticMatch?.meta?.rateLimited ?? false,
+    semanticRetryAfter:  semanticMatch?.meta?.retryAfter  ?? null,
   };
 }

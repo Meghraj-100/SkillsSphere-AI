@@ -333,10 +333,14 @@ cp .env.example .env
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `GEMINI_API_KEY` (Required for AI Cover Letter Generation)
+- `REDIS_URL` (Required for caching API responses, e.g., redis://localhost:6379)
 
 ```env
 # AI/ML Configuration (Required for semantic matching — free tier)
 HF_API_TOKEN=your_hugging_face_token
+
+# Redis Configuration
+REDIS_URL=redis://localhost:6379
 
 # Email Setup (if using console/smtp directly in server)
 EMAIL_SERVICE_MODE=console
@@ -438,3 +442,10 @@ To use real email notifications (OTP verification, password reset) via Gmail, fo
    ```
 
 4. **Restart the server** to apply changes.
+
+### 📝 Testing Email Verification (Console Mode)
+
+For local development and testing without configuring an SMTP provider:
+1. Set `EMAIL_SERVICE_MODE=console` in `server/.env`.
+2. When registering a user, the server will output the 6-digit OTP directly to your terminal console instead of sending an email.
+3. Retrieve this OTP from the server command line logs and enter it in the frontend verification modal to complete the registration flow.

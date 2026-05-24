@@ -38,7 +38,7 @@ async function main() {
   }
 
   printHeader("Python: installing dependencies");
-  await run(process.execPath, ["scripts/python-setup.js"], {
+  await run("node", ["scripts/python-setup.js"], {
     cwd: repoRoot,
     label: "python",
   });

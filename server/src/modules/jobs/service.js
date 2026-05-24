@@ -8,6 +8,9 @@ import { generateRecommendations } from "../../../../ai-ml/pipeline/recommendati
 import AppError from "../../utils/AppError.js";
 import { getIO } from "../../utils/socketIO.js";
 import recruiterIntelligenceService from "../recruiterIntelligence/service.js";
+import Resume from "../../database/models/Resume.js";
+import cache from "../../utils/cache.js";
+
 
 /**
  * Create a new job posting
@@ -35,8 +38,9 @@ export const getAllJobs = async (queryParams = {}) => {
   const filters = { status: "open" };
 
   // Filter by designation (case-insensitive regex search on title)
-  if (designation) {
-    filters.title = { $regex: designation, $options: "i" };
+  if (designation && typeof designation === "string") {
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    filters.title = { $regex: escapeRegex(designation), $options: "i" };
   }
 
   // Filter by Salary Range
@@ -128,6 +132,13 @@ export const updateJob = async (id, updateData, recruiterId) => {
     throw new AppError("You do not have permission to update this job", 403);
   }
 
+  // Prevent Mass Assignment: Remove protected fields
+  delete updateData.recruiter;
+  delete updateData._id;
+  delete updateData.createdAt;
+  delete updateData.updatedAt;
+  delete updateData.__v;
+
   const updatedJob = await JobPosting.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
@@ -141,6 +152,10 @@ export const updateJob = async (id, updateData, recruiterId) => {
  * @returns {Promise<Array>} Array of { skill: string, count: number }
  */
 export const getSkillTrends = async () => {
+  const CACHE_KEY = "global_skill_trends";
+  const cachedData = cache.get(CACHE_KEY);
+  if (cachedData) return cachedData;
+
   const trends = await JobPosting.aggregate([
     { $match: { status: "open" } },
     { $unwind: "$skills" },
@@ -160,6 +175,8 @@ export const getSkillTrends = async () => {
       },
     },
   ]);
+  
+  cache.set(CACHE_KEY, trends, 900); // Cache for 15 minutes
   return trends;
 };
 
@@ -279,6 +296,10 @@ export const getJobRecommendations = async (user) => {
  * @returns {Promise<Object>} - Analytics data
  */
 export const getRecruiterAnalytics = async (recruiterId) => {
+  const CACHE_KEY = `recruiter_analytics_${recruiterId.toString()}`;
+  const cachedData = cache.get(CACHE_KEY);
+  if (cachedData) return cachedData;
+
   // Get all jobs for this recruiter
   const allJobs = await JobPosting.find({ recruiter: recruiterId })
     .sort({ createdAt: -1 })
@@ -347,13 +368,16 @@ export const getRecruiterAnalytics = async (recruiterId) => {
     createdAt: job.createdAt,
   }));
 
-  return {
+  const result = {
     totalJobs: allJobs.length,
     statusBreakdown,
     jobsByMonth,
     topSkills,
     recentJobs,
   };
+
+  cache.set(CACHE_KEY, result, 300); // Cache for 5 minutes
+  return result;
 };
 
 /**
@@ -417,7 +441,7 @@ export const applyToJob = async (jobId, applicantId, options = {}) => {
     application = appDocs[0];
 
     const notifDocs = await Notification.create([{
-      recipient: job.recruiter,
+      userId: job.recruiter,
       type: "new_application",
       title: "New Job Application",
       message: `A new candidate has applied for ${job.title}.`,
@@ -451,9 +475,11 @@ export const applyToJob = async (jobId, applicantId, options = {}) => {
  * Get all applications for a specific job (for recruiters)
  * @param {string} jobId - ID of the job
  * @param {string} recruiterId - ID of the recruiter (for ownership check)
+ * @param {string} status - Optional status filter
+ * @param {string} sortBy - Optional sort strategy ("matchScore", "newest", "oldest")
  * @returns {Promise<Array>} - List of applications
  */
-export const getJobApplications = async (jobId, recruiterId, status) => {
+export const getJobApplications = async (jobId, recruiterId, statusOrParams, sortByParam = "matchScore") => {
   const job = await JobPosting.findById(jobId);
   if (!job) {
     throw new AppError("Job not found", 404);
@@ -463,15 +489,151 @@ export const getJobApplications = async (jobId, recruiterId, status) => {
     throw new AppError("You do not have permission to view these applications", 403);
   }
 
+  // Normalize inputs to support legacy positional calls and object-based query formats
+  let status = "";
+  let sortBy = "matchScore";
+  let filters = {};
+
+  if (statusOrParams && typeof statusOrParams === "object") {
+    filters = statusOrParams;
+    status = filters.status || "";
+    sortBy = filters.sortBy || "matchScore";
+  } else {
+    status = statusOrParams || "";
+    sortBy = sortByParam || "matchScore";
+    filters = { status, sortBy };
+  }
+
   const query = { job: jobId };
   if (status) {
     query.status = status;
   }
 
+  // AI Match Score Range Filters
+  if (filters.minScore !== undefined && filters.minScore !== "") {
+    query.aiMatchScore = { ...query.aiMatchScore, $gte: Number(filters.minScore) };
+  }
+  if (filters.maxScore !== undefined && filters.maxScore !== "") {
+    query.aiMatchScore = { ...query.aiMatchScore, $lte: Number(filters.maxScore) };
+  }
+
+  // ATS Compatibility Score Filters
+  if (filters.minAtsScore !== undefined && filters.minAtsScore !== "") {
+    query["matchBreakdown.atsCompatibility"] = { ...query["matchBreakdown.atsCompatibility"], $gte: Number(filters.minAtsScore) };
+  }
+  if (filters.maxAtsScore !== undefined && filters.maxAtsScore !== "") {
+    query["matchBreakdown.atsCompatibility"] = { ...query["matchBreakdown.atsCompatibility"], $lte: Number(filters.maxAtsScore) };
+  }
+
+  // Match Category Filters
+  if (filters.matchCategory) {
+    const categoryMap = {
+      excellent: "Excellent Match",
+      moderate: "Moderate Match",
+      growth: "Growth Potential",
+      weak: "Weak Alignment",
+      "excellent match": "Excellent Match",
+      "moderate match": "Moderate Match",
+      "growth potential": "Growth Potential",
+      "weak alignment": "Weak Alignment"
+    };
+
+    const requestedCategories = Array.isArray(filters.matchCategory)
+      ? filters.matchCategory
+      : filters.matchCategory.split(",").map(c => c.trim().toLowerCase());
+
+    const mappedCategories = requestedCategories
+      .map(c => categoryMap[c] || c)
+      .filter(Boolean);
+
+    if (mappedCategories.length > 0) {
+      query.matchCategory = { $in: mappedCategories };
+    }
+  }
+
+  // Contribution Activity Filters
+  if (filters.contributorOnly === "true" || filters.contributorOnly === true) {
+    query["matchBreakdown.contributionActivity"] = { $in: ["High", "Medium"] };
+  } else if (filters.contributionLevel) {
+    const levels = Array.isArray(filters.contributionLevel)
+      ? filters.contributionLevel
+      : filters.contributionLevel.split(",").map(l => l.trim());
+    query["matchBreakdown.contributionActivity"] = { $in: levels };
+  }
+
+  // Career Readiness Filters
+  if (filters.careerReadiness) {
+    const readinessLevels = Array.isArray(filters.careerReadiness)
+      ? filters.careerReadiness
+      : filters.careerReadiness.split(",").map(r => r.trim());
+    query["matchBreakdown.careerReadiness"] = { $in: readinessLevels };
+  }
+
+  // Specialization Filters (using subqueries on the Resume collection)
+  if (filters.specialization) {
+    const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const specMap = {
+      frontend: ['html', 'css', 'react', 'angular', 'vue', 'javascript', 'typescript', 'tailwind', 'next.js', 'nextjs', 'redux', 'frontend', 'front-end'],
+      backend: ['node.js', 'nodejs', 'express', 'python', 'django', 'fastapi', 'java', 'spring', 'ruby', 'rails', 'go', 'golang', 'php', 'backend', 'back-end'],
+      devops: ['docker', 'kubernetes', 'aws', 'gcp', 'azure', 'ci/cd', 'cicd', 'git', 'github actions', 'terraform', 'ansible', 'devops'],
+      aiml: ['machine learning', 'deep learning', 'pytorch', 'tensorflow', 'scikit-learn', 'nlp', 'computer vision', 'ai', 'ml', 'artificial intelligence'],
+      database: ['sql', 'mysql', 'postgresql', 'postgres', 'mongodb', 'redis', 'oracle', 'sqlite', 'cassandra', 'dynamodb', 'database']
+    };
+
+    const requestedSpecs = Array.isArray(filters.specialization)
+      ? filters.specialization
+      : filters.specialization.split(",").map(s => s.trim().toLowerCase());
+
+    const resumeQueryConditions = [];
+
+    requestedSpecs.forEach(spec => {
+      if (spec === "fullstack") {
+        resumeQueryConditions.push({
+          $and: [
+            { skills: { $in: specMap.frontend.map(s => new RegExp(`^${escapeRegex(s)}$`, "i")) } },
+            { skills: { $in: specMap.backend.map(s => new RegExp(`^${escapeRegex(s)}$`, "i")) } }
+          ]
+        });
+      } else if (specMap[spec]) {
+        resumeQueryConditions.push({
+          skills: { $in: specMap[spec].map(s => new RegExp(`^${escapeRegex(s)}$`, "i")) }
+        });
+      }
+    });
+
+    if (resumeQueryConditions.length > 0) {
+      const matchingResumes = await Resume.find({ $or: resumeQueryConditions }).select("_id").lean();
+      const resumeIds = matchingResumes.map(r => r._id);
+      query.resume = { $in: resumeIds };
+    }
+  }
+
+  // Direct skills keyword filtering
+  if (filters.skills) {
+    const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const skillList = Array.isArray(filters.skills)
+      ? filters.skills
+      : filters.skills.split(",").map(s => s.trim());
+    const skillRegexes = skillList.map(s => new RegExp(`^${escapeRegex(s)}$`, "i"));
+    const matchingResumes = await Resume.find({ skills: { $in: skillRegexes } }).select("_id").lean();
+    const resumeIds = matchingResumes.map(r => r._id);
+    query.resume = { ...query.resume, $in: resumeIds };
+  }
+
+  let sortConfig = { createdAt: -1 };
+  if (sortBy === "matchScore") {
+    // Sort by match score descending, fallback to creation date
+    sortConfig = { aiMatchScore: -1, createdAt: -1 };
+  } else if (sortBy === "newest") {
+    sortConfig = { createdAt: -1 };
+  } else if (sortBy === "oldest") {
+    sortConfig = { createdAt: 1 };
+  }
+
   const applications = await JobApplication.find(query)
     .populate("applicant", "name email")
     .populate("resume", "fileName")
-    .sort({ createdAt: -1 });
+    .sort(sortConfig);
 
   return applications;
 };
@@ -493,6 +655,28 @@ export const getApplicantAnalytics = async (recruiterId) => {
       totalApplicants: 0,
       applicantsByStatus: { pending: 0, reviewed: 0, shortlisted: 0, rejected: 0 },
       applicantsPerJob: [],
+      averageAiMatchScore: 0,
+      topCandidatesCount: 0,
+      matchCategoryDistribution: {
+        "Excellent Match": 0,
+        "Moderate Match": 0,
+        "Growth Potential": 0,
+        "Weak Alignment": 0
+      },
+      averageAtsScore: 0,
+      atsReadyPercentage: 0,
+      lowAtsCount: 0,
+      ossContributorCount: 0,
+      ossContributorPercentage: 0,
+      activeRoadmapCount: 0,
+      specializationCounts: {
+        frontend: 0,
+        backend: 0,
+        fullstack: 0,
+        devops: 0,
+        aiml: 0,
+        database: 0
+      }
     };
   }
 
@@ -537,10 +721,126 @@ export const getApplicantAnalytics = async (recruiterId) => {
     },
   ]);
 
+  // Dynamic Hiring Intelligence Metrics
+  const allApps = await JobApplication.find({ job: { $in: jobIds } }).lean();
+
+  let totalScored = 0;
+  let totalScoreSum = 0;
+  let topCandidatesCount = 0;
+  
+  let totalAtsScored = 0;
+  let totalAtsSum = 0;
+  let atsReadyCount = 0;
+  let lowAtsCount = 0;
+
+  let ossContributorCount = 0;
+  let activeRoadmapCount = 0;
+
+  const matchCategoryDistribution = {
+    "Excellent Match": 0,
+    "Moderate Match": 0,
+    "Growth Potential": 0,
+    "Weak Alignment": 0
+  };
+
+  allApps.forEach(app => {
+    // AI Match Scores
+    if (app.aiMatchScore !== null && app.aiMatchScore !== undefined) {
+      totalScored += 1;
+      totalScoreSum += app.aiMatchScore;
+      if (app.aiMatchScore >= 85) {
+        topCandidatesCount += 1;
+      }
+    }
+
+    if (app.matchCategory) {
+      if (matchCategoryDistribution[app.matchCategory] !== undefined) {
+        matchCategoryDistribution[app.matchCategory] += 1;
+      }
+    }
+
+    // Breakdown details
+    if (app.matchBreakdown) {
+      const ats = app.matchBreakdown.atsCompatibility;
+      if (ats !== null && ats !== undefined) {
+        totalAtsScored += 1;
+        totalAtsSum += ats;
+        if (ats >= 80) {
+          atsReadyCount += 1;
+        }
+        if (ats < 50) {
+          lowAtsCount += 1;
+        }
+      }
+
+      const contr = app.matchBreakdown.contributionActivity;
+      if (contr === "High" || contr === "Medium") {
+        ossContributorCount += 1;
+      }
+
+      const career = app.matchBreakdown.careerReadiness;
+      if (career === "High" || career === "Medium") {
+        activeRoadmapCount += 1;
+      }
+    }
+  });
+
+  const averageAiMatchScore = totalScored > 0 ? Math.round(totalScoreSum / totalScored) : 0;
+  const averageAtsScore = totalAtsScored > 0 ? Math.round(totalAtsSum / totalAtsScored) : 0;
+  const atsReadyPercentage = totalAtsScored > 0 ? Math.round((atsReadyCount / totalAtsScored) * 100) : 0;
+  const ossContributorPercentage = totalApplicants > 0 ? Math.round((ossContributorCount / totalApplicants) * 100) : 0;
+
+  // Query resumes to count specialization statistics
+  const applicationsWithResumes = await JobApplication.find({ job: { $in: jobIds } })
+    .select("resume")
+    .populate("resume", "skills")
+    .lean();
+
+  const specMap = {
+    frontend: ['html', 'css', 'react', 'angular', 'vue', 'javascript', 'typescript', 'tailwind', 'next.js', 'nextjs', 'redux', 'frontend', 'front-end'],
+    backend: ['node.js', 'nodejs', 'express', 'python', 'django', 'fastapi', 'java', 'spring', 'ruby', 'rails', 'go', 'golang', 'php', 'backend', 'back-end'],
+    devops: ['docker', 'kubernetes', 'aws', 'gcp', 'azure', 'ci/cd', 'cicd', 'git', 'github actions', 'terraform', 'ansible', 'devops'],
+    aiml: ['machine learning', 'deep learning', 'pytorch', 'tensorflow', 'scikit-learn', 'nlp', 'computer vision', 'ai', 'ml', 'artificial intelligence'],
+    database: ['sql', 'mysql', 'postgresql', 'postgres', 'mongodb', 'redis', 'oracle', 'sqlite', 'cassandra', 'dynamodb', 'database']
+  };
+
+  const specializationCounts = { frontend: 0, backend: 0, fullstack: 0, devops: 0, aiml: 0, database: 0 };
+
+  applicationsWithResumes.forEach(app => {
+    const skills = (app.resume?.skills || []).map(s => s.toLowerCase().trim());
+    if (skills.length === 0) return;
+
+    let hasFrontend = skills.some(s => specMap.frontend.includes(s));
+    let hasBackend = skills.some(s => specMap.backend.includes(s));
+    let hasDevops = skills.some(s => specMap.devops.includes(s));
+    let hasAiml = skills.some(s => specMap.aiml.includes(s));
+    let hasDatabase = skills.some(s => specMap.database.includes(s));
+
+    if (hasFrontend && hasBackend) {
+      specializationCounts.fullstack += 1;
+    } else {
+      if (hasFrontend) specializationCounts.frontend += 1;
+      if (hasBackend) specializationCounts.backend += 1;
+    }
+    if (hasDevops) specializationCounts.devops += 1;
+    if (hasAiml) specializationCounts.aiml += 1;
+    if (hasDatabase) specializationCounts.database += 1;
+  });
+
   return {
     totalApplicants,
     applicantsByStatus,
     applicantsPerJob: perJobAgg,
+    averageAiMatchScore,
+    topCandidatesCount,
+    matchCategoryDistribution,
+    averageAtsScore,
+    atsReadyPercentage,
+    lowAtsCount,
+    ossContributorCount,
+    ossContributorPercentage,
+    activeRoadmapCount,
+    specializationCounts
   };
 };
 

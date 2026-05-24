@@ -1,4 +1,6 @@
 import InterviewSession from "../../database/models/InterviewSession.js";
+import { processAnswerSubmission } from "./service.js";
+import { transcribeAudioStream } from "../../integrations/aiInterviewService.js";
 
 export function initInterviewSockets(io) {
   io.on("connection", (socket) => {
@@ -79,6 +81,73 @@ export function initInterviewSockets(io) {
          feedback,
          timestamp: Date.now()
        });
+    });
+
+    // Handle answer submission
+    socket.on("submit-answer", async ({ sessionId, transcript, audioBuffer }) => {
+      if (!socket.data || socket.data.sessionId !== sessionId) return;
+
+      try {
+        const audioFile = audioBuffer ? { buffer: audioBuffer } : null;
+
+        const result = await processAnswerSubmission({
+          sessionId,
+          userId: socket.data.user.id,
+          transcript,
+          audioFile,
+        });
+
+        // Emit the result back to this specific client
+        socket.emit("answer-evaluated", result);
+      } catch (error) {
+        console.error("Error evaluating answer via socket:", error);
+        socket.emit("evaluation-error", { message: error.message || "Failed to evaluate answer" });
+      }
+    });
+
+    // Real-time audio streaming
+    socket.on("start-audio-stream", ({ sessionId }) => {
+      if (!socket.data || socket.data.sessionId !== sessionId) return;
+
+      try {
+        const pyWs = transcribeAudioStream();
+        socket.data.pyWs = pyWs;
+
+        pyWs.on("message", (data) => {
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.transcript !== undefined) {
+              socket.emit("live-transcript", { transcript: parsed.transcript });
+            } else if (parsed.error) {
+              console.error("Python WS Error:", parsed.error);
+            }
+          } catch (err) {
+            console.error("Failed to parse Python WS message", err);
+          }
+        });
+
+        pyWs.on("error", (err) => {
+          console.error("Python WS Connection Error:", err);
+        });
+      } catch (error) {
+        console.error("Failed to start audio stream", error);
+      }
+    });
+
+    socket.on("audio-chunk", ({ sessionId, chunk }) => {
+      if (!socket.data || socket.data.sessionId !== sessionId) return;
+      const pyWs = socket.data.pyWs;
+      if (pyWs && pyWs.readyState === 1 /* OPEN */) {
+        pyWs.send(chunk);
+      }
+    });
+
+    socket.on("end-audio-stream", ({ sessionId }) => {
+      if (!socket.data || socket.data.sessionId !== sessionId) return;
+      const pyWs = socket.data.pyWs;
+      if (pyWs && pyWs.readyState === 1 /* OPEN */) {
+        pyWs.send("STOP");
+      }
     });
 
     socket.on("disconnect", () => {

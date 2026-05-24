@@ -1,5 +1,41 @@
 import { apiRequest } from "../../../services/apiClient";
 
+const TOKEN_KEY = "skillssphere.auth.token";
+const getToken = () =>
+  localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
+
+/**
+ * Fetch the student's latest stored resume analysis from the database.
+ * Returns null when no prior analysis exists (first-time user).
+ */
+export const getLatestResumeAnalysis = async () => {
+  try {
+    const response = await apiRequest("/api/resume/me/latest", {
+      method: "GET",
+      token: getToken(),
+    });
+
+    if (!response || response.success === false || !response.data) return null;
+
+    const doc = response.data;
+
+    // Normalize DB field names → shape expected by AnalysisResult
+    return {
+      ...doc,
+      resumeId: doc._id,
+      // DB stores aggregatedScore; AnalysisResult reads result.score
+      score: doc.aggregatedScore ?? doc.score ?? 0,
+      // Derive isJDProvided from whether a jobDescription was saved
+      isJDProvided: !!doc.jobDescription,
+    };
+  } catch (err) {
+    // 404 means no prior scan — treat as "no data", not an error
+    if (err?.status === 404 || err?.message?.includes("404")) return null;
+    console.error("[resumeService] getLatestResumeAnalysis:", err);
+    return null;
+  }
+};
+
 export const analyzeResume = async (file, jobDescription = "") => {
   try {
     if (!file) throw new Error("Please select a resume file first.");
@@ -11,14 +47,10 @@ export const analyzeResume = async (file, jobDescription = "") => {
       formData.append("jobDescription", jobDescription.trim());
     }
 
-    // Get token from storage
-    const TOKEN_KEY = "skillssphere.auth.token";
-    const token = localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
-
     const response = await apiRequest("/api/resume/analyze", {
       method: "POST",
       body: formData,
-      token,
+      token: getToken(),
     });
 
     if (!response || response.success === false) {
@@ -37,9 +69,6 @@ export const generateCoverLetter = async (resumeId, jobDescription, tone = "Prof
     if (!resumeId) throw new Error("Resume ID is missing.");
     if (!jobDescription || !jobDescription.trim()) throw new Error("Job description is required.");
 
-    const TOKEN_KEY = "skillssphere.auth.token";
-    const token = localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
-
     const response = await apiRequest(`/api/resume/${resumeId}/cover-letter`, {
       method: "POST",
       body: { 
@@ -47,7 +76,7 @@ export const generateCoverLetter = async (resumeId, jobDescription, tone = "Prof
         tone,
         language
       },
-      token,
+      token: getToken(),
     });
 
     if (!response || response.success === false) {

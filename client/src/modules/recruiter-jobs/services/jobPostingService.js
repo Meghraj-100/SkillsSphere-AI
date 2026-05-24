@@ -194,13 +194,31 @@ export const deleteJobPosting = async (id, token) => {
  * Fetch all applications for a specific job posting
  * @param {string} jobId - Job posting ID
  * @param {string} token - Auth bearer token
+ * @param {string} status - Optional status filter
+ * @param {string} sortBy - Optional sorting option
  * @returns {Promise<{success: boolean, applications: Array}>}
  */
-export const getJobApplications = async (jobId, token, status = "") => {
+export const getJobApplications = async (jobId, token, statusOrFilters = "", sortBy = "matchScore") => {
   try {
-    const url = status 
-      ? `/api/jobs/${jobId}/applications?status=${encodeURIComponent(status)}`
-      : `/api/jobs/${jobId}/applications`;
+    const params = new URLSearchParams();
+    
+    if (statusOrFilters && typeof statusOrFilters === "object") {
+      const filters = statusOrFilters;
+      Object.entries(filters).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== "") {
+          params.append(key, val);
+        }
+      });
+    } else {
+      if (statusOrFilters) {
+        params.append("status", statusOrFilters);
+      }
+      if (sortBy) {
+        params.append("sortBy", sortBy);
+      }
+    }
+    
+    const url = `/api/jobs/${jobId}/applications?${params.toString()}`;
     const response = await apiRequest(url, { token });
     return {
       success: true,
@@ -232,6 +250,36 @@ export const updateApplicationStatus = async (applicationId, status, comment, to
       success: true,
       application: response.application,
     };
+  } catch (error) {
+    const normalizedError = handleServiceError(error);
+    throw normalizedError;
+  }
+};
+
+/**
+ * Export applications for a specific job posting as a CSV Blob
+ * @param {string} jobId - Job posting ID
+ * @param {string} token - Auth bearer token
+ * @param {string} status - Optional status filter
+ * @param {string} sortBy - Optional sorting option
+ * @returns {Promise<Blob>}
+ */
+export const exportJobApplicationsCSV = async (jobId, token, status = "", sortBy = "matchScore") => {
+  try {
+    let url = `/api/jobs/${jobId}/applications/export?sortBy=${encodeURIComponent(sortBy)}`;
+    if (status) {
+      url += `&status=${encodeURIComponent(status)}`;
+    }
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    if (!response.ok) {
+      throw new Error("Failed to export candidates");
+    }
+    const blob = await response.blob();
+    return blob;
   } catch (error) {
     const normalizedError = handleServiceError(error);
     throw normalizedError;

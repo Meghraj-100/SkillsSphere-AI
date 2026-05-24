@@ -32,15 +32,15 @@ export function normalizePipelineResult(result = {}) {
 
     skillMatch:
       result.skillMatch && typeof result.skillMatch === "object"
-        ? result.skillMatch
+        ? { ...result.skillMatch, ...(result.skillMatch.details || {}) }
         : {},
     keywordMatch:
       result.keywordMatch && typeof result.keywordMatch === "object"
-        ? result.keywordMatch
+        ? { ...result.keywordMatch, ...(result.keywordMatch.details || {}) }
         : {},
     experienceMatch:
       result.experienceMatch && typeof result.experienceMatch === "object"
-        ? result.experienceMatch
+        ? { ...result.experienceMatch, ...(result.experienceMatch.details || {}) }
         : {},
     consistencyMatch:
       result.consistencyMatch && typeof result.consistencyMatch === "object"

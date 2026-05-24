@@ -1,7 +1,8 @@
 import { describe, it, beforeEach, afterEach, mock } from "node:test";
 import assert from "node:assert/strict";
-import { createJobPosting } from "../controller.js";
+import { createJobPosting, exportApplicationsToCSV } from "../controller.js";
 import JobPosting from "../../../database/models/JobPosting.js";
+import JobApplication from "../../../database/models/JobApplication.js";
 import AppError from "../../../utils/AppError.js";
 
 describe("Job Controller", () => {
@@ -11,6 +12,7 @@ describe("Job Controller", () => {
     req = {
       body: {},
       params: {},
+      query: {},
       user: { _id: "user123" },
     };
     res = {
@@ -210,6 +212,92 @@ describe("Job Controller", () => {
 
       assert.equal(next.mock.calls.length, 1);
       assert.equal(next.mock.calls[0].arguments[0], dbError);
+    });
+  });
+
+  describe("exportApplicationsToCSV", () => {
+    it("should export applications as CSV and set correct headers", async () => {
+      req.params.id = "job123";
+      
+      const mockJob = {
+        _id: "job123",
+        recruiter: { toString: () => "user123" }
+      };
+      
+      const mockApplications = [
+        {
+          applicant: { name: "Alice", email: "alice@example.com" },
+          aiMatchScore: 90,
+          matchCategory: "Excellent Match",
+          status: "shortlisted",
+          createdAt: new Date("2026-05-24T00:00:00.000Z"),
+          resumeLink: "https://example.com/alice.pdf",
+          coverNote: "Hi there!",
+        }
+      ];
+      
+      mock.method(JobPosting, "findById", () => Promise.resolve(mockJob));
+      
+      const mockQuery = {
+        populate() { return this; },
+        sort() { return Promise.resolve(mockApplications); }
+      };
+      mock.method(JobApplication, "find", () => mockQuery);
+      
+      const headers = {};
+      let sentContent = "";
+      
+      let resolveTest;
+      const testPromise = new Promise((resolve) => { resolveTest = resolve; });
+      
+      res.setHeader = mock.fn((name, value) => { headers[name] = value; });
+      res.send = mock.fn((content) => {
+        sentContent = content;
+        resolveTest();
+      });
+      next = mock.fn((err) => {
+        resolveTest(err);
+      });
+
+      await exportApplicationsToCSV(req, res, next);
+      const err = await testPromise;
+      if (err) throw err;
+
+      assert.equal(res.status.mock.calls[0].arguments[0], 200);
+      assert.equal(headers["Content-Type"], "text/csv");
+      assert.ok(headers["Content-Disposition"].includes("job-job123-applicants.csv"));
+      
+      const lines = sentContent.split("\n");
+      assert.equal(lines[0], "Candidate Name,Candidate Email,Match Score,Match Category,Status,Apply Date,Resume Link,Cover Note");
+      assert.ok(lines[1].includes('"Alice"'));
+      assert.ok(lines[1].includes('"alice@example.com"'));
+      assert.ok(lines[1].includes('"90%"'));
+      assert.ok(lines[1].includes('"Excellent Match"'));
+    });
+
+    it("should throw 403 error if recruiter is not owner of the job", async () => {
+      req.params.id = "job123";
+      
+      const mockJob = {
+        _id: "job123",
+        recruiter: { toString: () => "differentUser" }
+      };
+      
+      mock.method(JobPosting, "findById", () => Promise.resolve(mockJob));
+
+      let resolveTest;
+      const testPromise = new Promise((resolve) => { resolveTest = resolve; });
+      
+      next = mock.fn((err) => {
+        resolveTest(err);
+      });
+
+      await exportApplicationsToCSV(req, res, next);
+      const error = await testPromise;
+
+      assert.equal(next.mock.calls.length, 1);
+      assert.ok(error instanceof AppError);
+      assert.equal(error.statusCode, 403);
     });
   });
 });

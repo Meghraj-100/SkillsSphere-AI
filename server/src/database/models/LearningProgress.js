@@ -73,6 +73,12 @@ const learningProgressSchema = new mongoose.Schema(
         ref: "User",
       }
     ],
+    tutorsTracking: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      }
+    ],
   },
   { 
     timestamps: true,

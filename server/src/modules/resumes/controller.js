@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { parseResume } from "../../utils/parseResume.js";
 import Resume from "../../database/models/Resume.js";
 import asyncHandler from "../../utils/asyncHandler.js";
@@ -18,6 +19,8 @@ import { buildSignedFileUrl } from "../../utils/signedFileUrl.js";
 const defaultDependencies = {
   parseResume,
   upsertResume: (userId, payload) => resumeService.upsertResume(userId, payload),
+  findCachedAnalysis: (resumeHash, jdHash) => resumeService.findCachedAnalysis(resumeHash, jdHash),
+  saveCachedAnalysis: (cacheData) => resumeService.saveCachedAnalysis(cacheData),
 };
 
 
@@ -34,6 +37,10 @@ export const resetResumeControllerDependencies = () => {
   controllerDependencies = { ...defaultDependencies };
 };
 
+const getHash = (text) => {
+  return crypto.createHash("sha256").update(text || "").digest("hex");
+};
+
 
 
 const toLegacySemanticMatch = (pipelineResult) => {
@@ -45,6 +52,45 @@ const toLegacySemanticMatch = (pipelineResult) => {
     weight: result.weight,
     feedback: result.summary ? [result.summary] : [],
   };
+};
+
+const buildLegacyBreakdown = (safePipeline, jobSkills, parsedData, jobDescription) => {
+  const evaluatorBreakdown = [];
+  if (jobSkills && jobSkills.length > 0 && parsedData.skills && parsedData.skills.length > 0) {
+    evaluatorBreakdown.push({
+      key: "skillMatch",
+      label: "Skill Match",
+      score: safePipeline.skillMatch?.score || 0,
+      weight: safePipeline.skillMatch?.weight || 0,
+      weightedScore: safePipeline.skillMatch?.weightedScore || 0,
+      summary: safePipeline.skillMatch?.summary || "",
+      details: safePipeline.skillMatch?.details || {},
+      meta: safePipeline.skillMatch?.meta || {},
+    });
+  }
+  if (jobDescription && parsedData.resumeText) {
+    evaluatorBreakdown.push({
+      key: "keywordMatch",
+      label: "Keyword Match",
+      score: safePipeline.keywordMatch?.score || 0,
+      weight: safePipeline.keywordMatch?.weight || 0,
+      weightedScore: safePipeline.keywordMatch?.weightedScore || 0,
+      summary: safePipeline.keywordMatch?.summary || "",
+      details: safePipeline.keywordMatch?.details || {},
+      meta: safePipeline.keywordMatch?.meta || {},
+    });
+  }
+  evaluatorBreakdown.push({
+    key: "experienceMatch",
+    label: "Experience Match",
+    score: safePipeline.experienceMatch?.score || 0,
+    weight: safePipeline.experienceMatch?.weight || 0,
+    weightedScore: safePipeline.experienceMatch?.weightedScore || 0,
+    summary: safePipeline.experienceMatch?.summary || "",
+    details: safePipeline.experienceMatch?.details || {},
+    meta: safePipeline.experienceMatch?.meta || {},
+  });
+  return evaluatorBreakdown;
 };
 
 export const uploadResume = asyncHandler(async (req, res, next) => {
@@ -107,7 +153,86 @@ export const analyzeResume = asyncHandler(async (req, res, next) => {
   if (jobSkills === null) {
     return next(new AppError("jobSkills must be a valid JSON array", 400));
   }
-    // 🧠 RUN PIPELINE (ONLY LOGIC ENTRY)
+
+  // --- SEMANTIC CACHE LOOKUP ---
+  const resumeText = parsedData.resumeText || "";
+  const jdText = req.body.jobDescription || "";
+  const resumeHash = getHash(resumeText);
+  const jdHash = getHash(jdText);
+
+  const cachedAnalysis = await controllerDependencies.findCachedAnalysis(resumeHash, jdHash);
+  if (cachedAnalysis) {
+    const safePipeline = cachedAnalysis.details || {};
+    const safeData = cachedAnalysis.meta?.safeData || {};
+    const verifiedLinks = cachedAnalysis.meta?.verifiedLinks || [];
+
+    const evaluatorBreakdown = buildLegacyBreakdown(safePipeline, jobSkills, parsedData, req.body.jobDescription);
+    const overallScore = safePipeline.score || 0;
+
+    // Save to DB
+    const savedResume = await controllerDependencies.upsertResume(req.user._id, {
+      ...safeData,
+      ...safePipeline,
+      jobSkills,
+      jobDescription: req.body.jobDescription,
+      mode: safePipeline.mode || "match",
+      evaluatorBreakdown,
+      aggregatedScore: overallScore,
+      file: {
+        originalName: file.originalname,
+        storedName: file.filename,
+        path: file.path,
+        size: `${(file.size / 1024).toFixed(2)} KB`,
+        mimeType: file.mimetype,
+      },
+    });
+
+    // Save Analysis History
+    await AnalysisHistory.create({
+      user: req.user._id,
+      score: safePipeline.score || 0,
+      classification: safePipeline.classification?.level || "Beginner",
+      skills: safeData.skills || [],
+      missingSkills: safePipeline.skillMatch?.missingSkills || [],
+      suggestions: safePipeline.gapAnalysis?.suggestions || [],
+      breakdown: safePipeline.breakdown || {},
+      mode: safePipeline.mode || "match",
+    });
+
+    // Clean up: Limit history to last 10 versions to prevent bloat
+    const historyCount = await AnalysisHistory.countDocuments({ user: req.user._id });
+    if (historyCount > 10) {
+      const surplus = historyCount - 10;
+      const oldestRecords = await AnalysisHistory.find({ user: req.user._id })
+        .sort({ createdAt: 1 })
+        .limit(surplus)
+        .select("_id");
+
+      if (oldestRecords.length > 0) {
+        await AnalysisHistory.deleteMany({
+          _id: { $in: oldestRecords.map(r => r._id) }
+        });
+      }
+    }
+
+    console.timeEnd("ResumeAnalysis");
+
+    const { resumeText: _rt, ...dataWithoutText } = safeData;
+    return res.status(200).json({
+      success: true,
+      message: "Resume analyzed successfully",
+      resumeId: savedResume._id,
+      data: dataWithoutText,
+      ...safePipeline,
+      verifiedLinks,
+      file: savedResume.file,
+      evaluatorBreakdown,
+      overallScore,
+    });
+  }
+
+  // --- CACHE MISS: RUN PIPELINE ---
+  // 🧠 RUN PIPELINE (ONLY LOGIC ENTRY)
   console.time("PipelineExecution");
   const pipelineResult = await runPipeline({
     resumeData: parsedData,
@@ -130,6 +255,9 @@ export const analyzeResume = asyncHandler(async (req, res, next) => {
   const safeData = normalizeResumeData(parsedData);
   const safePipeline = normalizePipelineResult(pipelineResult);
 
+  const evaluatorBreakdown = buildLegacyBreakdown(safePipeline, jobSkills, parsedData, req.body.jobDescription);
+  const overallScore = safePipeline.score || 0;
+
   // Save to DB (optional)
   const savedResume = await controllerDependencies.upsertResume(req.user._id, {
     ...safeData,
@@ -137,6 +265,8 @@ export const analyzeResume = asyncHandler(async (req, res, next) => {
     jobSkills,
     jobDescription: req.body.jobDescription,
     mode: pipelineResult.mode || "match",
+    evaluatorBreakdown,
+    aggregatedScore: overallScore,
     file: {
       originalName: file.originalname,
       storedName: file.filename,
@@ -158,6 +288,20 @@ export const analyzeResume = asyncHandler(async (req, res, next) => {
     mode: pipelineResult.mode || "match",
   });
 
+  // Save to semantic cache for future requests
+  await controllerDependencies.saveCachedAnalysis({
+    resumeHash,
+    jdHash,
+    score: safePipeline.score || 0,
+    similarity: pipelineResult.breakdown?.semanticMatch?.score || safePipeline.score || 0,
+    summary: pipelineResult.breakdown?.semanticMatch?.summary || "Analysis generated successfully",
+    details: safePipeline,
+    meta: {
+      safeData,
+      verifiedLinks
+    }
+  });
+
   // Clean up: Limit history to last 10 versions to prevent bloat (Optimized with direct deletion)
   const historyCount = await AnalysisHistory.countDocuments({ user: req.user._id });
   if (historyCount > 10) {
@@ -176,14 +320,17 @@ export const analyzeResume = asyncHandler(async (req, res, next) => {
 
   console.timeEnd("ResumeAnalysis");
 
+  const { resumeText: _rt, ...dataWithoutText } = safeData;
   return res.status(200).json({
     success: true,
     message: "Resume analyzed successfully",
     resumeId: savedResume._id,
-    data: safeData,
+    data: dataWithoutText,
     ...safePipeline,
     verifiedLinks,
     file: savedResume.file,
+    evaluatorBreakdown,
+    overallScore,
   });
 });
 

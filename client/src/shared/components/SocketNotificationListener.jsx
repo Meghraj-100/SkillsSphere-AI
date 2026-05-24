@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { io } from "socket.io-client";
 import { useToast } from "./toast/ToastProvider";
+import { addLiveNotification } from "../../features/notifications/notificationsSlice";
 
 const SOCKET_URL = ""; // Connects to the same origin as the frontend (proxied to 5000)
 
@@ -13,6 +14,7 @@ const SocketNotificationListener = () => {
   const { user, token } = useSelector((state) => state.auth);
   const toast = useToast();
   const socketRef = useRef(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const userId = user?._id || user?.id;
@@ -60,6 +62,9 @@ const SocketNotificationListener = () => {
       });
 
       socketRef.current.on("new-notification", (notif) => {
+        // Dispatch to global notifications Redux state in real-time
+        dispatch(addLiveNotification(notif));
+
         if (notif.type === "skill_gap_alert") {
           toast.error(notif.message, notif.title || "Skill Gap Alert");
         } else {

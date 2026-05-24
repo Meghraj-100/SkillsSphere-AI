@@ -1,12 +1,14 @@
 import InterviewSession from "../../database/models/InterviewSession.js";
 import QuestionBank from "../../database/models/QuestionBank.js";
 import ConceptGraph from "../../database/models/ConceptGraph.js";
+import LearningProgress from "../../database/models/LearningProgress.js";
 import AppError from "../../utils/AppError.js";
 import mongoose from "mongoose";
 import {
   transcribeAudio,
   evaluateAnswer,
 } from "../../integrations/aiInterviewService.js";
+import cache from "../../utils/cache.js";
 
 /**
  * Select random questions from the bank for a given topic and difficulty.
@@ -368,6 +370,10 @@ export const getSessionResults = async (sessionId, userId) => {
  * List all available interview topics from the question bank.
  */
 export const listAvailableTopics = async () => {
+  const CACHE_KEY = "interview_topics";
+  const cachedData = cache.get(CACHE_KEY);
+  if (cachedData) return cachedData;
+
   const topics = await QuestionBank.aggregate([
     {
       $group: {
@@ -387,32 +393,58 @@ export const listAvailableTopics = async () => {
     { $sort: { topic: 1 } },
   ]);
 
+  cache.set(CACHE_KEY, topics, 1800); // Cache for 30 minutes
   return topics;
 };
 
-export const getTutorSessionsList = async (page, limit) => {
+export const getTutorSessionsList = async (tutorId, page, limit) => {
   const skip = (page - 1) * limit;
+
+  const authorizedRoadmaps = await LearningProgress.find({ tutorsTracking: tutorId }).select("user");
+  const authorizedStudentIds = authorizedRoadmaps.map(r => r.user);
+
   const [sessions, total] = await Promise.all([
-    InterviewSession.find({ status: 'completed' })
+    InterviewSession.find({ status: 'completed', userId: { $in: authorizedStudentIds } })
       .populate('userId', 'name email')
       .select('topic difficulty status overallScore tutorOverallScore duration createdAt')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean(),
-    InterviewSession.countDocuments({ status: 'completed' }),
+    InterviewSession.countDocuments({ status: 'completed', userId: { $in: authorizedStudentIds } }),
   ]);
   return { sessions, total, page, pages: Math.ceil(total / limit) };
 };
 
-export const getTutorSessionDetails = async (sessionId) => {
-  return await InterviewSession.findById(sessionId).populate('userId', 'name email').lean();
+export const getTutorSessionDetails = async (sessionId, tutorId) => {
+  const session = await InterviewSession.findById(sessionId).populate('userId', 'name email').lean();
+  if (!session) return null;
+
+  const authorizedRoadmap = await LearningProgress.findOne({
+    user: session.userId._id || session.userId,
+    tutorsTracking: tutorId
+  });
+
+  if (!authorizedRoadmap) {
+    throw new AppError("You are not authorized to view this interview session", 403);
+  }
+
+  return session;
 };
 
-export const addTutorFeedback = async (sessionId, { tutorOverallScore, tutorOverallFeedback, answersFeedback }) => {
+export const addTutorFeedback = async (sessionId, tutorId, { tutorOverallScore, tutorOverallFeedback, answersFeedback }) => {
   const session = await InterviewSession.findById(sessionId);
   if (!session) throw new AppError('Session not found', 404);
   
+  const authorizedRoadmap = await LearningProgress.findOne({
+    user: session.userId,
+    tutorsTracking: tutorId
+  });
+
+  if (!authorizedRoadmap) {
+    throw new AppError("You are not authorized to add feedback to this session", 403);
+  }
+
   if (tutorOverallScore !== undefined) session.tutorOverallScore = tutorOverallScore;
   if (tutorOverallFeedback !== undefined) session.tutorOverallFeedback = tutorOverallFeedback;
   

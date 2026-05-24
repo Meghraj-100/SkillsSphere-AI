@@ -60,8 +60,8 @@ export const sendEmail = async (to, subject, text, html) => {
 export const sendOTP = async (email, otp, type) => {
   const isVerification = type === "verification";
   const subject = isVerification 
-    ? `[SkillsSphere AI] Verify Your Account - ${otp}` 
-    : `[SkillsSphere AI] Password Reset Request - ${otp}`;
+    ? "[SkillsSphere AI] Verify Your Account" 
+    : "[SkillsSphere AI] Password Reset Request";
     
   const title = isVerification ? "Verify Your Email Address" : "Reset Your Password";
   const actionText = isVerification 

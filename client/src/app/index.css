@@ -46,7 +46,7 @@
 }
 
 /* ── Light mode gradient background ── */
-:root body,
+:root:not(.dark) body,
 .light body {
   background: linear-gradient(160deg, #f5f3ff 0%, #f7f9fc 40%, #ecfdf5 100%);
   min-height: 100vh;
@@ -58,7 +58,7 @@
 }
 
 /* ── Ambient gradient orbs (light mode only) ── */
-body:not(.dark)::before {
+:root:not(.dark) body::before {
   content: '';
   position: fixed;
   top: -120px;
@@ -72,7 +72,7 @@ body:not(.dark)::before {
   animation: orbFloat 18s ease-in-out infinite alternate;
 }
 
-body:not(.dark)::after {
+:root:not(.dark) body::after {
   content: '';
   position: fixed;
   bottom: -100px;
@@ -101,11 +101,11 @@ body:not(.dark)::after {
 }
 
 /* ── Gradient card border (light mode) ── */
-body:not(.dark) .gradient-border {
+:root:not(.dark) .gradient-border {
   position: relative;
   border: none !important;
 }
-body:not(.dark) .gradient-border::before {
+:root:not(.dark) .gradient-border::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -120,20 +120,20 @@ body:not(.dark) .gradient-border::before {
 }
 
 /* ── Gradient button (light mode) ── */
-body:not(.dark) .btn-gradient {
+:root:not(.dark) .btn-gradient {
   background: var(--grad-brand);
   color: #fff;
   border: none;
   box-shadow: 0 4px 20px rgba(124,58,237,0.25), 0 2px 8px rgba(5,150,105,0.15);
   transition: box-shadow 0.25s ease, transform 0.2s ease;
 }
-body:not(.dark) .btn-gradient:hover {
+:root:not(.dark) .btn-gradient:hover {
   box-shadow: 0 8px 32px rgba(124,58,237,0.35), 0 4px 16px rgba(5,150,105,0.2);
   transform: translateY(-2px);
 }
 
 /* ── Section divider gradient ── */
-body:not(.dark) .section-divider {
+:root:not(.dark) .section-divider {
   height: 2px;
   background: linear-gradient(90deg, transparent, rgba(124,58,237,0.4), rgba(5,150,105,0.4), transparent);
   border: none;
@@ -141,34 +141,34 @@ body:not(.dark) .section-divider {
 }
 
 /* ── Gradient highlight for feature cards (light mode) ── */
-body:not(.dark) .feature-card-light {
+:root:not(.dark) .feature-card-light {
   background: linear-gradient(145deg, #ffffff 60%, rgba(124,58,237,0.04) 100%);
   border: 1px solid rgba(124,58,237,0.12);
   box-shadow: 0 4px 24px rgba(124,58,237,0.06), 0 1px 4px rgba(5,150,105,0.04);
   transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
 }
-body:not(.dark) .feature-card-light:hover {
+:root:not(.dark) .feature-card-light:hover {
   border-color: rgba(124,58,237,0.25);
   box-shadow: 0 12px 40px rgba(124,58,237,0.12), 0 4px 16px rgba(5,150,105,0.08);
   transform: translateY(-4px);
 }
 
 /* ── Gradient badge (light mode) ── */
-body:not(.dark) .badge-gradient {
+:root:not(.dark) .badge-gradient {
   background: var(--grad-brand-soft);
   border: 1px solid rgba(124,58,237,0.2);
   color: var(--grad-purple);
 }
 
 /* ── Scrollbar gradient (light mode) ── */
-body:not(.dark) ::-webkit-scrollbar-thumb {
+:root:not(.dark) ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #7C3AED, #059669);
   border-radius: 4px;
 }
-body:not(.dark) ::-webkit-scrollbar-track {
+:root:not(.dark) ::-webkit-scrollbar-track {
   background: #f0f0f8;
 }
-body:not(.dark) ::-webkit-scrollbar {
+:root:not(.dark) ::-webkit-scrollbar {
   width: 5px;
 }
 

@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import { authorizeRoles, protect } from "../../middleware/authMiddleware.js";
+import cacheMiddleware from "../../middleware/cacheMiddleware.js";
 import {
   startInterview,
   getSession,
@@ -57,7 +58,7 @@ router.use(protect);
  *       200:
  *         description: List of topics
  */
-router.get("/topics", getAvailableTopics);
+router.get("/topics", cacheMiddleware("topics", 600), getAvailableTopics);
 
 // AI service status (for debugging)
 router.get("/ai-status", getAIServiceStatus);

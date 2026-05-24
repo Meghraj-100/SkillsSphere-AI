@@ -1,5 +1,22 @@
 import ClassroomSession from "../../database/models/ClassroomSession.js";
 
+const roomStates = new Map();
+
+function getOrCreateRoomState(roomId) {
+  if (!roomStates.has(roomId)) {
+    roomStates.set(roomId, {
+      chatHistory: [],
+      code: "",
+      whiteboard: []
+    });
+  }
+  return roomStates.get(roomId);
+}
+
+export function clearRoomState(roomId) {
+  roomStates.delete(roomId);
+}
+
 export function initClassroomSockets(io) {
   io.on("connection", (socket) => {
     console.log(`Socket connected: ${socket.id}`);
@@ -75,6 +92,10 @@ export function initClassroomSockets(io) {
 
         // Send the current participants list to the person who just joined
         socket.emit("room-participants", participants);
+
+        // Sync the current room state (chat, code, whiteboard)
+        const state = getOrCreateRoomState(roomId);
+        socket.emit("sync-state", state);
       } catch (error) {
         console.error("Error joining classroom room:", error);
         socket.emit("error", { message: "Internal server error during join" });
@@ -92,11 +113,19 @@ export function initClassroomSockets(io) {
         return;
       }
 
-      socket.to(roomId).emit("chat-message", {
+      const msgObj = {
         sender: socket.data.user,
         message,
         timestamp: new Date().toISOString(),
-      });
+      };
+
+      const state = getOrCreateRoomState(roomId);
+      state.chatHistory.push(msgObj);
+      if (state.chatHistory.length > 100) {
+        state.chatHistory.shift();
+      }
+
+      socket.to(roomId).emit("chat-message", msgObj);
     });
 
     // Toggle Hand Raise
@@ -118,6 +147,24 @@ export function initClassroomSockets(io) {
 
     // WebRTC Signaling Events
     socket.on("webrtc-offer", ({ targetSocketId, offer }) => {
+      // Validate that both sockets exist and are in the same room
+      if (!socket.data || !socket.data.roomId) {
+        socket.emit("unauthorized", { message: "You must join a room first" });
+        return;
+      }
+
+      const targetSocket = io.sockets.sockets.get(targetSocketId);
+      if (
+        !targetSocket ||
+        !targetSocket.data ||
+        targetSocket.data.roomId !== socket.data.roomId
+      ) {
+        socket.emit("unauthorized", {
+          message: "Target user is not in your classroom",
+        });
+        return;
+      }
+
       socket.to(targetSocketId).emit("webrtc-offer", {
         callerSocketId: socket.id,
         callerUser: socket.data ? socket.data.user : socket.user,
@@ -160,10 +207,15 @@ export function initClassroomSockets(io) {
         });
         return;
       }
-      socket.to(roomId).emit("draw-stroke", {
+      const payload = {
         strokeData,
         sender: socket.data.user,
-      });
+      };
+
+      const state = getOrCreateRoomState(roomId);
+      state.whiteboard.push(payload);
+
+      socket.to(roomId).emit("draw-stroke", payload);
     });
 
     // Clear canvas event
@@ -174,6 +226,8 @@ export function initClassroomSockets(io) {
         });
         return;
       }
+      const state = getOrCreateRoomState(roomId);
+      state.whiteboard = [];
       socket.to(roomId).emit("clear-canvas");
     });
 
@@ -185,6 +239,8 @@ export function initClassroomSockets(io) {
         });
         return;
       }
+      const state = getOrCreateRoomState(roomId);
+      state.code = code;
       socket.to(roomId).emit("code-change", { code });
     });
 

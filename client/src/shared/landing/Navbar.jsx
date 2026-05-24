@@ -1,15 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Home, FileText, LayoutDashboard, MessageSquare, LogIn, UserPlus, X, Menu, LogOut, User, ChevronDown, Briefcase, Moon, Sun, Sparkles, Rocket, Video } from 'lucide-react';
+import { Home, FileText, LayoutDashboard, MessageSquare, LogIn, UserPlus, X, Menu, LogOut, User, ChevronDown, Briefcase, Moon, Sun, Sparkles, Rocket, Video, Bell } from 'lucide-react';
 import Button from './Button';
 import { logout } from '../../features/auth/authSlice';
 import { getProtectedAssetUrl } from '../../utils/protectedAssetUrl';
 import { getSignedFileUrl } from '../../services/fileService';
+import NotificationsDropdown from '../components/NotificationsDropdown';
+import { getUnreadCount } from '../../features/notifications/notificationsSlice';
 
 const Navbar = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { isAuthenticated, user, token } = useSelector((state) => state.auth);
   const [avatarSrc, setAvatarSrc] = useState(null);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const { unreadCount } = useSelector((state) => state.notifications);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(getUnreadCount());
+    }
+  }, [isAuthenticated, dispatch]);
 
   useEffect(() => {
     if (user?.profilePic) {
@@ -23,8 +35,6 @@ const Navbar = () => {
       setAvatarSrc(null);
     }
   }, [user?.profilePic, token]);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
@@ -203,6 +213,29 @@ const Navbar = () => {
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
+          
+          {isAuthenticated && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                className="notifications-trigger inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text-main)] shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--surface-hover)] relative"
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-extrabold text-white animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              <NotificationsDropdown
+                isOpen={isNotificationsOpen}
+                onClose={() => setIsNotificationsOpen(false)}
+              />
+            </div>
+          )}
           {isAuthenticated ? (
             <div className="relative">
               <button 
@@ -324,6 +357,35 @@ const Navbar = () => {
               </span>
               <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
             </button>
+
+            {isAuthenticated && (
+              <div className="relative w-full">
+                <button
+                  type="button"
+                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                  className="notifications-trigger flex items-center gap-4 px-4 py-4 rounded-xl text-base font-medium text-[var(--text-main)] bg-[var(--surface-soft)] border border-[var(--border)] transition-all duration-300 min-h-[44px] w-full text-left"
+                >
+                  <span className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--surface)]">
+                    <Bell size={20} />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-0 right-0 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[8px] font-extrabold text-white animate-pulse">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </span>
+                  <span className="flex-grow">Notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="text-xs text-[var(--primary)] font-bold">{unreadCount} new</span>
+                  )}
+                </button>
+                <div className="relative w-full">
+                  <NotificationsDropdown
+                    isOpen={isNotificationsOpen}
+                    onClose={() => setIsNotificationsOpen(false)}
+                  />
+                </div>
+              </div>
+            )}
 
             {navLinks.map((link, index) => (
               <Link

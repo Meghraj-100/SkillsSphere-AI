@@ -1,6 +1,7 @@
 import express from "express";
 import { protect, authorizeRoles } from "../../middleware/authMiddleware.js";
 import { jobCreationLimiter } from "../../middleware/rateLimiter.js";
+import cacheMiddleware from "../../middleware/cacheMiddleware.js";
 import {
   createJobPosting,
   getRecruiterJobs,
@@ -10,6 +11,7 @@ import {
   getRecruiterAnalytics,
   applyToJobPosting,
   getApplications,
+  exportApplicationsToCSV,
   getMyApplications,
   getMyApplicationsDetailed,
   withdrawJobApplication,
@@ -37,7 +39,7 @@ router.use(protect);
  *       200:
  *         description: List of jobs
  */
-router.get("/", getJobs);
+router.get("/", cacheMiddleware("jobs", 300), getJobs);
 /**
  * @openapi
  * /api/jobs/recommendations:
@@ -111,6 +113,7 @@ router
 router.post("/:id/apply", authorizeRoles("student"), applyToJobPosting);
 router.patch("/:id/withdraw", authorizeRoles("student"), withdrawJobApplication);
 router.get("/:id/applications", authorizeRoles("recruiter"), getApplications);
+router.get("/:id/applications/export", authorizeRoles("recruiter"), exportApplicationsToCSV);
 router.patch("/applications/:id/status", authorizeRoles("recruiter"), updateApplicationStatus);
 
 export default router;

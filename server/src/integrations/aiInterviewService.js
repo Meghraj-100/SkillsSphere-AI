@@ -10,7 +10,10 @@
  * - Configurable timeouts for transcription and evaluation
  * - Graceful fallback to mock scores when Python service is unavailable
  * - Request timing logs for performance monitoring
+ * - WebSocket streaming support for real-time transcription
  */
+
+import WebSocket from "ws";
 
 const AI_SERVICE_URL =
   process.env.INTERVIEW_AI_URL || "http://localhost:8000";
@@ -199,6 +202,16 @@ export const transcribeAudio = async (audioBuffer, filename = "audio.webm") => {
   );
 
   return res.json();
+};
+
+/**
+ * Open a WebSocket connection to the Python AI service for real-time streaming transcription.
+ * @returns {WebSocket} The connected WebSocket instance.
+ */
+export const transcribeAudioStream = () => {
+  const wsUrl = AI_SERVICE_URL.replace(/^http/, "ws") + "/api/ws/transcribe";
+  const ws = new WebSocket(wsUrl);
+  return ws;
 };
 
 /**

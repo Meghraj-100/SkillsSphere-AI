@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import mongoose from "mongoose";
+import { safeDeleteAvatarByUrl, safeDeletePhysicalFile } from "./fileUtils.js";
 import User from "../database/models/User.js";
 import Resume from "../database/models/Resume.js";
 import MatchResult from "../database/models/MatchResult.js";
@@ -69,35 +70,12 @@ export const cascadeDeleteUser = async (userId) => {
   }
 
   // 1. Delete physical profile picture (avatar) if it exists locally
-  if (
-    user.profilePic &&
-    (user.profilePic.includes("/uploads/avatars/") ||
-      user.profilePic.includes("/api/files/avatars/"))
-  ) {
-    const filename = path.basename(user.profilePic.split("?")[0]);
-    const filePath = path.join(process.cwd(), "src", "uploads", "avatars", filename);
-    if (fs.existsSync(filePath)) {
-      try {
-        fs.unlinkSync(filePath);
-      } catch (err) {
-        console.error("Failed to delete avatar file:", err);
-      }
-    }
-  }
+  safeDeleteAvatarByUrl(user.profilePic);
 
   // Delete physical PDF/DOCX files
   for (const resume of resumes) {
     if (resume.file && resume.file.path) {
-      const absolutePath = path.isAbsolute(resume.file.path)
-        ? resume.file.path
-        : path.join(process.cwd(), resume.file.path);
-      if (fs.existsSync(absolutePath)) {
-        try {
-          fs.unlinkSync(absolutePath);
-        } catch (err) {
-          console.error("Failed to delete resume file:", err);
-        }
-      }
+      safeDeletePhysicalFile(resume.file.path);
     }
   }
 
@@ -106,16 +84,7 @@ export const cascadeDeleteUser = async (userId) => {
     if (interviewSession.answers && Array.isArray(interviewSession.answers)) {
       for (const answer of interviewSession.answers) {
         if (answer.audioPath) {
-          const absolutePath = path.isAbsolute(answer.audioPath)
-            ? answer.audioPath
-            : path.join(process.cwd(), answer.audioPath);
-          if (fs.existsSync(absolutePath)) {
-            try {
-              fs.unlinkSync(absolutePath);
-            } catch (err) {
-              console.error("Failed to delete interview audio file:", err);
-            }
-          }
+          safeDeletePhysicalFile(answer.audioPath);
         }
       }
     }

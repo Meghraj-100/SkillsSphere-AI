@@ -210,6 +210,30 @@ router.post("/tutor/add-milestone", authorizeRoles("tutor"), roadmapController.a
  */
 router.post("/student/opt-in-tracking", authorizeRoles("student"), roadmapController.optInRecruiterTracking);
 
+/**
+ * @openapi
+ * /api/roadmap/student/opt-in-tutor-tracking:
+ *   post:
+ *     summary: Opt-in for a tutor to track the roadmap and interviews (Student only)
+ *     tags: [Roadmap]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [tutorId]
+ *             properties:
+ *               tutorId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successfully assigned tutor to roadmap
+ */
+router.post("/student/opt-in-tutor-tracking", authorizeRoles("student"), roadmapController.optInTutorTracking);
+
 // Recruiter endpoints
 
 /**

@@ -75,7 +75,7 @@ export default function JobMatcherPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white dark:bg-[radial-gradient(circle_at_top_left,#0f172a,#020617)] text-gray-900 dark:text-slate-100 flex flex-col">
+    <main className="min-h-screen bg-[var(--background)] dark:bg-[radial-gradient(circle_at_top_left,#0f172a,#020617)] text-gray-900 dark:text-slate-100 flex flex-col">
       <Navbar />
 
       {/* Spacer for fixed navbar */}
@@ -100,7 +100,7 @@ export default function JobMatcherPage() {
         ) : error ? (
           <div className="max-w-lg mx-auto text-center p-10 bg-gray-100 dark:bg-slate-900/50 rounded-2xl border border-red-500/20">
             <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
-            <p className="text-red-300 font-medium mb-6">{error}</p>
+            <p className="text-red-600 dark:text-red-300 font-medium mb-6">{error}</p>
             <button
               onClick={() => window.location.reload()}
               className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors"
@@ -115,7 +115,7 @@ export default function JobMatcherPage() {
               <FileUp size={48} className="text-blue-400" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Upload Your Resume First</h2>
-            <p className="text-slate-400 mb-8 leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
               {message || "To get personalized job recommendations, please upload and analyze your resume first."}
             </p>
             <button
@@ -131,8 +131,8 @@ export default function JobMatcherPage() {
             <div className="inline-flex p-4 bg-slate-700/30 rounded-2xl mb-6">
               <Briefcase size={48} className="text-slate-500" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">No Matches Yet</h2>
-            <p className="text-slate-400 mb-8 leading-relaxed">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">No Matches Yet</h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
               {message || "No suitable jobs found matching your profile yet. Check back as new positions are posted!"}
             </p>
             <button
@@ -151,7 +151,7 @@ export default function JobMatcherPage() {
               </div>
               <h2 className="text-xl font-semibold text-gray-800 dark:text-slate-200">
                 Recommended for You
-                <span className="ml-2 text-sm font-normal text-slate-500 bg-slate-800/50 px-2 py-0.5 rounded-full border border-white/5">
+                <span className="ml-2 text-sm font-normal text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800/50 px-2 py-0.5 rounded-full border border-gray-300 dark:border-white/5">
                   {jobs.length}
                 </span>
               </h2>
@@ -164,7 +164,7 @@ export default function JobMatcherPage() {
                 <div key={job._id || job.id} className="relative">
                   {/* Match Score Badge */}
                   {job.matchScore != null && (
-                    <div className="absolute top-4 right-4 z-10 px-3 py-1 bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-bold rounded-full">
+                    <div className="absolute top-4 right-4 z-10 px-3 py-1 bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-full">
                       {Math.round(job.matchScore)}% Match
                     </div>
                   )}
