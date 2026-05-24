@@ -185,7 +185,7 @@ export const getAIServiceStatus = asyncHandler(async (req, res) => {
 export const getTutorSessions = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
-  const data = await getTutorSessionsList(page, limit);
+  const data = await getTutorSessionsList(req.user._id, page, limit);
 
   res.status(200).json({
     success: true,
@@ -199,7 +199,7 @@ export const getTutorSessions = asyncHandler(async (req, res) => {
  * @access  Private (Tutor)
  */
 export const getTutorSession = asyncHandler(async (req, res) => {
-  const session = await getTutorSessionDetails(req.params.id);
+  const session = await getTutorSessionDetails(req.params.id, req.user._id);
 
   if (!session) {
     throw new AppError("Interview session not found", 404);
@@ -217,7 +217,7 @@ export const getTutorSession = asyncHandler(async (req, res) => {
  * @access  Private (Tutor)
  */
 export const submitTutorFeedback = asyncHandler(async (req, res) => {
-  const session = await addTutorFeedback(req.params.id, req.body);
+  const session = await addTutorFeedback(req.params.id, req.user._id, req.body);
 
   res.status(200).json({
     success: true,
