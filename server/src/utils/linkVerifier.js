@@ -1,4 +1,20 @@
 import axios from "axios";
+import dns from "dns/promises";
+
+// Function to check if an IP is private/local
+const isPrivateIP = (ip) => {
+  const parts = ip.split(".").map(Number);
+  if (parts.length !== 4) return false;
+
+  return (
+    parts[0] === 10 ||
+    (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
+    (parts[0] === 192 && parts[1] === 168) ||
+    parts[0] === 127 ||
+    (parts[0] === 169 && parts[1] === 254) ||
+    parts[0] === 0 // 0.0.0.0
+  );
+};
 
 /**
  * Verifies if a URL is active and reachable.
@@ -9,6 +25,28 @@ export const verifyLink = async (url) => {
   if (!url) return { url, isValid: false, status: null };
 
   try {
+    const parsedUrl = new URL(url);
+    const hostname = parsedUrl.hostname;
+
+    // Check if hostname is directly an IP and private
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname) && isPrivateIP(hostname)) {
+      return { url, isValid: false, status: 403, error: "Access to private IP is forbidden" };
+    }
+
+    // Resolve DNS to prevent SSRF via DNS rebinding / internal routing
+    try {
+      const { address } = await dns.lookup(hostname);
+      if (isPrivateIP(address)) {
+        return { url, isValid: false, status: 403, error: "Access to private IP is forbidden" };
+      }
+    } catch (dnsError) {
+      // If DNS resolution fails, block the request if it looks suspicious, 
+      // otherwise we could just let Axios fail naturally.
+      if (hostname === "localhost" || hostname.includes("127.0.0.1") || hostname.includes("169.254.169.254")) {
+         return { url, isValid: false, status: 403, error: "Access to private IP is forbidden" };
+      }
+    }
+
     const response = await axios.get(url, {
       timeout: 5000,
       maxRedirects: 5,
