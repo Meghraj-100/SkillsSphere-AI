@@ -33,7 +33,9 @@ import swaggerSpec from "./src/config/swaggerConfig.js";
 import { validateEnv } from "./src/config/validateEnv.js";
 import analyticsRoutes from "./src/modules/analytics/routes.js";
 const app = express();
-app.set("trust proxy", 1);
+if (process.env.TRUST_PROXY === 'true') {
+  app.set("trust proxy", 1);
+}
 const PORT = process.env.PORT || 5000;
 
 validateEnv();

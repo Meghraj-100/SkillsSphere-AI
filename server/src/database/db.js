@@ -6,6 +6,15 @@ export let isConnected = false;
 const connectDB = async () => {
   const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
 
+  if (mongoUri === "memory") {
+    const { MongoMemoryServer } = await import("mongodb-memory-server");
+    const mongoServer = await MongoMemoryServer.create();
+    const uri = mongoServer.getUri();
+    console.log(`Started ephemeral Memory Database at: ${uri}`);
+    process.env.MONGO_URI = uri;
+    return connectDB();
+  }
+
   if (!mongoUri) {
     console.warn("MONGO_URI not set — running in degraded mode (DB unavailable)");
     return;
