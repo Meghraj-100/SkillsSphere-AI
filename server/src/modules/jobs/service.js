@@ -955,30 +955,20 @@ export const updateApplicationStatus = async (applicationId, recruiterId, { stat
 
   await application.save();
 
-  // Create persistent notification in DB
-  const notif = await Notification.create({
+  // Create persistent notification for the student
+  const notification = await Notification.create({
     userId: application.applicant,
-    type: "application",
-    title: "Application Update",
-    message: `Your application for "${application.job.title}" was updated to "${status.charAt(0).toUpperCase() + status.slice(1)}".`,
-    metadata: {
-      relatedId: application._id,
-      relatedModel: "JobApplication",
-      actionUrl: "/my-applications",
-    },
+    type: "application_status",
+    title: "Application Status Updated",
+    message: `Your application for ${application.job.title} has been marked as ${status}.`,
+    relatedData: { jobId: application.job._id, studentId: application.applicant, applicationId: application._id }
   });
 
-  // Emit real-time notification to the applicant
+  // Emit real-time standard notification to the applicant
   const io = getIO();
   if (io) {
     const roomName = `user_${application.applicant}`;
-    io.to(roomName).emit("application-status-updated", {
-      applicationId: application._id,
-      jobTitle: application.job.title,
-      status: application.status,
-      updatedAt: new Date(),
-    });
-    io.to(roomName).emit("new-notification", notif);
+    io.to(roomName).emit("new-notification", notification);
   }
 
   return application;
