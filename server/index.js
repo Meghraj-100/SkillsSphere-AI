@@ -83,7 +83,7 @@ app.use((req, res, next) => {
   next();
 });
 
-await connectRedis();
+connectRedis();
 connectDB();
 logEvaluatorConfig();
 
