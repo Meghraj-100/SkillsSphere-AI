@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { PlayCircle, PauseCircle, Save, ArrowLeft, MessageSquare, CheckCircle, AlertCircle } from "lucide-react";
 import { apiRequest } from "../../../services/apiClient.js";
+import Navbar from "../../../shared/landing/Navbar";
 
 const TutorInterviewConsole = () => {
   const { id } = useParams(); // wait, react-router-dom provides this
@@ -102,11 +103,12 @@ const TutorInterviewConsole = () => {
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading session data...</div>;
-  if (!session) return <div className="p-10 text-center">Session not found</div>;
+  if (loading) return <div className="min-h-screen bg-slate-50 dark:bg-slate-900 px-6 pb-6 pt-24"><Navbar /><div className="text-center">Loading session data...</div></div>;
+  if (!session) return <div className="min-h-screen bg-slate-50 dark:bg-slate-900 px-6 pb-6 pt-24"><Navbar /><div className="text-center">Session not found</div></div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 px-6 pb-6 pt-24">
+      <Navbar />
       <div className="max-w-5xl mx-auto space-y-6">
         
         <div className="flex items-center justify-between">

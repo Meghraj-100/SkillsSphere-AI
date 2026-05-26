@@ -20,6 +20,7 @@ import {
 } from "./services/profileService";
 import LoadingState from "../../shared/components/LoadingState";
 import { getSignedFileUrl } from "../../services/fileService";
+import Navbar from "../../shared/landing/Navbar";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -345,9 +346,10 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen transition-colors duration-300 relative bg-gradient-to-br from-[#f0eeff] via-[#f7f9fc] to-[#edfdf5] dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <div className="relative" style={{ zIndex: 2 }}>
+        <Navbar />
         
         {/* ── Cover Banner ── */}
-        <div className="relative w-full h-52 sm:h-44 overflow-hidden">
+        <div className="relative w-full h-52 sm:h-44 overflow-hidden pt-20">
           <div className={`absolute inset-0 bg-gradient-to-r ${roleConfig.banner} opacity-90`} />
           <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/10" />
           <div className="absolute bottom-0 left-1/4 w-32 h-32 rounded-full bg-white/5" />
@@ -356,16 +358,6 @@ const ProfilePage = () => {
           <div className="absolute w-24 h-24 rounded-full" style={{ top: '10%', left: '8%', background: 'linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.08))', border: '1.5px solid rgba(255,255,255,0.3)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 16px rgba(0,0,0,0.1)', backdropFilter: 'blur(8px)' }} />
           <div className="absolute w-16 h-16 rounded-full" style={{ bottom: '15%', left: '30%', background: 'linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.06))', border: '1.5px solid rgba(255,255,255,0.25)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 12px rgba(0,0,0,0.08)', backdropFilter: 'blur(6px)' }} />
           <div className="absolute w-20 h-20 rounded-full" style={{ top: '20%', right: '25%', background: 'linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.07))', border: '1.5px solid rgba(255,255,255,0.28)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.38), 0 4px 14px rgba(0,0,0,0.09)', backdropFilter: 'blur(7px)' }} />
-
-          {/* Top navigation elements */}
-          <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-            <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-white/80 hover:text-white transition-colors bg-black/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-              <ChevronLeft size={15} /> Back
-            </Link>
-            <button onClick={() => { dispatch(logout()); navigate("/login"); }} className="inline-flex items-center gap-1.5 text-sm text-white/80 hover:text-white transition-colors bg-black/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-              <LogOut size={14} /> Sign out
-            </button>
-          </div>
         </div>
 
         {/* ── Main Layout Grid ── */}

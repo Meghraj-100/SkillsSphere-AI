@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Clock, CheckCircle, Video, ArrowRight, User } from "lucide-react";
 import { apiRequest } from "../../../services/apiClient.js";
+import Navbar from "../../../shared/landing/Navbar";
 
 const TutorInterviewsList = () => {
   const { token } = useSelector((state) => state.auth);
@@ -27,14 +28,16 @@ const TutorInterviewsList = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 pt-24">
+        <Navbar />
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6 sm:p-10">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 px-6 pb-6 pt-24 sm:px-10 sm:pb-10 sm:pt-28">
+      <Navbar />
       <div className="max-w-6xl mx-auto space-y-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Student Mock Interviews</h1>
