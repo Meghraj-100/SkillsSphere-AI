@@ -173,7 +173,6 @@ To avoid manual installation of Python dependencies, Node modules, and OS-level 
 2. Ensure you have created your `.env` files in both the `server` and `interview-ai-service` directories (refer to `.env.example`).
 3. Run the following command from the root directory:
 
-
    ```bash
    docker-compose up --build
    ```
