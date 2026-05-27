@@ -202,7 +202,11 @@ describe("Job Service", () => {
 
       const mockQuery = {
         populate: mock.fn(() => mockQuery),
-        sort: mock.fn(async () => mockApps),
+        sort: mock.fn(() => mockQuery),
+      skip: mock.fn(() => mockQuery),
+      limit: mock.fn(() => mockQuery),
+      select: mock.fn(() => mockQuery),
+      lean: mock.fn(async () => mockApps),
       };
       mock.method(JobApplication, "find", () => mockQuery);
 
@@ -223,7 +227,11 @@ describe("Job Service", () => {
 
       const mockQuery = {
         populate: mock.fn(() => mockQuery),
-        sort: mock.fn(async () => mockApps),
+        sort: mock.fn(() => mockQuery),
+      skip: mock.fn(() => mockQuery),
+      limit: mock.fn(() => mockQuery),
+      select: mock.fn(() => mockQuery),
+      lean: mock.fn(async () => mockApps),
       };
       mock.method(JobApplication, "find", () => mockQuery);
 
