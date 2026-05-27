@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import { submitAnswer, completeInterview } from "../services/interviewService";
 import { apiRequest } from "../../../services/apiClient";
+import { SOCKET_URL } from "../../../config/env";
 import InterviewSessionSkeleton from "../components/InterviewSessionSkeleton";
 import ObserverPanel from "../components/ObserverPanel";
 import RealtimeSentimentIndicator from "../components/RealtimeSentimentIndicator";
@@ -141,8 +142,7 @@ const InterviewSession = () => {
     if (!session || !user) return;
     const token = localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
     
-    const socketUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    const newSocket = io(socketUrl, { 
+    const newSocket = io(SOCKET_URL, { 
       auth: { token },
       reconnection: true,
       reconnectionAttempts: 10,

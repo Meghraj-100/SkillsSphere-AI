@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { PlayCircle, PauseCircle, Save, ArrowLeft, MessageSquare, CheckCircle, AlertCircle } from "lucide-react";
 import { apiRequest } from "../../../services/apiClient.js";
 import Navbar from "../../../shared/landing/Navbar";
+import { API_URL } from "../../../config/env";
 
 const TutorInterviewConsole = () => {
   const { id } = useParams(); // wait, react-router-dom provides this
@@ -97,7 +98,7 @@ const TutorInterviewConsole = () => {
       else activeAudio.pause();
     } else {
       if (activeAudio) activeAudio.pause();
-      const audio = new Audio(`http://localhost:5000/${url.replace(/\\/g, "/")}`);
+      const audio = new Audio(`${API_URL}/${url.replace(/\\/g, "/")}`);
       audio.play();
       setActiveAudio(audio);
     }
