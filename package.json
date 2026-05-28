@@ -12,7 +12,8 @@
     "install-all": "node scripts/install-all.js",
     "predev": "node scripts/verify-python-env.js",
     "dev": "node scripts/dev-all.js",
-    "dev:web": "concurrently \"cd client && npm run dev\" \"cd server && npm run dev\"",
+    "dev:web": "turbo run dev",
+    "build": "turbo run build",
     "quickstart": "node scripts/quickstart.js",
     "python:setup": "node scripts/python-setup.js",
     "python:run": "node scripts/python-run.js"
@@ -26,6 +27,7 @@
     "autoprefixer": "^10.5.0",
     "concurrently": "^8.2.2",
     "postcss": "^8.5.12",
-    "tailwindcss": "^4.2.4"
+    "tailwindcss": "^4.2.4",
+    "turbo": "^1.13.0"
   }
 }
