@@ -1,4 +1,5 @@
 import LearningProgress from "../../database/models/LearningProgress.js";
+import User from "../../database/models/User.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import AppError from "../../utils/AppError.js";
 import User from "../../database/models/User.js";
