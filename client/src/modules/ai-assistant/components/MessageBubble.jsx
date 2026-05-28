@@ -1,4 +1,6 @@
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 const MessageBubble = ({ sender, text }) => {
+  useDocumentTitle("Message Bubble");
   const isUser = sender === "user";
 
   return (

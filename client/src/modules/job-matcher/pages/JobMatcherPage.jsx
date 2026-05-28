@@ -8,8 +8,10 @@ import { JobViewerCard, Pagination } from "../../../shared/components";
 import JobApplyForm from "../../student-jobs/components/JobApplyForm";
 import { applyToJob, getMyAppliedJobIds } from "../../student-jobs/services/jobService";
 import { getRecommendations } from "../services/matcherService";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 
 export default function JobMatcherPage() {
+  useDocumentTitle("Job Matcher");
   const { token, user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -75,7 +77,7 @@ export default function JobMatcherPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--background)] dark:bg-[radial-gradient(circle_at_top_left,#0f172a,#020617)] text-gray-900 dark:text-slate-100 flex flex-col">
+    <main className="min-h-screen bg-[var(--background)] dark:bg-[radial-gradient(circle_at_top_left,#0f172a,#020617)] text-gray-900 dark:text-slate-100 flex flex-col pt-24">
       <Navbar />
 
       {/* Spacer for fixed navbar */}

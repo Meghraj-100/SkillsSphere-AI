@@ -11,11 +11,14 @@ import Navbar from "../../../shared/landing/Navbar";
 import NotificationCard from "../components/NotificationCard";
 import useNotifications from "../hooks/useNotifications";
 import { useSelector } from "react-redux";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 /**
  * Full-page notifications view with advanced filtering and pagination
  */
 const NotificationsPage = () => {
+  useDocumentTitle("Notifications");
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [filterRead, setFilterRead] = useState("all"); // all, read, unread
@@ -107,7 +110,7 @@ const NotificationsPage = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen bg-[var(--background)] pt-24">
       <Navbar />
 
       {/* Main Content */}

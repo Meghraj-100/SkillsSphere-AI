@@ -8,8 +8,11 @@ import {
   getStudentsRoadmaps, getStudentRoadmap, assignTutorResource, verifyTopic, addTutorMilestone 
 } from "../services/roadmapService";
 import { LoadingState, useToast } from "../../../shared/components";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 export default function TutorRoadmapLobby() {
+  useDocumentTitle("Tutor Roadmap Lobby");
   const { user } = useSelector((state) => state.auth);
   const { success: showSuccess, error: showError } = useToast();
   const [students, setStudents] = useState([]);
@@ -132,7 +135,7 @@ export default function TutorRoadmapLobby() {
   if (loading) return <LoadingState message="Loading Student Progress Lobby..." />;
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white font-sans">
+    <div className="min-h-screen bg-[#020617] text-white font-sans pt-24">
       <Navbar />
       <div className="max-w-7xl mx-auto pt-32 pb-20 px-4">
         {/* Header */}

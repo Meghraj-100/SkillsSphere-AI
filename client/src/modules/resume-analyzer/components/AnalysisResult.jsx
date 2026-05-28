@@ -23,8 +23,11 @@ import { generateCoverLetter } from "../services/resumeService";
 import html2pdf from "html2pdf.js";
 import AnalysisReportPDF from "./AnalysisReportPDF";
 import { useToast } from "../../../shared/components";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 const AnalysisResult = ({ result, file, jobDescription, onReset }) => {
+  useDocumentTitle("Analysis Result");
   const score = result?.score || 0;
   const isJDProvided = result.isJDProvided;
   const suggestions = (result.gapAnalysis?.suggestions || []).slice(0, 8);

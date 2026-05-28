@@ -10,8 +10,11 @@ import {
   Layout
 } from "lucide-react";
 import Button from "../../../shared/components/Button";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 const VersionComparisonModal = ({ isOpen, onClose, versions }) => {
+  useDocumentTitle("Version Comparison Modal");
   if (!isOpen || !versions || versions.length !== 2) return null;
 
   // versions[0] is the older one based on history array order (newest first)
@@ -53,6 +56,7 @@ const VersionComparisonModal = ({ isOpen, onClose, versions }) => {
           </div>
           <button 
             onClick={onClose}
+            aria-label="Close modal"
             className="p-2 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-all"
           >
             <X size={24} />

@@ -81,7 +81,7 @@ describe("Notification Controller", () => {
     });
 
     it("should respond with 201 and created notification", async () => {
-      const body = validBody();
+      const body = { ...validBody(), userId: req.user._id };
       req.body = body;
       const mockCreated = { _id: "n1", ...body };
       mock.method(Notification, "create", () => ({
@@ -94,6 +94,17 @@ describe("Notification Controller", () => {
       assert.equal(res.status.mock.calls[0].arguments[0], 201);
       assert.equal(res.json.mock.calls[0].arguments[0].success, true);
       assert.deepEqual(res.json.mock.calls[0].arguments[0].data, mockCreated);
+    });
+
+    it("should throw AppError(403) when userId does not match authenticated user", async () => {
+      req.body = { ...validBody(), userId: "someOtherUser" };
+
+      createNotification(req, res, next);
+      await flush();
+
+      assert.equal(next.mock.calls.length, 1);
+      assert.ok(next.mock.calls[0].arguments[0] instanceof AppError);
+      assert.equal(next.mock.calls[0].arguments[0].statusCode, 403);
     });
 
     it("should throw AppError(400) when userId is missing", async () => {

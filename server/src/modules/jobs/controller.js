@@ -17,6 +17,7 @@ import {
 import AppError from "../../utils/AppError.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { invalidateCacheByPrefix } from "../../utils/cacheHelpers.js";
+import redisClient from "../../config/redis.js";
 
 /**
  * Sanitizes a string to prevent CSV Injection (Formula Injection).
@@ -42,6 +43,15 @@ const sanitizeCSVField = (str) => {
   }
 
   return `"${cleaned}"`;
+};
+
+const invalidateAnalyticsCache = (recruiterId) => {
+  if (!redisClient || !redisClient.isReady) return;
+  try {
+    redisClient.del(["global_skill_trends", `recruiter_analytics_${recruiterId}`]);
+  } catch {
+    // Redis unavailable — skip invalidation
+  }
 };
 
 /**
@@ -115,6 +125,7 @@ export const createJobPosting = asyncHandler(async (req, res) => {
 
   // Invalidate jobs cache
   await invalidateCacheByPrefix("jobs");
+  invalidateAnalyticsCache(req.user._id.toString());
 
   res.status(201).json({
     success: true,
@@ -178,6 +189,7 @@ export const getJobPostingById = asyncHandler(async (req, res) => {
  */
 export const updateJobPosting = asyncHandler(async (req, res) => {
   const updatedJob = await updateJobService(req.params.id, req.body, req.user._id);
+  invalidateAnalyticsCache(req.user._id.toString());
   res.status(200).json({
     success: true,
     job: updatedJob,
@@ -191,6 +203,7 @@ export const updateJobPosting = asyncHandler(async (req, res) => {
  */
 export const deleteJobPosting = asyncHandler(async (req, res) => {
   await deleteJobService(req.params.id, req.user._id);
+  invalidateAnalyticsCache(req.user._id.toString());
   res.status(200).json({
     success: true,
     message: "Job deleted successfully",
@@ -283,12 +296,19 @@ export const applyToJobPosting = asyncHandler(async (req, res) => {
  * @access  Private (Recruiters only)
  */
 export const getApplications = asyncHandler(async (req, res) => {
-  const applications = await getJobAppsService(req.params.id, req.user._id, req.query);
+  const result = await getJobAppsService(req.params.id, req.user._id, {
+    ...req.query,
+    page: Math.max(1, parseInt(req.query.page) || 1),
+    limit: Math.min(100, Math.max(1, parseInt(req.query.limit) || 20))
+  });
 
   res.status(200).json({
     success: true,
-    count: applications.length,
-    applications,
+    count: result.applications.length,
+    totalCount: result.totalCount,
+    totalPages: result.totalPages,
+    currentPage: result.currentPage,
+    applications: result.applications,
   });
 });
 
@@ -299,7 +319,8 @@ export const getApplications = asyncHandler(async (req, res) => {
  */
 export const exportApplicationsToCSV = asyncHandler(async (req, res) => {
   const { status, sortBy } = req.query || {};
-  const applications = await getJobAppsService(req.params.id, req.user._id, status, sortBy);
+  const result = await getJobAppsService(req.params.id, req.user._id, status, sortBy);
+  const applications = result.applications || result;
 
   // Construct CSV headers
   const headers = [

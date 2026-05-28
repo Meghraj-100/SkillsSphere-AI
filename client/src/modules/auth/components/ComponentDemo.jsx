@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Input, Button, Select } from "../../../shared/components";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 const ROLE_OPTIONS = [
   { value: "student",   label: "Student" },
@@ -9,6 +11,7 @@ const ROLE_OPTIONS = [
 ];
 
 const ComponentDemo = () => {
+  useDocumentTitle("Component Demo");
   const [form, setForm] = useState({ fullName: "", email: "", password: "", role: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);

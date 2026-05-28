@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Video, VideoOff, Mic } from "lucide-react";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 const CameraCheck = ({ onStreamReady }) => {
+  useDocumentTitle("Camera Check");
   const videoRef = useRef(null);
   const [stream, setStream] = useState(null);
   const [error, setError] = useState(null);
@@ -59,64 +62,96 @@ const CameraCheck = ({ onStreamReady }) => {
     startCamera();
 
     return () => {
-      if (currentStream) {
-        currentStream.getTracks().forEach((track) => track.stop());
+      if (javascriptNode) {
+        javascriptNode.onaudioprocess = null;
+        javascriptNode.disconnect();
       }
-      if (audioContext) {
+      if (microphone) {
+        microphone.disconnect();
+      }
+      if (analyser) {
+        analyser.disconnect();
+      }
+      if (audioContext && audioContext.state !== "closed") {
         audioContext.close();
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+      if (currentStream) {
+        currentStream.getTracks().forEach((track) => {
+          track.stop();
+        });
       }
     };
   }, []);
 
   return (
-    <div className="setup-card">
-      <h3 className="text-xl font-bold flex items-center gap-2">
-        <Video className="text-indigo-500" /> Device Setup
-      </h3>
+    <div className="group relative rounded-3xl bg-white/70 dark:bg-slate-900/60 p-6 sm:p-8 border border-white/20 dark:border-slate-800 shadow-[0_20px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] hover:border-emerald-500/30">
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
-      <div className="camera-preview-wrapper">
-        {error ? (
-          <div className="permission-overlay">
-            <div className="text-red-400">
-              <VideoOff size={48} className="mx-auto mb-4" />
-              <p>{error}</p>
-            </div>
-          </div>
-        ) : !stream ? (
-          <div className="camera-placeholder">
-            <div className="animate-pulse flex flex-col items-center">
-              <Video size={48} className="mb-4" />
-              <p>Requesting camera access...</p>
-            </div>
-          </div>
-        ) : null}
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          playsInline
-          className="camera-video"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex justify-between items-center text-sm font-medium text-slate-400">
-          <span className="flex items-center gap-2">
-            <Mic size={16} /> Microphone Level
+      <div className="relative z-10">
+        <h3 className="text-xl font-bold flex items-center gap-3 mb-6 text-slate-800 dark:text-slate-100">
+          <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400">
+            <Video size={22} />
           </span>
-          <span>{Math.round(micLevel)}%</span>
-        </div>
-        <div className="mic-visualizer">
-          <div 
-            className="mic-bar" 
-            style={{ width: `${micLevel}%` }}
+          Hardware Calibration
+        </h3>
+        
+        <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 shadow-inner mb-6 border border-slate-800">
+          {error ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-red-400 bg-red-950/40 backdrop-blur-sm p-6 text-center">
+              <VideoOff size={48} className="mb-4 opacity-80 animate-pulse" />
+              <p className="font-semibold">{error}</p>
+            </div>
+          ) : !stream ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500">
+              <div className="relative w-16 h-16 mb-4 flex items-center justify-center">
+                <div className="absolute inset-0 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+                <Video size={24} className="opacity-50" />
+              </div>
+              <p className="text-sm font-medium uppercase tracking-widest animate-pulse">Initializing Feed...</p>
+            </div>
+          ) : null}
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            className={`w-full h-full object-cover transition-opacity duration-700 ${stream ? "opacity-100" : "opacity-0"}`}
+            style={{ transform: "rotateY(180deg)" }} // mirror effect for self view
           />
+          
+          {/* Hardware status overlay */}
+          {stream && (
+            <div className="absolute top-4 right-4 flex gap-2">
+              <div className="px-2 py-1 rounded bg-black/50 backdrop-blur text-[10px] font-bold text-emerald-400 uppercase tracking-widest border border-emerald-500/30 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                Live
+              </div>
+            </div>
+          )}
         </div>
+
+        <div className="space-y-3 bg-white/50 dark:bg-slate-950/50 p-4 rounded-2xl border border-white/20 dark:border-slate-800/50">
+          <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-[0.15em]">
+            <span className="flex items-center gap-2">
+              <Mic size={14} className={micLevel > 10 ? "text-emerald-500" : "text-slate-400"} /> Input Gain Level
+            </span>
+            <span className={micLevel > 10 ? "text-emerald-500" : "text-slate-400"}>{Math.round(micLevel)}%</span>
+          </div>
+          <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+            <div 
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-75" 
+              style={{ width: `${micLevel}%` }}
+            />
+          </div>
+        </div>
+        
+        <p className="text-[11px] font-medium text-slate-500 mt-4 text-center tracking-wide">
+          Tip: Ensure you are in a well-lit and quiet environment for the best experience.
+        </p>
       </div>
-      
-      <p className="text-sm text-slate-400 italic">
-        Tip: Ensure you are in a well-lit and quiet environment for the best experience.
-      </p>
     </div>
   );
 };

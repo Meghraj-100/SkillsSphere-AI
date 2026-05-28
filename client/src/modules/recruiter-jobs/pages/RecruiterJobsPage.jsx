@@ -11,7 +11,10 @@ import EmptyState from "../../../shared/components/EmptyState";
 import JobCardSkeleton from "../../student-jobs/components/JobCardSkeleton";
 import { Pagination } from "../../../shared/components";
 import JobPostingCard from "../components/JobPostingCard";
+import { JobViewerCard, Pagination } from "../../../shared/components";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import {
+
   getRecruiterJobs,
   deleteJobPosting,
 } from "../services/jobPostingService";
@@ -24,6 +27,7 @@ const STATUS_FILTERS = [
 ];
 
 const RecruiterJobsPage = () => {
+  useDocumentTitle("Recruiter Jobs");
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.auth);
   const [jobs, setJobs] = useState([]);

@@ -8,6 +8,7 @@ import { getProtectedAssetUrl } from '../../utils/protectedAssetUrl';
 import { getSignedFileUrl } from '../../services/fileService';
 import NotificationsDropdown from '../components/NotificationsDropdown';
 import { getUnreadCount } from '../../features/notifications/notificationsSlice';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -40,10 +41,7 @@ const Navbar = () => {
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') return 'dark';
-    return window.localStorage.getItem('skillssphere.theme') || 'light';
-  });
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navMenuRef = useRef(null);
 
@@ -83,17 +81,6 @@ const Navbar = () => {
 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isNavMenuOpen]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    // keep dataset and classes in sync
-    root.dataset.theme = theme;
-    root.classList.toggle('dark', theme === 'dark');
-    root.classList.toggle('light', theme === 'light');
-    window.localStorage.setItem('skillssphere.theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => setTheme((current) => (current === 'dark' ? 'light' : 'dark'));
 
   const navLinks = [
     { name: 'Home', path: '/', icon: <Home size={20} /> },

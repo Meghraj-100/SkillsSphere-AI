@@ -1,26 +1,22 @@
 ---
-name: Feature request
-about: Propose an enhancement for SkillSphere AI
+name: Feature Request
+about: Suggest an idea for this project
+title: '[FEATURE] '
 labels: enhancement
+assignees: ''
 ---
 
-## Problem Statement
-
-What problem does this solve?
+## Current Problem
+A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 
 ## Proposed Solution
+A clear and concise description of what you want to happen.
 
-Describe your ideal solution.
+## Expected Impact
+How will this feature improve the user or contributor experience?
+
+## Implementation Ideas
+If you have any ideas on how to implement this technically, describe them here.
 
 ## Alternatives Considered
-
-Any alternative approaches you considered.
-
-## Scope
-
-- Affected area: client / server / ai-ml / docs
-- User group: student / tutor / recruiter
-
-## Additional Notes
-
-Add mockups, references, or examples.
+A clear and concise description of any alternative solutions or features you've considered.

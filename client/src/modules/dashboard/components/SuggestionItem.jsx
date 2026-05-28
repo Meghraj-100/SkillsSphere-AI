@@ -1,5 +1,7 @@
 import React, { useMemo } from "react";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import { 
+
   AlertCircle, 
   Sparkles, 
   TrendingUp, 
@@ -8,6 +10,7 @@ import {
 } from "lucide-react";
 
 const SuggestionItem = ({ suggestion }) => {
+  useDocumentTitle("Suggestion Item");
   // Handle both string and object formats for robustness
   const text = typeof suggestion === "string" ? suggestion : (suggestion?.text || "");
   const priority = suggestion?.priority || "";

@@ -1,5 +1,7 @@
 import React, { useMemo } from "react";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import {
+
   Trash2,
   AlertCircle,
   CheckCircle,
@@ -84,6 +86,7 @@ const NotificationCard = ({
   onDelete,
   isCompact = false,
 }) => {
+  useDocumentTitle("Notification Card");
   const { _id, title, message, type, isRead, createdAt } = notification;
 
   const config = useMemo(() => getNotificationTypeConfig(type), [type]);

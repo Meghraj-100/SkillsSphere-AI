@@ -1,6 +1,8 @@
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 // Skeleton placeholder for interview session loading
 
 const InterviewSessionSkeleton = () => {
+  useDocumentTitle("Interview Session Skeleton");
   return (
     <div className="session-container animate-pulse">
       {/* Header Bar Skeleton */}

@@ -1,30 +1,7 @@
-import { useEffect, useState } from "react";
+import { useTheme } from "../contexts/ThemeContext";
 
 const ThemeToggle = () => {
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    const savedTheme =
-      localStorage.getItem("skillssphere.theme") || "light";
-
-    const isDark = savedTheme === "dark";
-
-    setDarkMode(isDark);
-
-    document.documentElement.classList.toggle("dark", isDark);
-    document.documentElement.classList.toggle("light", !isDark);
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = darkMode ? "light" : "dark";
-
-    setDarkMode(!darkMode);
-
-    localStorage.setItem("skillssphere.theme", newTheme);
-
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
-    document.documentElement.classList.toggle("light", newTheme === "light");
-  };
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <button
@@ -39,7 +16,7 @@ const ThemeToggle = () => {
         hover:bg-[var(--surface-hover)]
       "
     >
-      {darkMode ? "☀️ Light" : "🌙 Dark"}
+      {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
     </button>
   );
 };

@@ -1,14 +1,7 @@
+import { API_URL } from "../config/env";
+
 const getApiBaseUrl = () => {
-  try {
-    const env = import.meta?.env;
-    return (
-      env?.VITE_API_URL ||
-      env?.VITE_API_BASE_URL ||
-      "http://localhost:5000"
-    );
-  } catch {
-    return "http://localhost:5000";
-  }
+  return API_URL;
 };
 
 const toUrl = (path) => {
@@ -81,6 +74,10 @@ export const apiRequest = async (path, options = {}) => {
   }
 
   if (!response.ok) {
+    if (response.status === 401 && typeof window !== "undefined") {
+      window.dispatchEvent(new Event("auth:unauthorized"));
+    }
+
     const message =
       (data &&
         typeof data === "object" &&

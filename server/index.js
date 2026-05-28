@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import mongoose from "mongoose";
 import { validateEnv } from "./src/config/validateEnv.js";
 
 dotenv.config({ override: true });
@@ -10,6 +11,7 @@ import http from "http";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Server } from "socket.io";
 import connectDB, { isConnected } from "./src/database/db.js";
+import redisClient, { connectRedis } from "./src/config/redis.js";
 import requireDB from "./src/middleware/requireDB.js";
 import authRoutes from "./src/modules/auth/routes.js";
 import resumeRoutes from "./src/modules/resumes/routes.js";
@@ -28,7 +30,6 @@ import { initInterviewSockets } from "./src/modules/interviews/socket.js";
 import globalErrorHandler from "./src/middleware/errorMiddleware.js";
 import { logEvaluatorConfig } from "./src/config/evaluatorConfig.js";
 import { setIO } from "./src/utils/socketIO.js";
-import { connectRedis } from "./src/config/redis.js";
 import { initNotificationSockets } from "./src/modules/notifications/socket.js";
 import { verifySocketToken } from "./src/middleware/authMiddleware.js";
 import swaggerUi from "swagger-ui-express";
@@ -37,7 +38,9 @@ import analyticsRoutes from "./src/modules/analytics/routes.js";
 import { globalLimiter } from "./src/middleware/rateLimiter.js";
 
 const app = express();
-app.set("trust proxy", 1);
+if (process.env.TRUST_PROXY === 'true') {
+  app.set("trust proxy", 1);
+}
 const PORT = process.env.PORT || 5000;
 
 const server = http.createServer(app);
@@ -89,6 +92,7 @@ app.use((req, res, next) => {
 app.use("/api", globalLimiter);
 
 await connectDB();
+await connectRedis();
 logEvaluatorConfig();
 
 app.get("/health", (req, res) => {
@@ -148,3 +152,34 @@ app.use(globalErrorHandler);
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+// --- Graceful Shutdown ---
+const gracefulShutdown = async (signal) => {
+  console.log(`\nReceived ${signal}. Gracefully shutting down...`);
+  try {
+    if (redisClient && redisClient.isReady) {
+      await redisClient.quit();
+      console.log("Redis client disconnected.");
+    }
+    if (mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+      console.log("MongoDB connection closed.");
+    }
+    server.close(() => {
+      console.log("Express server closed.");
+      process.exit(0);
+    });
+    
+    // Fallback force kill if connections hang for more than 10 seconds
+    setTimeout(() => {
+      console.error("Could not close connections in time, forcefully shutting down");
+      process.exit(1);
+    }, 10000);
+  } catch (err) {
+    console.error("Error during graceful shutdown:", err);
+    process.exit(1);
+  }
+};
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));

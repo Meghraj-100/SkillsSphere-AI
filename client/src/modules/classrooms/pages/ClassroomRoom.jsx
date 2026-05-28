@@ -8,7 +8,11 @@ import VideoTile from "../components/VideoTile";
 import Whiteboard from "../components/Whiteboard";
 import SharedCodeEditor from "../components/SharedCodeEditor";
 
+import { SOCKET_URL } from "../../../config/env";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 export default function ClassroomRoom() {
+  useDocumentTitle("Classroom");
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { user, token } = useSelector((state) => state.auth);
@@ -40,7 +44,7 @@ export default function ClassroomRoom() {
     }
 
     // Initialize Socket
-    const s = io("http://localhost:5000");
+    const s = io(SOCKET_URL);
     setSocket(s);
     socketRef.current = s;
 

@@ -1,13 +1,21 @@
 import React, { useRef, useEffect } from "react";
 import { Hand, MicOff, VideoOff } from "lucide-react";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 export default function VideoTile({ stream, user, isMuted, isHandRaised, isScreenShare, isLocal }) {
+  useDocumentTitle("Video Tile");
   const videoRef = useRef();
 
   useEffect(() => {
     if (videoRef.current && stream) {
       videoRef.current.srcObject = stream;
     }
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+    };
   }, [stream]);
 
   return (

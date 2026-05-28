@@ -19,12 +19,15 @@ import {
   X,
   Code,
   ChevronDown,
-  Download
+  Download,
+  AlertTriangle
 } from 'lucide-react';
 import Navbar from '../../../shared/landing/Navbar';
 import { Button, LoadingState, ErrorState, EmptyState, StatusUpdateModal, StatusTimeline } from '../../../shared/components';
 import { getJobApplications, updateApplicationStatus, getJobPostingById, exportJobApplicationsCSV } from '../services/jobPostingService';
 import { exportToCSV, exportToPDF } from '../../../utils/exportUtils';
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 const statusStyles = {
   pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
@@ -39,6 +42,32 @@ const matchCategoryStyles = {
   "Moderate Match": "bg-blue-500/10 text-blue-400 border-blue-500/20",
   "Growth Potential": "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
   "Weak Alignment": "bg-red-500/10 text-red-400 border-red-500/20",
+};
+
+const getSignalStyle = (signal) => {
+  if (signal.includes("Fast-Track") || signal.includes("Strong")) {
+    return "bg-purple-500/10 text-purple-400 border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]";
+  }
+  if (signal.includes("Interview") || signal.includes("Round")) {
+    return "bg-blue-500/10 text-blue-400 border-blue-500/30";
+  }
+  if (signal.includes("Required") || signal.includes("Needed") || signal.includes("Weakness")) {
+    return "bg-amber-500/10 text-amber-400 border-amber-500/30";
+  }
+  if (signal.includes("Growth")) {
+    return "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+  }
+  return "bg-slate-500/10 text-slate-400 border-slate-500/30";
+};
+
+const getSignalIcon = (signal) => {
+  if (signal.includes("Fast-Track") || signal.includes("Strong")) {
+    return <Sparkles size={12} className="mr-1 inline" />;
+  }
+  if (signal.includes("Required") || signal.includes("Needed")) {
+    return <AlertTriangle size={12} className="mr-1 inline" />;
+  }
+  return <Award size={12} className="mr-1 inline" />;
 };
 
 const filterStatuses = [
@@ -71,6 +100,7 @@ const presets = [
 ];
 
 const RecruiterApplicantsPage = () => {
+  useDocumentTitle("Recruiter Applicants");
   const { id: jobId } = useParams();
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.auth);
@@ -96,6 +126,11 @@ const RecruiterApplicantsPage = () => {
   // Smart Preset Tracker
   const [activePreset, setActivePreset] = useState('');
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
+  
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const handleExportPDF = () => {
     setIsExportDropdownOpen(false);
@@ -115,6 +150,8 @@ const RecruiterApplicantsPage = () => {
         specialization: specialization || undefined,
         contributorOnly: contributorOnly ? 'true' : undefined,
         careerReadiness: careerReadiness || undefined,
+        page,
+        limit: 20
       };
 
       const [jobData, appsData] = await Promise.all([
@@ -123,6 +160,8 @@ const RecruiterApplicantsPage = () => {
       ]);
       setJob(jobData.job);
       setApplicants(appsData.applications || []);
+      setTotalPages(appsData.totalPages || 1);
+      setTotalCount(appsData.totalCount || 0);
     } catch (err) {
       setError(err.message || "Failed to load applicant data.");
     } finally {
@@ -138,7 +177,8 @@ const RecruiterApplicantsPage = () => {
     selectedCategories, 
     specialization, 
     contributorOnly, 
-    careerReadiness
+    careerReadiness,
+    page
   ]);
 
   useEffect(() => {
@@ -219,7 +259,16 @@ const RecruiterApplicantsPage = () => {
     setStatusFilter('');
     setSortBy('matchScore');
     setActivePreset('');
+    setPage(1);
   };
+
+  // Reset page when filters change (except when page itself changes)
+  useEffect(() => {
+    setPage(1);
+  }, [
+    statusFilter, sortBy, minScore, minAtsScore, selectedCategories, 
+    specialization, contributorOnly, careerReadiness
+  ]);
 
   const isAnyFilterActive = 
     statusFilter !== '' ||
@@ -603,9 +652,17 @@ const RecruiterApplicantsPage = () => {
                                   <Sparkles size={16} className="text-emerald-400" />
                                   {app.aiMatchScore}%
                                 </span>
-                                <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border mt-1 ${matchCategoryStyles[app.matchCategory] || "text-slate-400 border-white/10"}`}>
-                                  {app.matchCategory || "Evaluated"}
-                                </span>
+                                <div className="flex flex-col items-end gap-1 mt-1">
+                                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${matchCategoryStyles[app.matchCategory] || "text-slate-400 border-white/10"}`}>
+                                    {app.matchCategory || "Evaluated"}
+                                  </span>
+                                  {app.aiHiringSignals && app.aiHiringSignals.length > 0 && (
+                                    <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${getSignalStyle(app.aiHiringSignals[0])}`}>
+                                      {getSignalIcon(app.aiHiringSignals[0])}
+                                      {app.aiHiringSignals[0]}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             )}
                             <div className="flex items-center gap-2">
@@ -662,6 +719,22 @@ const RecruiterApplicantsPage = () => {
                                 </div>
                               </div>
 
+                              {app.aiHiringSignals && app.aiHiringSignals.length > 0 && (
+                                <div className="space-y-3 pt-6 border-t border-white/5">
+                                  <h4 className="text-sm font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2">
+                                    <Award size={16} /> Interview Readiness Signals
+                                  </h4>
+                                  <div className="flex flex-wrap gap-2">
+                                    {app.aiHiringSignals.map((signal, idx) => (
+                                      <div key={idx} className={`flex items-center px-3 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-wider ${getSignalStyle(signal)}`}>
+                                        {getSignalIcon(signal)}
+                                        {signal}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
                               {app.aiRecruiterInsights && app.aiRecruiterInsights.length > 0 && (
                                 <div className="space-y-3 pt-6 border-t border-white/5">
                                   <h4 className="text-sm font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
@@ -673,6 +746,24 @@ const RecruiterApplicantsPage = () => {
                                         <li key={idx} className="flex items-start gap-2 text-sm text-slate-300">
                                           <span className="text-blue-400 mt-0.5">•</span>
                                           <span className="leading-relaxed">{insight}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                </div>
+                              )}
+
+                              {app.aiWeaknesses && app.aiWeaknesses.length > 0 && (
+                                <div className="space-y-3 pt-6 border-t border-white/5">
+                                  <h4 className="text-sm font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2">
+                                    <AlertTriangle size={16} /> AI Weakness Detection
+                                  </h4>
+                                  <div className="p-5 bg-slate-900/50 border border-amber-500/20 rounded-2xl shadow-inner">
+                                    <ul className="space-y-2">
+                                      {app.aiWeaknesses.map((weakness, idx) => (
+                                        <li key={idx} className="flex items-start gap-2 text-sm text-slate-300">
+                                          <span className="text-amber-400 mt-0.5">•</span>
+                                          <span className="leading-relaxed">{weakness}</span>
                                         </li>
                                       ))}
                                     </ul>
@@ -764,6 +855,36 @@ const RecruiterApplicantsPage = () => {
                 })}
               </div>
             )}
+            
+            {/* Pagination Controls */}
+            {!loading && !error && applicants.length > 0 && totalPages > 1 && (
+              <div className="flex items-center justify-between bg-slate-900/40 border border-white/5 rounded-2xl p-4 mt-6">
+                <div className="text-sm text-slate-400 font-medium">
+                  Showing <span className="text-white">{(page - 1) * 20 + 1}</span> to <span className="text-white">{Math.min(page * 20, totalCount)}</span> of <span className="text-white">{totalCount}</span> candidates
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="bg-slate-900 hover:bg-slate-800 border-white/10"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="bg-slate-900 hover:bg-slate-800 border-white/10"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+            
           </div>
         </div>
       </div>

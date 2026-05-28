@@ -1,37 +1,23 @@
 import crypto from "crypto";
 
-const CODE_TTL_MS = 60 * 1000;
-const CLEANUP_INTERVAL_MS = 30 * 1000;
-
-const store = new Map();
-
-const cleanup = () => {
-  const now = Date.now();
-  for (const [code, entry] of store) {
-    if (entry.expiresAt <= now) {
-      store.delete(code);
-    }
-  }
-};
-
-setInterval(cleanup, CLEANUP_INTERVAL_MS);
+const authCodeStore = new Map();
 
 export const generateAuthCode = (userId) => {
-  const code = crypto.randomBytes(24).toString("hex");
-  store.set(code, {
+  const code = crypto.randomUUID();
+  authCodeStore.set(code, {
     userId,
-    expiresAt: Date.now() + CODE_TTL_MS,
+    expiresAt: Date.now() + 5 * 60 * 1000,
   });
   return code;
 };
 
 export const consumeAuthCode = (code) => {
-  const entry = store.get(code);
+  const entry = authCodeStore.get(code);
   if (!entry) return null;
-  if (entry.expiresAt <= Date.now()) {
-    store.delete(code);
+  if (Date.now() > entry.expiresAt) {
+    authCodeStore.delete(code);
     return null;
   }
-  store.delete(code);
+  authCodeStore.delete(code);
   return entry.userId;
 };

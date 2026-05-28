@@ -8,8 +8,11 @@ import {
   endClassroomSession,
   getActiveClassroomSessions,
 } from "../services/classroomService";
+import Navbar from "../../../shared/landing/Navbar";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 
 export default function ClassroomsDashboard() {
+  useDocumentTitle("Classrooms Dashboard");
   const { user, token } = useSelector((state) => state.auth);
   const [title, setTitle] = useState("");
   const [subject, setSubject] = useState("");
@@ -131,6 +134,7 @@ export default function ClassroomsDashboard() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#020617] text-gray-900 dark:text-white pt-24 pb-16 px-6">
+      <Navbar />
       <div className="max-w-6xl mx-auto">
         
         {/* Header section */}

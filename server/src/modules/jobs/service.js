@@ -9,7 +9,7 @@ import AppError from "../../utils/AppError.js";
 import { getIO } from "../../utils/socketIO.js";
 import recruiterIntelligenceService from "../recruiterIntelligence/service.js";
 import Resume from "../../database/models/Resume.js";
-import cache from "../../utils/cache.js";
+import redisClient from "../../config/redis.js";
 
 
 /**
@@ -153,8 +153,15 @@ export const updateJob = async (id, updateData, recruiterId) => {
  */
 export const getSkillTrends = async () => {
   const CACHE_KEY = "global_skill_trends";
-  const cachedData = cache.get(CACHE_KEY);
-  if (cachedData) return cachedData;
+
+  if (redisClient?.isReady) {
+    try {
+      const cached = await redisClient.get(CACHE_KEY);
+      if (cached) return JSON.parse(cached);
+    } catch {
+      // Redis unavailable — compute fresh
+    }
+  }
 
   const trends = await JobPosting.aggregate([
     { $match: { status: "open" } },
@@ -175,8 +182,14 @@ export const getSkillTrends = async () => {
       },
     },
   ]);
-  
-  cache.set(CACHE_KEY, trends, 900); // Cache for 15 minutes
+
+  if (redisClient?.isReady) {
+    try {
+      await redisClient.setEx(CACHE_KEY, 900, JSON.stringify(trends));
+    } catch {
+      // silently fail
+    }
+  }
   return trends;
 };
 
@@ -297,8 +310,15 @@ export const getJobRecommendations = async (user) => {
  */
 export const getRecruiterAnalytics = async (recruiterId) => {
   const CACHE_KEY = `recruiter_analytics_${recruiterId.toString()}`;
-  const cachedData = cache.get(CACHE_KEY);
-  if (cachedData) return cachedData;
+
+  if (redisClient?.isReady) {
+    try {
+      const cached = await redisClient.get(CACHE_KEY);
+      if (cached) return JSON.parse(cached);
+    } catch {
+      // Redis unavailable — compute fresh
+    }
+  }
 
   // Get all jobs for this recruiter
   const allJobs = await JobPosting.find({ recruiter: recruiterId })
@@ -376,7 +396,13 @@ export const getRecruiterAnalytics = async (recruiterId) => {
     recentJobs,
   };
 
-  cache.set(CACHE_KEY, result, 300); // Cache for 5 minutes
+  if (redisClient?.isReady) {
+    try {
+      await redisClient.setEx(CACHE_KEY, 300, JSON.stringify(result));
+    } catch {
+      // silently fail
+    }
+  }
   return result;
 };
 
@@ -402,6 +428,14 @@ export const applyToJob = async (jobId, applicantId, options = {}) => {
     throw new AppError("A shareable resume link is required to apply", 400);
   }
 
+  // Prevent IDOR: Ensure the provided resumeId actually belongs to the applicant
+  if (options.resumeId) {
+    const resume = await Resume.findOne({ _id: options.resumeId, user: applicantId });
+    if (!resume) {
+      throw new AppError("Invalid resume selected or you do not have permission to use this resume", 403);
+    }
+  }
+
   // Check for duplicate application
   const existing = await JobApplication.findOne({ job: jobId, applicant: applicantId });
   
@@ -409,6 +443,7 @@ export const applyToJob = async (jobId, applicantId, options = {}) => {
     if (existing.status === "withdrawn") {
       // Re-activate the withdrawn application
       existing.status = "pending";
+      existing.resume = options.resumeId || null;
       existing.resumeLink = options.resumeLink.trim();
       existing.coverNote = options.coverNote?.trim() || "";
       existing.statusHistory.push({ status: "pending", comment: "Application re-submitted after withdrawal" });
@@ -630,12 +665,26 @@ export const getJobApplications = async (jobId, recruiterId, statusOrParams, sor
     sortConfig = { createdAt: 1 };
   }
 
-  const applications = await JobApplication.find(query)
-    .populate("applicant", "name email")
-    .populate("resume", "fileName")
-    .sort(sortConfig);
+  const page = Math.max(1, parseInt(filters.page) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(filters.limit) || 20));
+  const skip = (page - 1) * limit;
 
-  return applications;
+  const [applications, totalCount] = await Promise.all([
+    JobApplication.find(query)
+      .populate("applicant", "name email")
+      .populate("resume", "fileName")
+      .sort(sortConfig)
+      .skip(skip)
+      .limit(limit),
+    JobApplication.countDocuments(query)
+  ]);
+
+  return {
+    applications,
+    totalCount,
+    totalPages: Math.ceil(totalCount / limit),
+    currentPage: page
+  };
 };
 
 /**

@@ -1,4 +1,6 @@
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 const MissingSkillsList = ({ skills }) => {
+  useDocumentTitle("Missing Skills List");
   if (!skills || skills.length === 0) return null;
 
   return (

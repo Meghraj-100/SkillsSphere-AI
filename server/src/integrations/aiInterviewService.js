@@ -17,7 +17,7 @@ import WebSocket from "ws";
 
 const AI_SERVICE_URL =
   process.env.INTERVIEW_AI_URL || "http://localhost:8000";
-const EVAL_TIMEOUT = parseInt(process.env.INTERVIEW_AI_TIMEOUT || "10000", 10);
+const EVAL_TIMEOUT = parseInt(process.env.INTERVIEW_AI_TIMEOUT || "5000", 10);
 const TRANSCRIBE_TIMEOUT = parseInt(
   process.env.INTERVIEW_AI_TRANSCRIBE_TIMEOUT || "30000",
   10
@@ -234,7 +234,13 @@ export const evaluateAnswer = async (
     console.warn(
       "[aiInterviewService] ⚠️ Python service unavailable, falling back to mock evaluation"
     );
-    return mockEvaluate(transcript, expectedAnswer, expectedConcepts);
+    return {
+      technical_accuracy: 75,
+      communication_quality: 80,
+      concept_relevance: 70,
+      feedback: "Mock feedback: The AI service is currently unavailable. This is a placeholder evaluation.",
+      is_mock: true
+    };
   }
 
   try {
@@ -250,11 +256,33 @@ export const evaluateAnswer = async (
 
     return res.json();
   } catch (err) {
+    if (
+      err.message.includes("ECONNREFUSED") || 
+      err.message.includes("ECONNABORTED") || 
+      err.name === "AbortError" ||
+      err.message.includes("timed out")
+    ) {
+      console.warn(`[aiInterviewService] ⚠️ AI Service unreachable or timed out: ${err.message}`);
+      return {
+        technical_accuracy: 75,
+        communication_quality: 80,
+        concept_relevance: 70,
+        feedback: "Mock feedback: The AI service is currently unavailable. This is a placeholder evaluation.",
+        is_mock: true
+      };
+    }
+
     console.warn(
-      `[aiInterviewService] ⚠️ Evaluation failed after ${MAX_RETRIES} retries: ${err.message}`
+      `[aiInterviewService] ⚠️ Evaluation failed: ${err.message}`
     );
     console.warn("[aiInterviewService] Falling back to mock evaluation");
-    return mockEvaluate(transcript, expectedAnswer, expectedConcepts);
+    return {
+      technical_accuracy: 75,
+      communication_quality: 80,
+      concept_relevance: 70,
+      feedback: "Mock feedback: The AI service is currently unavailable. This is a placeholder evaluation.",
+      is_mock: true
+    };
   }
 };
 

@@ -12,8 +12,11 @@ import {
 } from "lucide-react";
 import CoverLetterModal from "../../../shared/components/CoverLetterModal";
 import { generateCoverLetter } from "../../resume-analyzer/services/resumeService";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 const CoverLetterHistoryPage = () => {
+  useDocumentTitle("Cover Letter History");
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -71,7 +74,7 @@ const CoverLetterHistoryPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020817] text-gray-900 dark:text-slate-100 font-sans">
+    <div className="min-h-screen bg-white dark:bg-[#020817] text-gray-900 dark:text-slate-100 font-sans pt-24">
       <Navbar />
 
       <div className="max-w-5xl mx-auto pt-32 pb-12 px-4 sm:px-6 lg:px-8">

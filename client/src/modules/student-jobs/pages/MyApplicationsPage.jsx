@@ -23,6 +23,8 @@ import {
 } from "../services/jobService";
 import { StatusTimeline } from "../../../shared/components";
 import { useToast } from "../../../shared/components/toast/ToastProvider";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 const statusConfig = {
   pending: { label: "Pending", bg: "bg-yellow-500/15", text: "text-yellow-300", border: "border-yellow-500/25" },
@@ -35,6 +37,7 @@ const statusConfig = {
 const BOARD_COLUMNS = ["pending", "reviewed", "shortlisted", "rejected", "withdrawn"];
 
 const MyApplicationsPage = () => {
+  useDocumentTitle("My Applications");
   const { token } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const toast = useToast();
@@ -339,7 +342,7 @@ const MyApplicationsPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#0f172a,#020617)] text-slate-100 flex flex-col">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#0f172a,#020617)] text-slate-100 flex flex-col pt-24">
       <Navbar />
 
       <div className="h-24 md:h-32 shrink-0"></div>

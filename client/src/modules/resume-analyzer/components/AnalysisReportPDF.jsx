@@ -1,4 +1,5 @@
 import React from "react";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import {
   AlertCircle,
   CheckCircle2,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 
 const AnalysisReportPDF = ({ result, fileName }) => {
+  useDocumentTitle("Analysis Report PDF");
   if (!result) return null;
 
   const score = result.score || 0;

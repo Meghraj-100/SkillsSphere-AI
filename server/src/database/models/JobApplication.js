@@ -80,6 +80,16 @@ const jobApplicationSchema = new mongoose.Schema(
       default: [],
     },
 
+    aiWeaknesses: {
+      type: [String],
+      default: [],
+    },
+
+    aiHiringSignals: {
+      type: [String],
+      default: [],
+    },
+
     statusHistory: [
       {
         status: {

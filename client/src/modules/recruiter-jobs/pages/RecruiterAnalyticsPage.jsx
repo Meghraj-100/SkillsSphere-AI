@@ -47,6 +47,8 @@ import LoadingState from "../../../shared/components/LoadingState";
 import ErrorState from "../../../shared/components/ErrorState";
 import { getRecruiterAnalytics } from "../services/jobPostingService";
 import { exportToCSV, exportToPDF } from "../../../utils/exportUtils";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 // Month label helper
 const MONTH_NAMES = [
@@ -179,6 +181,7 @@ const SummaryMetricCard = ({ icon: Icon, color, bg, hoverBorder, label, value, s
 );
 
 const RecruiterAnalyticsPage = () => {
+  useDocumentTitle("Recruiter Analytics");
   const { token } = useSelector((state) => state.auth);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);

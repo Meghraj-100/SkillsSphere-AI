@@ -1,6 +1,8 @@
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 // Skeleton placeholder for interview results
 
 const InterviewResultsSkeleton = () => {
+  useDocumentTitle("Interview Results Skeleton");
   return (
     <div className="results-container animate-pulse">
       {/* Header Section Skeleton */}

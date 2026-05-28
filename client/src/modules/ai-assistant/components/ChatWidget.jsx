@@ -1,7 +1,10 @@
 import { useState } from "react";
 import ChatBox from "./ChatBox";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 const ChatWidget = () => {
+  useDocumentTitle("Chat Widget");
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleChat = () => {

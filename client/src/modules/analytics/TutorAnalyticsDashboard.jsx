@@ -3,6 +3,9 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Treemap } fr
 import { TrendingUp, Users, AlertCircle } from "lucide-react";
 import { useSelector } from "react-redux";
 import { apiRequest } from "../../services/apiClient.js";
+import Navbar from "../../shared/landing/Navbar";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
+
 
 // Custom Treemap content for better styling
 const CustomizedContent = (props) => {
@@ -40,6 +43,7 @@ const CustomizedContent = (props) => {
 };
 
 const TutorAnalyticsDashboard = () => {
+  useDocumentTitle("Tutor Analytics");
   const { token } = useSelector((state) => state.auth);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,8 +72,9 @@ const TutorAnalyticsDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 pt-24">
+        <Navbar />
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
@@ -84,7 +89,8 @@ const TutorAnalyticsDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6 sm:p-10">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 px-6 pb-6 pt-24 sm:px-10 sm:pb-10 sm:pt-28">
+      
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header Section */}

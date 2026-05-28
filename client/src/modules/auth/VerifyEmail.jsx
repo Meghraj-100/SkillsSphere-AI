@@ -10,6 +10,8 @@ import Button from "../../shared/components/Button";
 import Input from "../../shared/components/Input";
 import { useToast } from "../../shared/components";
 import { ShieldCheck, ArrowLeft, CheckCircle } from "lucide-react";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
+
 
 const OTP_LENGTH = 6;
 const COOLDOWN_SECONDS = 60;
@@ -17,6 +19,7 @@ const COOLDOWN_SECONDS = 60;
 const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
 
 const VerifyEmail = () => {
+  useDocumentTitle("Verify Email");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -269,10 +272,9 @@ const VerifyEmail = () => {
                     rounded-lg border bg-white dark:bg-slate-800 text-gray-900 dark:text-white caret-transparent
                     transition-all duration-200
                     focus:outline-none focus:ring-2 focus:ring-offset-0
-                    ${
-                      error
-                        ? "border-red-400 focus:ring-red-400"
-                        : digit
+                    ${error
+                      ? "border-red-400 focus:ring-red-400"
+                      : digit
                         ? "border-blue-500 focus:ring-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.3)]"
                         : "border-slate-600 focus:ring-blue-500 hover:border-slate-500"
                     }

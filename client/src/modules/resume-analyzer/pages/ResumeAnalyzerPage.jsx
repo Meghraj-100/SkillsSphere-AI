@@ -13,8 +13,10 @@ import ResumeSkeleton from "../components/ResumeSkeleton";
 import { analyzeResume, getLatestResumeAnalysis } from "../services/resumeService";
 import { syncRoadmap } from "../../roadmap/services/roadmapService";
 import { FileText, Sparkles, RefreshCw, Clock } from "lucide-react";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 
 const ResumeAnalyzerPage = () => {
+  useDocumentTitle("Resume Analyzer");
   const { success, error: showError, warning } = useToast();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -111,7 +113,7 @@ const ResumeAnalyzerPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-dark-bg text-gray-900 dark:text-text-main font-sans">
+    <div className="min-h-screen bg-white dark:bg-dark-bg text-gray-900 dark:text-text-main font-sans pt-24">
       <Navbar />
 
       <div className="max-w-4xl mx-auto pt-32 pb-12 px-4 sm:px-6 lg:px-8 space-y-8 animate-slide-up">

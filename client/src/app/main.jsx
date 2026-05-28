@@ -7,6 +7,7 @@ import App from './App.jsx';
 import './index.css';
 import { ToastProvider } from '../shared/components';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import { ThemeProvider } from '../shared/contexts/ThemeContext.jsx';
 if (import.meta.env.DEV && typeof window !== 'undefined') {
   const originalError = console.error;
   console.error = (...args) => {
@@ -30,13 +31,15 @@ document.documentElement.classList.toggle("light", savedTheme === "light");
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
-        <ToastProvider>
-          <ErrorBoundary>
-            <App />
-          </ErrorBoundary>
-        </ToastProvider>
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <ToastProvider>
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+          </ToastProvider>
+        </BrowserRouter>
+      </ThemeProvider>
     </Provider>
   </React.StrictMode>
 );

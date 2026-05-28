@@ -110,9 +110,80 @@ export const evaluateCandidateMatch = async (applicationId) => {
       insights.push("Candidate meets basic criteria but lacks standout signals.");
     }
 
+    // 6.5 Generate AI Weaknesses
+    const weaknesses = [];
+
+    if (atsScore < 60) {
+      weaknesses.push("Low ATS keyword optimization; may not parse well in external systems.");
+    }
+
+    if (skillScore < 60) {
+      weaknesses.push(`Weak technical skill alignment (Score: ${skillScore}/100).`);
+    }
+
+    if (missingSkills.length > 0) {
+      const missing = missingSkills.map(s => s.skill || s).join(", ");
+      weaknesses.push(`Missing experience in: ${missing}.`);
+    }
+
+    if (projectStrengthScore < 50) {
+      weaknesses.push("Weak project impact and professional experience.");
+    }
+
+    if (contributionActivity === "Low") {
+      weaknesses.push("Missing cloud/open-source contribution exposure.");
+    }
+
+    if (careerReadiness === "Low") {
+      weaknesses.push("Low career readiness or incomplete training roadmaps.");
+    }
+
+    if (weaknesses.length === 0) {
+      weaknesses.push("No major weaknesses detected.");
+    }
+
+    // 6.75 Generate AI Hiring Signals (Interview Readiness Badges)
+    const signals = [];
+    
+    // Fast-Track Candidate
+    if (finalScore > 90 && atsScore > 85 && (contributionActivity === "High" || contributionActivity === "Medium")) {
+      signals.push("Fast-Track Candidate");
+    }
+    
+    // Strong Hiring Signal
+    if (finalScore >= 85 && !signals.includes("Fast-Track Candidate")) {
+      signals.push("Strong Hiring Signal");
+    }
+
+    // Technical Interview Recommended
+    if (skillScore >= 80 && careerReadiness === "Low") {
+      signals.push("Technical Interview Recommended");
+    }
+
+    // HR Round Recommended
+    if (careerReadiness === "High" && finalScore >= 80) {
+      signals.push("HR Round Recommended");
+    }
+
+    // Skill Validation Required
+    if (finalScore >= 70 && missingSkills.length > 0) {
+      signals.push("Skill Validation Required");
+    }
+
+    // ATS Optimization Needed
+    if (atsScore < 60 && finalScore >= 70) {
+      signals.push("ATS Optimization Needed");
+    }
+
+    // Growth Potential Candidate
+    if (category === "Growth Potential") {
+      signals.push("Growth Potential Candidate");
+    }
+
     // 7. Update Application Document
     application.aiMatchScore = finalScore;
     application.matchCategory = category;
+    application.aiHiringSignals = signals;
     application.matchBreakdown = {
       atsCompatibility: atsScore,
       skillMatch: skillScore,
@@ -121,6 +192,7 @@ export const evaluateCandidateMatch = async (applicationId) => {
       careerReadiness,
     };
     application.aiRecruiterInsights = insights;
+    application.aiWeaknesses = weaknesses;
 
     await application.save();
     return application;

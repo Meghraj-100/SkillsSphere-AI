@@ -8,7 +8,7 @@ import {
   transcribeAudio,
   evaluateAnswer,
 } from "../../integrations/aiInterviewService.js";
-import cache from "../../utils/cache.js";
+import redisClient from "../../config/redis.js";
 import Notification from "../../database/models/Notification.js";
 import { getIO } from "../../utils/socketIO.js";
 
@@ -373,8 +373,15 @@ export const getSessionResults = async (sessionId, userId) => {
  */
 export const listAvailableTopics = async () => {
   const CACHE_KEY = "interview_topics";
-  const cachedData = cache.get(CACHE_KEY);
-  if (cachedData) return cachedData;
+
+  if (redisClient?.isReady) {
+    try {
+      const cached = await redisClient.get(CACHE_KEY);
+      if (cached) return JSON.parse(cached);
+    } catch {
+      // Redis unavailable — compute fresh
+    }
+  }
 
   const topics = await QuestionBank.aggregate([
     {
@@ -395,7 +402,13 @@ export const listAvailableTopics = async () => {
     { $sort: { topic: 1 } },
   ]);
 
-  cache.set(CACHE_KEY, topics, 1800); // Cache for 30 minutes
+  if (redisClient?.isReady) {
+    try {
+      await redisClient.setEx(CACHE_KEY, 1800, JSON.stringify(topics));
+    } catch {
+      // silently fail
+    }
+  }
   return topics;
 };
 

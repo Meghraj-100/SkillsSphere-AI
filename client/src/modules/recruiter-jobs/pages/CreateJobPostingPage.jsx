@@ -5,8 +5,11 @@ import { ArrowLeft, Briefcase } from "lucide-react";
 import Navbar from "../../../shared/landing/Navbar";
 import JobPostingForm from "../components/JobPostingForm";
 import { createJobPosting } from "../services/jobPostingService";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 const CreateJobPostingPage = () => {
+  useDocumentTitle("Create Job Posting");
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.auth);
 

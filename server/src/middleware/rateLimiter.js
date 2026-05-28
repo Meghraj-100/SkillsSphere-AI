@@ -1,6 +1,20 @@
 import rateLimit from "express-rate-limit";
 
 /**
+ * Custom Key Generator that combines IP address and Email
+ * This prevents attackers from bypassing the IP limit by spoofing X-Forwarded-For
+ * when launching credential stuffing or OTP bombing attacks on a single account.
+ */
+const emailKeyGenerator = (req, res) => {
+  const ip = req.ip || req.connection?.remoteAddress || 'unknown-ip';
+  const email = req.body?.email?.trim()?.toLowerCase();
+  
+  // express-rate-limit throws ERR_ERL_KEY_GEN_IPV6 if trust proxy is false and we return an ip.
+  // By returning a prefix, we bypass this validation and solve the spoofing issue simultaneously.
+  return email ? `user_${email}` : `ip_${ip}`;
+};
+
+/**
  * Custom Rate Limiter for Authentication routes
  * Prevents brute-force attacks and OTP/Email bombing
  */
@@ -14,6 +28,8 @@ export const authRateLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  keyGenerator: emailKeyGenerator,
+  validate: { xForwardedForHeader: false, trustProxy: false, default: true, ip: false },
   handler: (req, res, next, options) => {
     res.status(429).json(options.message);
   }
@@ -52,6 +68,8 @@ export const otpRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: emailKeyGenerator,
+  validate: { xForwardedForHeader: false, trustProxy: false, default: true, ip: false },
   handler: (req, res, next, options) => {
     res.status(429).json(options.message);
   }

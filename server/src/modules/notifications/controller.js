@@ -86,6 +86,10 @@ export const createNotification = asyncHandler(async (req, res) => {
     throw error;
   }
 
+  if (userId !== req.user._id.toString()) {
+    throw new AppError("You can only create notifications for yourself", 403);
+  }
+
   const notification = await createNotificationService({
     userId,
     title,

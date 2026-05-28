@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { Users, FileText, Send, Eye } from "lucide-react";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+
 
 export default function ObserverPanel({ participants, onSendFeedback, isConductor }) {
+  useDocumentTitle("Observer Panel");
   const [note, setNote] = useState("");
   const [savedNotes, setSavedNotes] = useState([]);
 

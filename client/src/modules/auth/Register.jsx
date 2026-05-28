@@ -7,8 +7,11 @@ import Button from "../../shared/components/Button";
 import Input from "../../shared/components/Input";
 import Select from "../../shared/components/Select";
 import Navbar from "../../shared/landing/Navbar";
+import { API_URL } from "../../config/env";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 const Register = () => {
+  useDocumentTitle("Register");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.auth);
@@ -218,8 +221,6 @@ const Register = () => {
             <button
               type="button"
               onClick={() => {
-                const API_URL =
-                  import.meta.env.VITE_API_URL || "http://localhost:5000";
                 const redirect = encodeURIComponent(
                   `${window.location.origin}/auth/callback`,
                 );

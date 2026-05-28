@@ -9,8 +9,10 @@ import JobFilters from "../components/JobFilters";
 import JobApplyForm from "../components/JobApplyForm";
 import { getJobs, applyToJob, getMyAppliedJobIds } from "../services/jobService";
 import JobCardSkeleton from "../components/JobCardSkeleton";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 
 const JobBoardPage = () => {
+  useDocumentTitle("Job Board");
   const { token, user } = useSelector((state) => state.auth);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
