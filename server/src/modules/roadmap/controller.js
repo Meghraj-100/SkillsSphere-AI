@@ -1,6 +1,7 @@
 import LearningProgress from "../../database/models/LearningProgress.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import AppError from "../../utils/AppError.js";
+import User from "../../database/models/User.js";
 
 /**
  * Get the current user's learning progress and roadmap
@@ -315,6 +316,11 @@ export const optInRecruiterTracking = asyncHandler(async (req, res) => {
     throw new AppError("Recruiter ID is required", 400);
   }
 
+  const recruiter = await User.findById(recruiterId);
+  if (!recruiter || recruiter.role !== "recruiter") {
+    throw new AppError("Invalid user ID or user is not a recruiter", 403);
+  }
+
   const progress = await LearningProgress.findOne({ user: req.user._id });
   if (!progress) {
     throw new AppError("You do not have an active roadmap", 404);
@@ -339,6 +345,11 @@ export const optInTutorTracking = asyncHandler(async (req, res) => {
 
   if (!tutorId) {
     throw new AppError("Tutor ID is required", 400);
+  }
+
+  const tutor = await User.findById(tutorId);
+  if (!tutor || tutor.role !== "tutor") {
+    throw new AppError("Invalid user ID or user is not a tutor", 403);
   }
 
   const progress = await LearningProgress.findOne({ user: req.user._id });
