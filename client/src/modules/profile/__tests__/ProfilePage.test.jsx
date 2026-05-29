@@ -44,14 +44,19 @@ const createStore = (user = baseUser) =>
         }
         return state;
       },
+      notifications: (state = { unreadCount: 0 }) => state,
     },
   });
+
+import { ThemeProvider } from "../../../shared/contexts/ThemeContext";
 
 const renderProfile = (user = baseUser) =>
   render(
     <Provider store={createStore(user)}>
       <MemoryRouter>
-        <ProfilePage />
+        <ThemeProvider>
+          <ProfilePage />
+        </ThemeProvider>
       </MemoryRouter>
     </Provider>,
   );
