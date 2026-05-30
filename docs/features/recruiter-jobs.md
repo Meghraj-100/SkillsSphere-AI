@@ -74,29 +74,31 @@ Application Created
 
 The applicants page supports advanced filtering:
 
-| Filter | Type | Description |
-|--------|------|-------------|
-| Status | Select | pending/reviewed/shortlisted/rejected |
-| AI Match Score | Range | Min/max score |
-| ATS Score | Range | Min/max ATS compatibility |
-| Match Category | Checkbox | Excellent/Moderate/Growth/Weak |
-| Specialization | Select | Frontend/Backend/FullStack/DevOps/AI-ML/Database |
-| OSS Contributors | Toggle | Only contributors with activity |
-| Career Readiness | Select | High/Medium/Low |
-| Skills | Text | Keyword search in resume skills |
+| Filter           | Type     | Description                                      |
+| ---------------- | -------- | ------------------------------------------------ |
+| --------         | ------   | -------------                                    |
+| Status           | Select   | pending/reviewed/shortlisted/rejected            |
+| AI Match Score   | Range    | Min/max score                                    |
+| ATS Score        | Range    | Min/max ATS compatibility                        |
+| Match Category   | Checkbox | Excellent/Moderate/Growth/Weak                   |
+| Specialization   | Select   | Frontend/Backend/FullStack/DevOps/AI-ML/Database |
+| OSS Contributors | Toggle   | Only contributors with activity                  |
+| Career Readiness | Select   | High/Medium/Low                                  |
+| Skills           | Text     | Keyword search in resume skills                  |
 
 ### AI Intelligence Presets
 
 Quick-filter buttons for common queries:
 
-| Preset | Filters Applied |
-|--------|----------------|
-| Top Matches | minScore=85 |
-| Excellent | category="Excellent Match" |
-| OSS | contributorOnly=true |
-| High ATS | minAtsScore=80 |
-| Frontend/Backend/FullStack | Respective specialization |
-| Readiness | careerReadiness="High" |
+| Preset                     | Filters Applied            |
+| -------------------------- | -------------------------- |
+| --------                   | ----------------           |
+| Top Matches                | minScore=85                |
+| Excellent                  | category="Excellent Match" |
+| OSS                        | contributorOnly=true       |
+| High ATS                   | minAtsScore=80             |
+| Frontend/Backend/FullStack | Respective specialization  |
+| Readiness                  | careerReadiness="High"     |
 
 ## Analytics Dashboard
 
@@ -127,69 +129,74 @@ Three-tab analytics view using Recharts:
 
 ### JobPosting
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `title` | String | Required, 2-120 chars |
-| `description` | String | Required, min 20 chars |
-| `skills` | [String] | Auto-lowercased |
-| `experienceRequired` | Number | Default 0 |
-| `jobLevel` | String | 6 options (Internship to Executive) |
-| `status` | String | draft/open/closed |
-| `recruiter` | ObjectId | Owner ref |
-| `location` | Object | city, state, country, remote |
-| `salary` | Object | min, max, currency, isNegotiable |
+| Field                | Type     | Notes                               |
+| -------------------- | -------- | ----------------------------------- |
+| -------              | ------   | -------                             |
+| `title`              | String   | Required, 2-120 chars               |
+| `description`        | String   | Required, min 20 chars              |
+| `skills`             | [String] | Auto-lowercased                     |
+| `experienceRequired` | Number   | Default 0                           |
+| `jobLevel`           | String   | 6 options (Internship to Executive) |
+| `status`             | String   | draft/open/closed                   |
+| `recruiter`          | ObjectId | Owner ref                           |
+| `location`           | Object   | city, state, country, remote        |
+| `salary`             | Object   | min, max, currency, isNegotiable    |
 
 ### JobApplication
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `job` | ObjectId | Ref: JobPosting |
-| `applicant` | ObjectId | Ref: User |
-| `resumeLink` | String | Required URL |
-| `coverNote` | String | Max 1000 chars |
-| `aiMatchScore` | Number | 0-100 |
-| `matchCategory` | String | AI-assigned category |
-| `matchBreakdown` | Object | ATS, skills, projects, career, contributions |
-| `aiRecruiterInsights` | [String] | AI-generated insights |
-| `aiWeaknesses` | [String] | AI-detected weaknesses |
-| `aiHiringSignals` | [String] | Recommended next steps |
-| `statusHistory` | Array | Full audit trail |
+| Field                 | Type     | Notes                                        |
+| --------------------- | -------- | -------------------------------------------- |
+| -------               | ------   | -------                                      |
+| `job`                 | ObjectId | Ref: JobPosting                              |
+| `applicant`           | ObjectId | Ref: User                                    |
+| `resumeLink`          | String   | Required URL                                 |
+| `coverNote`           | String   | Max 1000 chars                               |
+| `aiMatchScore`        | Number   | 0-100                                        |
+| `matchCategory`       | String   | AI-assigned category                         |
+| `matchBreakdown`      | Object   | ATS, skills, projects, career, contributions |
+| `aiRecruiterInsights` | [String] | AI-generated insights                        |
+| `aiWeaknesses`        | [String] | AI-detected weaknesses                       |
+| `aiHiringSignals`     | [String] | Recommended next steps                       |
+| `statusHistory`       | Array    | Full audit trail                             |
 
 ## API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/jobs` | recruiter | Create job (rate-limited) |
-| `GET` | `/api/jobs/recruiter` | recruiter | List recruiter's jobs |
-| `GET` | `/api/jobs/:id` | recruiter | Get job details |
-| `PUT` | `/api/jobs/:id` | recruiter | Update job |
-| `DELETE` | `/api/jobs/:id` | recruiter | Delete job + applications |
-| `GET` | `/api/jobs/recruiter/analytics` | recruiter | Aggregated analytics |
-| `GET` | `/api/jobs/:id/applications` | recruiter | Filtered applicant list |
-| `GET` | `/api/jobs/:id/applications/export` | recruiter | CSV export |
-| `PATCH` | `/api/jobs/applications/:id/status` | recruiter | Update status + notify |
+| Method   | Endpoint                            | Auth      | Description               |
+| -------- | ----------------------------------- | --------- | ------------------------- |
+| -------- | ----------                          | ------    | -------------             |
+| `POST`   | `/api/jobs`                         | recruiter | Create job (rate-limited) |
+| `GET`    | `/api/jobs/recruiter`               | recruiter | List recruiter's jobs     |
+| `GET`    | `/api/jobs/:id`                     | recruiter | Get job details           |
+| `PUT`    | `/api/jobs/:id`                     | recruiter | Update job                |
+| `DELETE` | `/api/jobs/:id`                     | recruiter | Delete job + applications |
+| `GET`    | `/api/jobs/recruiter/analytics`     | recruiter | Aggregated analytics      |
+| `GET`    | `/api/jobs/:id/applications`        | recruiter | Filtered applicant list   |
+| `GET`    | `/api/jobs/:id/applications/export` | recruiter | CSV export                |
+| `PATCH`  | `/api/jobs/applications/:id/status` | recruiter | Update status + notify    |
 
 ## Frontend Routes
 
-| Route | Page | Description |
-|-------|------|-------------|
-| `/recruiter/jobs` | RecruiterJobsPage | Job listings dashboard |
-| `/recruiter/jobs/create` | CreateJobPostingPage | Create new job |
-| `/recruiter/jobs/edit/:id` | EditJobPostingPage | Edit existing job |
+| Route                            | Page                    | Description                    |
+| -------------------------------- | ----------------------- | ------------------------------ |
+| -------                          | ------                  | -------------                  |
+| `/recruiter/jobs`                | RecruiterJobsPage       | Job listings dashboard         |
+| `/recruiter/jobs/create`         | CreateJobPostingPage    | Create new job                 |
+| `/recruiter/jobs/edit/:id`       | EditJobPostingPage      | Edit existing job              |
 | `/recruiter/jobs/:id/applicants` | RecruiterApplicantsPage | AI-scored applicant management |
-| `/recruiter/analytics` | RecruiterAnalyticsPage | 3-tab analytics dashboard |
+| `/recruiter/analytics`           | RecruiterAnalyticsPage  | 3-tab analytics dashboard      |
 
 ## Key Components
 
-| Component | Purpose |
-|-----------|---------|
-| `RecruiterJobsPage` | Job listings with search, status filter, pagination |
-| `CreateJobPostingPage` | Job creation form |
-| `EditJobPostingPage` | Job edit form (pre-populated) |
-| `JobPostingForm` | Full form: title, skills, salary, location, requirements |
-| `RecruiterApplicantsPage` | AI-scored applicant cards with filters and presets |
-| `RecruiterAnalyticsPage` | 3-tab Recharts dashboard |
-| `JobPostingCard` | Wrapper around shared `JobViewerCard` |
+| Component                 | Purpose                                                  |
+| ------------------------- | -------------------------------------------------------- |
+| -----------               | ---------                                                |
+| `RecruiterJobsPage`       | Job listings with search, status filter, pagination      |
+| `CreateJobPostingPage`    | Job creation form                                        |
+| `EditJobPostingPage`      | Job edit form (pre-populated)                            |
+| `JobPostingForm`          | Full form: title, skills, salary, location, requirements |
+| `RecruiterApplicantsPage` | AI-scored applicant cards with filters and presets       |
+| `RecruiterAnalyticsPage`  | 3-tab Recharts dashboard                                 |
+| `JobPostingCard`          | Wrapper around shared `JobViewerCard`                    |
 
 ## CSV Export Security
 
@@ -200,7 +207,7 @@ The `sanitizeCSVField()` function prevents CSV formula injection:
 
 ## Key Files
 
-```
+```text
 client/src/modules/recruiter-jobs/
 ├── pages/
 │   ├── RecruiterJobsPage.jsx              # Job listings

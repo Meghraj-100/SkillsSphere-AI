@@ -44,12 +44,13 @@ The Job Matcher provides AI-powered job recommendations by running the resume an
 
 For each candidate-job pair, the pipeline evaluates:
 
-| Dimension | What It Measures |
-|-----------|-----------------|
-| **Skill Match** | Exact overlap between candidate skills and job requirements |
-| **Keyword Match** | JD keyword presence in resume text |
-| **Experience Match** | Years of experience comparison |
-| **Semantic Match** | Embedding-based contextual similarity (when JD available) |
+| Dimension            | What It Measures                                            |
+| -------------------- | ----------------------------------------------------------- |
+| -----------          | -----------------                                           |
+| **Skill Match**      | Exact overlap between candidate skills and job requirements |
+| **Keyword Match**    | JD keyword presence in resume text                          |
+| **Experience Match** | Years of experience comparison                              |
+| **Semantic Match**   | Embedding-based contextual similarity (when JD available)   |
 
 Final score = weighted average of all dimensions.
 
@@ -69,49 +70,54 @@ This bridges the hiring and mentoring modules, ensuring tutors are aware of stud
 
 ### MatchResult
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `user` | ObjectId | Ref: User |
-| `resume` | ObjectId | Ref: Resume (snapshot of which version was used) |
-| `recommendations` | Array | Each: `{ job, score, breakdown, skillMatch, keywordMatch, experienceMatch }` |
+| Field             | Type     | Notes                                                                        |
+| ----------------- | -------- | ---------------------------------------------------------------------------- |
+| -------           | ------   | -------                                                                      |
+| `user`            | ObjectId | Ref: User                                                                    |
+| `resume`          | ObjectId | Ref: Resume (snapshot of which version was used)                             |
+| `recommendations` | Array    | Each: `{ job, score, breakdown, skillMatch, keywordMatch, experienceMatch }` |
 
 ### Standalone Matching Endpoint
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/matching/evaluate` | any | Upload resume or use existing, run matching |
-| `GET` | `/api/matching/recommended` | any | Get latest saved recommendations |
+| Method   | Endpoint                    | Auth   | Description                                 |
+| -------- | --------------------------- | ------ | ------------------------------------------- |
+| -------- | ----------                  | ------ | -------------                               |
+| `POST`   | `/api/matching/evaluate`    | any    | Upload resume or use existing, run matching |
+| `GET`    | `/api/matching/recommended` | any    | Get latest saved recommendations            |
 
 ## Frontend Routes
 
-| Route | Page | Description |
-|-------|------|-------------|
+| Route        | Page           | Description                              |
+| ------------ | -------------- | ---------------------------------------- |
+| -------      | ------         | -------------                            |
 | `/job-match` | JobMatcherPage | AI job recommendations with match scores |
 
 ## Key Components
 
-| Component | Purpose |
-|-----------|---------|
-| `JobMatcherPage` | Main page: loading, error, no-resume, no-matches, and results states |
-| `MatcherForm` | Alternate form for selecting resume source (existing vs upload) |
-| `MatcherResult` | Layout container for score + skills + jobs |
-| `MatchScoreCard` | Match percentage display with progress bar |
-| `MissingSkillsList` | Missing skills displayed as pills |
-| `RecommendedJobsList` | List of matched jobs with scores |
+| Component             | Purpose                                                              |
+| --------------------- | -------------------------------------------------------------------- |
+| -----------           | ---------                                                            |
+| `JobMatcherPage`      | Main page: loading, error, no-resume, no-matches, and results states |
+| `MatcherForm`         | Alternate form for selecting resume source (existing vs upload)      |
+| `MatcherResult`       | Layout container for score + skills + jobs                           |
+| `MatchScoreCard`      | Match percentage display with progress bar                           |
+| `MissingSkillsList`   | Missing skills displayed as pills                                    |
+| `RecommendedJobsList` | List of matched jobs with scores                                     |
 
 ## Page States
 
-| State | Display |
-|-------|---------|
-| Loading | "Analyzing your profile for the best matches..." |
-| Error | Error message with retry button |
-| No resume | Prompt to upload resume → links to `/resume-analyzer` |
-| No matches | Prompt to browse all jobs → links to `/job-board` |
-| Results | Jobs with "{X}% Match" badges, paginated |
+| State      | Display                                               |
+| ---------- | ----------------------------------------------------- |
+| -------    | ---------                                             |
+| Loading    | "Analyzing your profile for the best matches..."      |
+| Error      | Error message with retry button                       |
+| No resume  | Prompt to upload resume → links to `/resume-analyzer` |
+| No matches | Prompt to browse all jobs → links to `/job-board`     |
+| Results    | Jobs with "{X}% Match" badges, paginated              |
 
 ## Key Files
 
-```
+```text
 client/src/modules/job-matcher/
 ├── pages/JobMatcherPage.jsx               # Main page
 ├── components/

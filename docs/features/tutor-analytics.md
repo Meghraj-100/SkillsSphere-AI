@@ -29,11 +29,12 @@ Visual dashboards for tutors showing class-wide skill distribution, gap analysis
 
 The `GET /api/analytics/dashboard` endpoint returns role-based analytics:
 
-| Role | Metrics Returned |
-|------|-----------------|
-| **Student** | Roadmap progress, average interview score, total interviews, completed topics |
-| **Tutor** | Average platform score, total mock interviews completed, active students count |
-| **Recruiter** | Talent density by topic (score >= 80), total elite candidates |
+| Role          | Metrics Returned                                                               |
+| ------------- | ------------------------------------------------------------------------------ |
+| -----------   | -------------------------------------------------------------------------      |
+| **Student**   | Roadmap progress, average interview score, total interviews, completed topics  |
+| **Tutor**     | Average platform score, total mock interviews completed, active students count |
+| **Recruiter** | Talent density by topic (score >= 80), total elite candidates                  |
 
 ## Skill Gap Analysis
 
@@ -51,7 +52,7 @@ Resume collection
 
 ### Gap Score Formula
 
-```
+```text
 gapScore = max(1, 100 - (count * 10))
 ```
 
@@ -75,20 +76,22 @@ gapScore = max(1, 100 - (count * 10))
 
 ## API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/api/analytics/skill-gaps` | tutor | Skill distribution heatmap data |
-| `GET` | `/api/analytics/dashboard` | any | Role-based dashboard metrics |
+| Method   | Endpoint                    | Auth  | Description                     |
+| -------- | --------------------------- | ----- | ------------------------------- |
+| -------- | --------------------------- | ----  | ------------------------------- |
+| `GET`    | `/api/analytics/skill-gaps` | tutor | Skill distribution heatmap data |
+| `GET`    | `/api/analytics/dashboard`  | any   | Role-based dashboard metrics    |
 
 ## Frontend Routes
 
-| Route | Page | Description |
-|-------|------|-------------|
-| `/tutor/analytics` | TutorAnalyticsDashboard | Skill gap heatmap and platform metrics |
+| Route                | Page                    | Description                            |
+| -------------------- | ----------------------- | -------------------------------------- |
+| -------------------- | ----------------------- | ------------------------------------   |
+| `/tutor/analytics`   | TutorAnalyticsDashboard | Skill gap heatmap and platform metrics |
 
 ## Key Files
 
-```
+```text
 client/src/modules/analytics/
 └── TutorAnalyticsDashboard.jsx            # Dashboard with Recharts visualizations
 

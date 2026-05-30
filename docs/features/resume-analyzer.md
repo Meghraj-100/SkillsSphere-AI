@@ -46,24 +46,26 @@ The AI Resume Analyzer provides comprehensive resume evaluation using a 9-evalua
 
 ## Dual Scoring Modes
 
-| Mode | Trigger | Weight Focus |
-|------|---------|--------------|
-| **Match** | Job description provided | Semantic (20%), Skill (15%), Keyword (15%), Impact (15%), Experience (10%), ATS (10%), Readability (10%), Consistency (5%) |
-| **Benchmark** | No JD provided | Impact (40%), ATS (30%), Readability (15%), Consistency (10%), Tech Standard (5%) |
+| Mode          | Trigger                  | Weight Focus                                                                                                               |
+| ------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| ------        | ---------                | --------------                                                                                                             |
+| **Match**     | Job description provided | Semantic (20%), Skill (15%), Keyword (15%), Impact (15%), Experience (10%), ATS (10%), Readability (10%), Consistency (5%) |
+| **Benchmark** | No JD provided           | Impact (40%), ATS (30%), Readability (15%), Consistency (10%), Tech Standard (5%)                                          |
 
 ## Evaluator Pipeline
 
-| Evaluator | Weight (JD) | Weight (No-JD) | What It Measures |
-|-----------|-------------|----------------|------------------|
-| `skillMatch` | 0.15 | 0.00 | Exact skill overlap between resume and job |
-| `keywordMatch` | 0.15 | 0.00 | JD keyword presence in resume |
-| `experienceMatch` | 0.10 | 0.00 | Years of experience comparison |
-| `semanticMatch` | 0.20 | 0.00 | Embedding-based semantic similarity (HF API) |
-| `impactMatch` | 0.15 | 0.40 | Quantifiable achievements (%, $, multipliers) |
-| `atsOptimization` | 0.10 | 0.30 | ATS compatibility (sections, contacts, formatting) |
-| `readabilityMatch` | 0.10 | 0.15 | Sentence quality, power verb usage |
-| `consistencyMatch` | 0.05 | 0.10 | Repetitive content, generic phrases |
-| `techStandard` | 0.00 | 0.05 | Technical breadth across domains |
+| Evaluator          | Weight (JD)   | Weight (No-JD)   | What It Measures                                   |
+| ------------------ | ------------- | ---------------- | -------------------------------------------------- |
+| -----------        | ------------- | ---------------- | ------------------                                 |
+| `skillMatch`       | 0.15          | 0.00             | Exact skill overlap between resume and job         |
+| `keywordMatch`     | 0.15          | 0.00             | JD keyword presence in resume                      |
+| `experienceMatch`  | 0.10          | 0.00             | Years of experience comparison                     |
+| `semanticMatch`    | 0.20          | 0.00             | Embedding-based semantic similarity (HF API)       |
+| `impactMatch`      | 0.15          | 0.40             | Quantifiable achievements (%, $, multipliers)      |
+| `atsOptimization`  | 0.10          | 0.30             | ATS compatibility (sections, contacts, formatting) |
+| `readabilityMatch` | 0.10          | 0.15             | Sentence quality, power verb usage                 |
+| `consistencyMatch` | 0.05          | 0.10             | Repetitive content, generic phrases                |
+| `techStandard`     | 0.00          | 0.05             | Technical breadth across domains                   |
 
 **Semantic caching:** Results cached in MongoDB with 7-day TTL using SHA-256 hash pairs.
 
@@ -73,20 +75,21 @@ The AI Resume Analyzer provides comprehensive resume evaluation using a 9-evalua
 
 Stores parsed resume data and all evaluation results.
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `user` | ObjectId | Ref: User, indexed |
-| `title` | String | Default "My Resume" |
-| `isActive` | Boolean | Active baseline flag |
-| `skills`, `education`, `experience`, `projects`, `certifications` | [String] | Parsed sections |
-| `linkedin`, `github`, `portfolio` | String | Profile URLs |
-| `resumeText` | String | `select: false` for privacy |
-| `file` | Object | originalName, storedName, path, size, mimeType |
-| `skillMatch`, `keywordMatch`, `experienceMatch`, `semanticMatch` | Object | Evaluator results |
-| `aggregatedScore` | Number | Final weighted score |
-| `classification` | String | Beginner/Intermediate/Advanced/Strong Match |
-| `gapAnalysis` | Mixed | Categorized improvement suggestions |
-| `mode` | String | "match" or "benchmark" |
+| Field                                                             | Type     | Notes                                          |
+| ----------------------------------------------------------------- | -------- | ---------------------------------------------- |
+| -------                                                           | ------   | -------                                        |
+| `user`                                                            | ObjectId | Ref: User, indexed                             |
+| `title`                                                           | String   | Default "My Resume"                            |
+| `isActive`                                                        | Boolean  | Active baseline flag                           |
+| `skills`, `education`, `experience`, `projects`, `certifications` | [String] | Parsed sections                                |
+| `linkedin`, `github`, `portfolio`                                 | String   | Profile URLs                                   |
+| `resumeText`                                                      | String   | `select: false` for privacy                    |
+| `file`                                                            | Object   | originalName, storedName, path, size, mimeType |
+| `skillMatch`, `keywordMatch`, `experienceMatch`, `semanticMatch`  | Object   | Evaluator results                              |
+| `aggregatedScore`                                                 | Number   | Final weighted score                           |
+| `classification`                                                  | String   | Beginner/Intermediate/Advanced/Strong Match    |
+| `gapAnalysis`                                                     | Mixed    | Categorized improvement suggestions            |
+| `mode`                                                            | String   | "match" or "benchmark"                         |
 
 ### AnalysisHistory
 
@@ -102,38 +105,41 @@ Generated cover letters linked to resume and job description.
 
 ## API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/resume/upload` | student | Upload resume file |
-| `POST` | `/api/resume/analyze` | student | Upload + full AI analysis |
-| `GET` | `/api/resume/me/latest` | any | Get active/latest resume |
-| `GET` | `/api/resume/list` | student | List all resume versions |
-| `PATCH` | `/api/resume/:id/active` | student | Set active resume |
-| `PATCH` | `/api/resume/:id/rename` | student | Rename resume |
-| `DELETE` | `/api/resume/:id` | student | Delete resume |
-| `GET` | `/api/resume/result/:id` | any | Get specific result |
-| `POST` | `/api/resume/compare` | any | AI compare two versions |
-| `POST` | `/api/resume/:id/cover-letter` | student | Generate AI cover letter |
-| `GET` | `/api/cover-letters` | student | List cover letters |
-| `POST` | `/api/cover-letters/generate` | student | Template-based cover letter |
+| Method   | Endpoint                       | Auth    | Description                 |
+| -------- | ------------------------------ | ------- | --------------------------- |
+| -------- | ----------                     | ------  | -------------               |
+| `POST`   | `/api/resume/upload`           | student | Upload resume file          |
+| `POST`   | `/api/resume/analyze`          | student | Upload + full AI analysis   |
+| `GET`    | `/api/resume/me/latest`        | any     | Get active/latest resume    |
+| `GET`    | `/api/resume/list`             | student | List all resume versions    |
+| `PATCH`  | `/api/resume/:id/active`       | student | Set active resume           |
+| `PATCH`  | `/api/resume/:id/rename`       | student | Rename resume               |
+| `DELETE` | `/api/resume/:id`              | student | Delete resume               |
+| `GET`    | `/api/resume/result/:id`       | any     | Get specific result         |
+| `POST`   | `/api/resume/compare`          | any     | AI compare two versions     |
+| `POST`   | `/api/resume/:id/cover-letter` | student | Generate AI cover letter    |
+| `GET`    | `/api/cover-letters`           | student | List cover letters          |
+| `POST`   | `/api/cover-letters/generate`  | student | Template-based cover letter |
 
 ## Frontend Routes
 
-| Route | Page | Description |
-|-------|------|-------------|
+| Route              | Page               | Description                                                 |
+| ------------------ | ------------------ | ----------------------------------------------------------- |
+| -------            | ------             | -------------                                               |
 | `/resume-analyzer` | ResumeAnalyzerPage | Main analysis page with upload, JD input, results dashboard |
 
 ## Key Components
 
-| Component | Purpose |
-|-----------|---------|
-| `ResumeAnalyzerPage` | Orchestrates upload, analysis, results, version management (max 3 versions) |
-| `DragDropUpload` | Drag-and-drop + clipboard paste + file browser for PDF upload |
-| `JobDescriptionInput` | JD text input with paste from clipboard, .txt upload, auto-clean |
-| `AnalysisResult` | Full results dashboard: score, metrics, skill gap, ATS checklist, actions |
-| `SkillGapVenn` | SVG Venn diagram showing matched vs missing skills |
-| `AnalysisReportPDF` | Print-friendly layout for PDF export (html2canvas + jsPDF) |
-| `ResumeSkeleton` | Loading placeholder during analysis |
+| Component             | Purpose                                                                     |
+| --------------------- | --------------------------------------------------------------------------- |
+| -----------           | ---------                                                                   |
+| `ResumeAnalyzerPage`  | Orchestrates upload, analysis, results, version management (max 3 versions) |
+| `DragDropUpload`      | Drag-and-drop + clipboard paste + file browser for PDF upload               |
+| `JobDescriptionInput` | JD text input with paste from clipboard, .txt upload, auto-clean            |
+| `AnalysisResult`      | Full results dashboard: score, metrics, skill gap, ATS checklist, actions   |
+| `SkillGapVenn`        | SVG Venn diagram showing matched vs missing skills                          |
+| `AnalysisReportPDF`   | Print-friendly layout for PDF export (html2canvas + jsPDF)                  |
+| `ResumeSkeleton`      | Loading placeholder during analysis                                         |
 
 ## Version Management
 
@@ -158,7 +164,7 @@ Two generation paths:
 
 ## Key Files
 
-```
+```text
 client/src/modules/resume-analyzer/
 ├── pages/ResumeAnalyzerPage.jsx          # Main page (509 lines)
 ├── components/

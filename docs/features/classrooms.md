@@ -62,12 +62,13 @@ Student A joins                     Student B joins
 
 ### Media Controls
 
-| Control | Implementation |
-|---------|---------------|
-| Mute/Unmute | Toggle `audioTrack.enabled` |
-| Video On/Off | Toggle `videoTrack.enabled` |
-| Screen Share | `getDisplayMedia()` → `replaceTrack()` on all peers |
-| Hand Raise | Emits `toggle-hand-raise` → broadcasts state to room |
+| Control      | Implementation                                       |
+| ------------ | ---------------------------------------------------- |
+| ---------    | ---------------                                      |
+| Mute/Unmute  | Toggle `audioTrack.enabled`                          |
+| Video On/Off | Toggle `videoTrack.enabled`                          |
+| Screen Share | `getDisplayMedia()` → `replaceTrack()` on all peers  |
+| Hand Raise   | Emits `toggle-hand-raise` → broadcasts state to room |
 
 ## Real-Time Collaboration
 
@@ -117,70 +118,75 @@ roomStates = Map {
 
 ### ClassroomSession
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `roomId` | String | UUID, unique, indexed |
-| `title` | String | Required, max 100 chars |
-| `subject` | String | Optional |
-| `host` | ObjectId | Ref: User (tutor) |
-| `status` | String | active/ended |
-| `maxParticipants` | Number | 2-100, default 30 |
-| `chatHistory` | Array | Saved on session end |
-| `codeSnapshot` | String | Final code on session end |
-| `endedAt` | Date | Set when ended |
+| Field             | Type     | Notes                     |
+| ----------------- | -------- | ------------------------- |
+| -------           | ------   | -------                   |
+| `roomId`          | String   | UUID, unique, indexed     |
+| `title`           | String   | Required, max 100 chars   |
+| `subject`         | String   | Optional                  |
+| `host`            | ObjectId | Ref: User (tutor)         |
+| `status`          | String   | active/ended              |
+| `maxParticipants` | Number   | 2-100, default 30         |
+| `chatHistory`     | Array    | Saved on session end      |
+| `codeSnapshot`    | String   | Final code on session end |
+| `endedAt`         | Date     | Set when ended            |
 
 ## Socket.IO Events
 
 ### Client → Server
 
-| Event | Data | Description |
-|-------|------|-------------|
-| `join-room` | `{ roomId, user: {id, name} }` | Join a classroom |
-| `chat-message` | `{ roomId, message }` | Send chat message |
-| `toggle-hand-raise` | `{ roomId }` | Toggle hand raise |
-| `webrtc-offer` | `{ signal, userToSignal, callerId, callerUser }` | WebRTC offer |
-| `webrtc-answer` | `{ signal, callerId }` | WebRTC answer |
-| `draw-stroke` | `{ roomId, strokeData }` | Whiteboard stroke |
-| `clear-canvas` | `{ roomId }` | Clear whiteboard |
-| `code-change` | `{ roomId, code }` | Code update |
-| `code-cursor` | `{ roomId, position, sender }` | Cursor position |
-| `execute-code-request` | `{ roomId, language, code }` | Run code |
+| Event                  | Data                                             | Description       |
+| ---------------------- | ------------------------------------------------ | ----------------- |
+| -------                | ------                                           | -------------     |
+| `join-room`            | `{ roomId, user: {id, name} }`                   | Join a classroom  |
+| `chat-message`         | `{ roomId, message }`                            | Send chat message |
+| `toggle-hand-raise`    | `{ roomId }`                                     | Toggle hand raise |
+| `webrtc-offer`         | `{ signal, userToSignal, callerId, callerUser }` | WebRTC offer      |
+| `webrtc-answer`        | `{ signal, callerId }`                           | WebRTC answer     |
+| `draw-stroke`          | `{ roomId, strokeData }`                         | Whiteboard stroke |
+| `clear-canvas`         | `{ roomId }`                                     | Clear whiteboard  |
+| `code-change`          | `{ roomId, code }`                               | Code update       |
+| `code-cursor`          | `{ roomId, position, sender }`                   | Cursor position   |
+| `execute-code-request` | `{ roomId, language, code }`                     | Run code          |
 
 ### Server → Client
 
-| Event | Description |
-|-------|-------------|
-| `room-participants` | List of existing participants on join |
-| `user-joined` | New participant joined |
-| `user-left` | Participant disconnected |
-| `sync-state` | Current room state (code, whiteboard) |
-| `chat-message` | Broadcast chat message |
-| `hand-raise-toggled` | Hand raise state change |
-| `webrtc-offer` / `webrtc-answer` | WebRTC signaling |
-| `draw-stroke` / `clear-canvas` | Whiteboard sync |
-| `code-change` / `code-cursor` | Code sync |
-| `execution-started` / `execution-result` | Code execution |
+| Event                                    | Description                           |
+| ---------------------------------------- | ------------------------------------- |
+| -------                                  | -------------                         |
+| `room-participants`                      | List of existing participants on join |
+| `user-joined`                            | New participant joined                |
+| `user-left`                              | Participant disconnected              |
+| `sync-state`                             | Current room state (code, whiteboard) |
+| `chat-message`                           | Broadcast chat message                |
+| `hand-raise-toggled`                     | Hand raise state change               |
+| `webrtc-offer` / `webrtc-answer`         | WebRTC signaling                      |
+| `draw-stroke` / `clear-canvas`           | Whiteboard sync                       |
+| `code-change` / `code-cursor`            | Code sync                             |
+| `execution-started` / `execution-result` | Code execution                        |
 
 ## API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/classrooms/create` | tutor | Create new session |
-| `GET` | `/api/classrooms/my-sessions` | tutor | List tutor's sessions |
-| `GET` | `/api/classrooms/active` | any | List active sessions |
-| `GET` | `/api/classrooms/:roomId` | any | Get session details |
-| `PATCH` | `/api/classrooms/:roomId/end` | tutor | End session + persist state |
+| Method   | Endpoint                      | Auth   | Description                 |
+| -------- | ----------------------------- | ------ | --------------------------- |
+| -------- | ----------                    | ------ | -------------               |
+| `POST`   | `/api/classrooms/create`      | tutor  | Create new session          |
+| `GET`    | `/api/classrooms/my-sessions` | tutor  | List tutor's sessions       |
+| `GET`    | `/api/classrooms/active`      | any    | List active sessions        |
+| `GET`    | `/api/classrooms/:roomId`     | any    | Get session details         |
+| `PATCH`  | `/api/classrooms/:roomId/end` | tutor  | End session + persist state |
 
 ## Frontend Routes
 
-| Route | Page | Description |
-|-------|------|-------------|
-| `/classrooms` | ClassroomsDashboard | Create/join sessions, view session list |
-| `/classrooms/:roomId` | ClassroomRoom | Live classroom with video/chat/whiteboard/code |
+| Route                 | Page                | Description                                    |
+| --------------------- | ------------------- | ---------------------------------------------- |
+| -------               | ------              | -------------                                  |
+| `/classrooms`         | ClassroomsDashboard | Create/join sessions, view session list        |
+| `/classrooms/:roomId` | ClassroomRoom       | Live classroom with video/chat/whiteboard/code |
 
 ## Key Files
 
-```
+```text
 client/src/modules/classrooms/
 ├── pages/
 │   ├── ClassroomsDashboard.jsx            # Create/join sessions

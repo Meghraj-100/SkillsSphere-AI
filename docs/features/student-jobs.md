@@ -42,66 +42,71 @@ The Student Jobs module provides a job discovery board where students can browse
 
 ### JobPosting
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `title` | String | Required, 2-120 chars |
-| `description` | String | Required, min 20 chars |
-| `skills` | [String] | Required, auto-lowercased |
-| `experienceRequired` | Number | Default 0 |
-| `jobLevel` | String | Internship/Entry Level/Associate/Mid-Senior/Director/Executive |
-| `status` | String | draft/open/closed |
-| `recruiter` | ObjectId | Ref: User, indexed |
-| `location` | Object | city, state, country, remote |
-| `salary` | Object | min, max, currency, isNegotiable |
+| Field                | Type     | Notes                                                          |
+| -------------------- | -------- | -------------------------------------------------------------- |
+| -------              | ------   | -------                                                        |
+| `title`              | String   | Required, 2-120 chars                                          |
+| `description`        | String   | Required, min 20 chars                                         |
+| `skills`             | [String] | Required, auto-lowercased                                      |
+| `experienceRequired` | Number   | Default 0                                                      |
+| `jobLevel`           | String   | Internship/Entry Level/Associate/Mid-Senior/Director/Executive |
+| `status`             | String   | draft/open/closed                                              |
+| `recruiter`          | ObjectId | Ref: User, indexed                                             |
+| `location`           | Object   | city, state, country, remote                                   |
+| `salary`             | Object   | min, max, currency, isNegotiable                               |
 
 ### JobApplication
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `job` | ObjectId | Ref: JobPosting |
-| `applicant` | ObjectId | Ref: User |
-| `resume` | ObjectId | Ref: Resume (optional) |
-| `status` | String | pending/reviewed/shortlisted/rejected/withdrawn |
-| `resumeLink` | String | HTTP/HTTPS URL required |
-| `coverNote` | String | Max 1000 chars |
-| `aiMatchScore` | Number | 0-100, set by AI evaluation |
-| `matchCategory` | String | Excellent/Moderate/Growth/Weak |
-| `aiRecruiterInsights` | [String] | AI-generated insights |
-| `aiWeaknesses` | [String] | AI-detected weaknesses |
-| `aiHiringSignals` | [String] | Recommended next steps |
-| `statusHistory` | Array | Full audit trail of status changes |
+| Field                 | Type     | Notes                                           |
+| --------------------- | -------- | ----------------------------------------------- |
+| -------               | ------   | -------                                         |
+| `job`                 | ObjectId | Ref: JobPosting                                 |
+| `applicant`           | ObjectId | Ref: User                                       |
+| `resume`              | ObjectId | Ref: Resume (optional)                          |
+| `status`              | String   | pending/reviewed/shortlisted/rejected/withdrawn |
+| `resumeLink`          | String   | HTTP/HTTPS URL required                         |
+| `coverNote`           | String   | Max 1000 chars                                  |
+| `aiMatchScore`        | Number   | 0-100, set by AI evaluation                     |
+| `matchCategory`       | String   | Excellent/Moderate/Growth/Weak                  |
+| `aiRecruiterInsights` | [String] | AI-generated insights                           |
+| `aiWeaknesses`        | [String] | AI-detected weaknesses                          |
+| `aiHiringSignals`     | [String] | Recommended next steps                          |
+| `statusHistory`       | Array    | Full audit trail of status changes              |
 
 **Unique constraint:** `{job, applicant}` prevents duplicate applications.
 
 ## API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/api/jobs` | any | Browse open jobs (cached 5min) |
-| `GET` | `/api/jobs/trends/skills` | any | Top 10 trending skills |
-| `POST` | `/api/jobs/:id/apply` | student | Apply to a job |
-| `PATCH` | `/api/jobs/:id/withdraw` | student | Withdraw application |
-| `GET` | `/api/jobs/my-applications` | student | Get applied job IDs |
-| `GET` | `/api/jobs/my-applications/details` | student | Paginated applications with job details |
+| Method   | Endpoint                            | Auth    | Description                             |
+| -------- | ----------------------------------- | ------- | --------------------------------------- |
+| -------- | ----------                          | ------  | -------------                           |
+| `GET`    | `/api/jobs`                         | any     | Browse open jobs (cached 5min)          |
+| `GET`    | `/api/jobs/trends/skills`           | any     | Top 10 trending skills                  |
+| `POST`   | `/api/jobs/:id/apply`               | student | Apply to a job                          |
+| `PATCH`  | `/api/jobs/:id/withdraw`            | student | Withdraw application                    |
+| `GET`    | `/api/jobs/my-applications`         | student | Get applied job IDs                     |
+| `GET`    | `/api/jobs/my-applications/details` | student | Paginated applications with job details |
 
 ## Frontend Routes
 
-| Route | Page | Description |
-|-------|------|-------------|
-| `/job-board` | JobBoardPage | Browse and filter open jobs |
+| Route              | Page               | Description                        |
+| ------------------ | ------------------ | ---------------------------------- |
+| -------            | ------             | -------------                      |
+| `/job-board`       | JobBoardPage       | Browse and filter open jobs        |
 | `/my-applications` | MyApplicationsPage | Track applications (list + Kanban) |
 
 ## Key Components
 
-| Component | Purpose |
-|-----------|---------|
-| `JobBoardPage` | Main job discovery with filters, pagination, apply modal |
-| `MyApplicationsPage` | Application tracking with list/kanban toggle |
-| `JobFilters` | Sidebar filters: designation, salary range, timeframe |
-| `JobApplyForm` | Modal form: name, email, resume link, cover note |
-| `JobCardSkeleton` | Loading placeholder |
-| `AppCard` | Individual application card with status, timeline, withdraw |
-| `StatusTimeline` | Vertical timeline of `statusHistory` entries |
+| Component            | Purpose                                                     |
+| -------------------- | ----------------------------------------------------------- |
+| -----------          | ---------                                                   |
+| `JobBoardPage`       | Main job discovery with filters, pagination, apply modal    |
+| `MyApplicationsPage` | Application tracking with list/kanban toggle                |
+| `JobFilters`         | Sidebar filters: designation, salary range, timeframe       |
+| `JobApplyForm`       | Modal form: name, email, resume link, cover note            |
+| `JobCardSkeleton`    | Loading placeholder                                         |
+| `AppCard`            | Individual application card with status, timeline, withdraw |
+| `StatusTimeline`     | Vertical timeline of `statusHistory` entries                |
 
 ## Security
 
@@ -111,7 +116,7 @@ The Student Jobs module provides a job discovery board where students can browse
 
 ## Key Files
 
-```
+```text
 client/src/modules/student-jobs/
 ├── pages/
 │   ├── JobBoardPage.jsx                  # Job browsing (main page)

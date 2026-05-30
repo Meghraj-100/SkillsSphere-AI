@@ -42,47 +42,51 @@ When `syncRoadmap(targetRole, topics[])` is called:
 
 ## Tutor Capabilities
 
-| Action | Description |
-|--------|-------------|
-| View student roadmaps | List all students tracking by this tutor |
-| Assign resources | Add video/article/documentation links to specific topics |
-| Verify completion | Toggle `isVerified` flag (auto-marks as completed) |
-| Add custom milestones | Insert tutor-defined topics into student roadmap |
-| Discuss | Real-time comment on any milestone |
+| Action                | Description                                              |
+| --------------------- | -------------------------------------------------------- |
+| --------              | -------------                                            |
+| View student roadmaps | List all students tracking by this tutor                 |
+| Assign resources      | Add video/article/documentation links to specific topics |
+| Verify completion     | Toggle `isVerified` flag (auto-marks as completed)       |
+| Add custom milestones | Insert tutor-defined topics into student roadmap         |
+| Discuss               | Real-time comment on any milestone                       |
 
 ## Student Capabilities
 
-| Action | Description |
-|--------|-------------|
-| View roadmap | Vertical timeline with progress ring |
-| Mark complete | Toggle topic status between `in_progress` and `completed` |
-| Discuss | Real-time comment on any milestone |
-| Opt-in tracking | Allow recruiters/tutors to view their roadmap |
+| Action          | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| --------        | -------------                                             |
+| View roadmap    | Vertical timeline with progress ring                      |
+| Mark complete   | Toggle topic status between `in_progress` and `completed` |
+| Discuss         | Real-time comment on any milestone                        |
+| Opt-in tracking | Allow recruiters/tutors to view their roadmap             |
 
 ## Database Models
 
 ### LearningProgress
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `user` | ObjectId | Ref: User, unique (1:1) |
-| `targetRole` | String | e.g., "frontend-developer" |
-| `roadmap` | Array | Topic progress objects |
-| `overallProgress` | Number | Auto-calculated 0-100 |
-| `recruitersTracking` | [ObjectId] | Recruiters with access |
-| `tutorsTracking` | [ObjectId] | Tutors with access |
+| Field                | Type       | Notes                      |
+| -------------------- | ---------- | -------------------------- |
+| -------              | ------     | -------                    |
+| `user`               | ObjectId   | Ref: User, unique (1:1)    |
+| `targetRole`         | String     | e.g., "frontend-developer" |
+| `roadmap`            | Array      | Topic progress objects     |
+| `overallProgress`    | Number     | Auto-calculated 0-100      |
+| `recruitersTracking` | [ObjectId] | Recruiters with access     |
+| `tutorsTracking`     | [ObjectId] | Tutors with access         |
 
 #### Topic Progress Schema
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `topicName` | String | Required |
-| `type` | String | `learning` or `contribution` |
-| `status` | String | `not_started` / `in_progress` / `completed` |
-| `isVerified` | Boolean | Tutor-verified flag |
-| `verifiedBy` | ObjectId | Tutor who verified |
-| `resources` | Array | `{ title, url, type, tutorAssigned }` |
-| `addedByTutor` | Boolean | Custom milestone flag |
+| Field          | Type     | Notes                                       |
+| -------------- | -------- | ------------------------------------------- |
+| -------        | ------   | -------                                     |
+| `topicName`    | String   | Required                                    |
+| `type`         | String   | `learning` or `contribution`                |
+| `status`       | String   | `not_started` / `in_progress` / `completed` |
+| `isVerified`   | Boolean  | Tutor-verified flag                         |
+| `verifiedBy`   | ObjectId | Tutor who verified                          |
+| `resources`    | Array    | `{ title, url, type, tutorAssigned }`       |
+| `addedByTutor` | Boolean  | Custom milestone flag                       |
 
 **Virtual fields:**
 - `readinessBoost` — Each completed contribution topic adds 5% boost
@@ -90,32 +94,37 @@ When `syncRoadmap(targetRole, topics[])` is called:
 
 ### RoadmapComment
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `roadmap` | ObjectId | Ref: LearningProgress |
-| `milestoneId` | ObjectId | Subdocument ref |
-| `sender` | ObjectId | Ref: User |
-| `content` | String | Comment text |
-| `type` | String | `comment` / `status_change` / `task_assigned` |
+| Field         | Type     | Notes                                         |
+| ------------- | -------- | --------------------------------------------- |
+| -------       | ------   | -------                                       |
+| `roadmap`     | ObjectId | Ref: LearningProgress                         |
+| `milestoneId` | ObjectId | Subdocument ref                               |
+| `sender`      | ObjectId | Ref: User                                     |
+| `content`     | String   | Comment text                                  |
+| `type`        | String   | `comment` / `status_change` / `task_assigned` |
 
 ## Real-Time Collaboration
 
 ### Socket.IO Events
 
 **Client → Server:**
-| Event | Data | Description |
-|-------|------|-------------|
-| `join-roadmap` | `{ roadmapId }` | Join roadmap room |
-| `leave-roadmap` | `{ roadmapId }` | Leave roadmap room |
-| `roadmap-typing` | `{ roadmapId, milestoneId, isTyping }` | Typing indicator |
+
+| Event            | Data                                   | Description        |
+| ---------------- | -------------------------------------- | ------------------ |
+| -------          | ------                                 | -------------      |
+| `join-roadmap`   | `{ roadmapId }`                        | Join roadmap room  |
+| `leave-roadmap`  | `{ roadmapId }`                        | Leave roadmap room |
+| `roadmap-typing` | `{ roadmapId, milestoneId, isTyping }` | Typing indicator   |
 
 **Server → Client:**
-| Event | Description |
-|-------|-------------|
-| `roadmap-room-joined` | Confirmed room join |
-| `new-roadmap-comment` | New comment broadcast |
+
+| Event                   | Description             |
+| ----------------------- | ----------------------- |
+| -------                 | -------------           |
+| `roadmap-room-joined`   | Confirmed room join     |
+| `new-roadmap-comment`   | New comment broadcast   |
 | `roadmap-typing-update` | Typing indicator update |
-| `roadmap-error` | Error message |
+| `roadmap-error`         | Error message           |
 
 ### Cross-Role Notifications
 
@@ -126,41 +135,44 @@ When `syncRoadmap(targetRole, topics[])` is called:
 
 ## API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/api/roadmap/me` | any | Get own roadmap |
-| `POST` | `/api/roadmap/sync` | any | Sync roadmap from resume analysis |
-| `PATCH` | `/api/roadmap/update-topic` | any | Update topic status |
-| `GET` | `/api/roadmap/tutor/students` | tutor | List tracked students |
-| `GET` | `/api/roadmap/tutor/students/:studentId` | tutor | Get student roadmap |
-| `POST` | `/api/roadmap/tutor/assign-resource` | tutor | Assign resource to topic |
-| `POST` | `/api/roadmap/tutor/verify-topic` | tutor | Verify topic completion |
-| `POST` | `/api/roadmap/tutor/add-milestone` | tutor | Add custom milestone |
-| `POST` | `/api/roadmap/student/opt-in-tracking` | student | Allow recruiter tracking |
-| `POST` | `/api/roadmap/student/opt-in-tutor-tracking` | student | Allow tutor tracking |
-| `GET` | `/api/roadmap/recruiter/tracked` | recruiter | View tracked roadmaps |
-| `GET` | `/api/roadmap/:id/comments` | any | Get milestone comments |
-| `POST` | `/api/roadmap/:id/comments` | any | Post comment |
+| Method   | Endpoint                                     | Auth      | Description                       |
+| -------- | -------------------------------------------- | --------- | --------------------------------- |
+| -------- | ----------                                   | ------    | -------------                     |
+| `GET`    | `/api/roadmap/me`                            | any       | Get own roadmap                   |
+| `POST`   | `/api/roadmap/sync`                          | any       | Sync roadmap from resume analysis |
+| `PATCH`  | `/api/roadmap/update-topic`                  | any       | Update topic status               |
+| `GET`    | `/api/roadmap/tutor/students`                | tutor     | List tracked students             |
+| `GET`    | `/api/roadmap/tutor/students/:studentId`     | tutor     | Get student roadmap               |
+| `POST`   | `/api/roadmap/tutor/assign-resource`         | tutor     | Assign resource to topic          |
+| `POST`   | `/api/roadmap/tutor/verify-topic`            | tutor     | Verify topic completion           |
+| `POST`   | `/api/roadmap/tutor/add-milestone`           | tutor     | Add custom milestone              |
+| `POST`   | `/api/roadmap/student/opt-in-tracking`       | student   | Allow recruiter tracking          |
+| `POST`   | `/api/roadmap/student/opt-in-tutor-tracking` | student   | Allow tutor tracking              |
+| `GET`    | `/api/roadmap/recruiter/tracked`             | recruiter | View tracked roadmaps             |
+| `GET`    | `/api/roadmap/:id/comments`                  | any       | Get milestone comments            |
+| `POST`   | `/api/roadmap/:id/comments`                  | any       | Post comment                      |
 
 ## Frontend Routes
 
-| Route | Page | Description |
-|-------|------|-------------|
-| `/roadmap` | RoadmapPage | Student roadmap visualization |
-| `/tutor/roadmap` | TutorRoadmapLobby | Tutor student management |
+| Route            | Page              | Description                   |
+| ---------------- | ----------------- | ----------------------------- |
+| -------          | ------            | -------------                 |
+| `/roadmap`       | RoadmapPage       | Student roadmap visualization |
+| `/tutor/roadmap` | TutorRoadmapLobby | Tutor student management      |
 
 ## Key Components
 
-| Component | Purpose |
-|-----------|---------|
-| `RoadmapPage` | Vertical timeline with milestone cards, progress ring |
-| `TutorRoadmapLobby` | Two-panel: student list + roadmap detail with resource forms |
-| `ContributionSummaryCard` | Shows contribution topic completion and readiness boost |
-| `RoadmapCollaborationPanel` | Slide-in panel for real-time milestone discussion |
+| Component                   | Purpose                                                      |
+| --------------------------- | ------------------------------------------------------------ |
+| -----------                 | ---------                                                    |
+| `RoadmapPage`               | Vertical timeline with milestone cards, progress ring        |
+| `TutorRoadmapLobby`         | Two-panel: student list + roadmap detail with resource forms |
+| `ContributionSummaryCard`   | Shows contribution topic completion and readiness boost      |
+| `RoadmapCollaborationPanel` | Slide-in panel for real-time milestone discussion            |
 
 ## Key Files
 
-```
+```text
 client/src/modules/roadmap/
 ├── pages/
 │   ├── RoadmapPage.jsx                    # Student roadmap view
