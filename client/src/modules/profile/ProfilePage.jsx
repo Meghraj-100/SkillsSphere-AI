@@ -22,6 +22,7 @@ import {
 import LoadingState from "../../shared/components/LoadingState";
 import { getSignedFileUrl } from "../../services/fileService";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
+import { useToast } from "../../shared/components/toast/ToastProvider";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -230,7 +231,7 @@ const ProfilePage = () => {
   const { user, token } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const toast = useToast();
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -366,7 +367,7 @@ const ProfilePage = () => {
       dispatch(logout());
       navigate("/login");
     } catch (err) {
-      alert(err.message || "Failed to delete account");
+      toast.error(err.message || "Failed to delete account");
       setIsDeleting(false);
       setShowDeleteModal(false);
     }

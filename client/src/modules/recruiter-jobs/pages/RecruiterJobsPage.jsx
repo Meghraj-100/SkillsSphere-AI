@@ -13,10 +13,10 @@ import JobPostingCard from "../components/JobPostingCard";
 import { JobViewerCard, Pagination } from "../../../shared/components";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import {
-
   getRecruiterJobs,
   deleteJobPosting,
 } from "../services/jobPostingService";
+import { useToast } from "../../../shared/components/toast/ToastProvider";
 
 const STATUS_FILTERS = [
   { value: "all", label: "All Jobs" },
@@ -29,6 +29,7 @@ const RecruiterJobsPage = () => {
   useDocumentTitle("Recruiter Jobs");
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.auth);
+  const toast = useToast();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -145,8 +146,9 @@ const RecruiterJobsPage = () => {
         await deleteJobPosting(job._id || job.id, token);
         // Refresh the jobs list
         setJobs(jobs.filter((j) => (j._id || j.id) !== (job._id || job.id)));
+        toast.success("Job posting deleted successfully");
       } catch (err) {
-        alert(err.message || "Failed to delete job posting.");
+        toast.error(err.message || "Failed to delete job posting.");
       }
     }
   };

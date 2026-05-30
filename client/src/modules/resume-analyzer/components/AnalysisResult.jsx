@@ -146,7 +146,7 @@ const AnalysisResult = ({ result, file, jobDescription, onReset }) => {
       }
       throw new Error("Invalid response format from server.");
     } catch (err) {
-      alert("Failed to regenerate: " + err.message);
+      showError("Failed to regenerate: " + err.message);
       return null;
     }
   };
