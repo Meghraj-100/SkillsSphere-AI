@@ -21,5 +21,8 @@ module.exports = {
     'no-useless-escape': 'off',
     'react/no-unescaped-entities': 'off',
     'react/react-in-jsx-scope': 'off',
+    'react/no-unescaped-entities': 'off',
+    'no-useless-escape': 'off',
+    'react-hooks/exhaustive-deps': 'off',
   },
 }

@@ -197,6 +197,7 @@ describe("Job Service Filtering", () => {
     mock.method(JobApplication, "countDocuments", async () => 1);
     savedDistinct = JobApplication.distinct;
     JobApplication.distinct = async () => [resumeId1, resumeId2];
+    mock.method(JobApplication, "distinct", async () => [resumeId1, resumeId2]);
 
     const filters = { specialization: "frontend" };
     const result = await jobService.getJobApplications(mockJobId, mockRecruiterId, filters);
