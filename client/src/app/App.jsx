@@ -3,6 +3,13 @@ import { Routes, Route } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCurrentUser, logoutUser } from "../features/auth/authSlice";
 const LandingPage = lazy(() => import("../modules/landing/LandingPage"));
+const PrivacyPolicyPage = lazy(() => import("../modules/landing/pages/PrivacyPolicyPage"));
+const TermsOfServicePage = lazy(() => import("../modules/landing/pages/TermsOfServicePage"));
+const CookiePolicyPage = lazy(() => import("../modules/landing/pages/CookiePolicyPage"));
+const DocumentationPage = lazy(() => import("../modules/landing/pages/DocumentationPage"));
+const BlogPage = lazy(() => import("../modules/landing/pages/BlogPage"));
+const CareersPage = lazy(() => import("../modules/landing/pages/CareersPage"));
+const ApiStatusPage = lazy(() => import("../modules/landing/pages/ApiStatusPage"));
 const DashboardPage = lazy(() => import("../modules/dashboard/DashboardPage"));
 const CoverLetterHistoryPage = lazy(() => import("../modules/dashboard/pages/CoverLetterHistoryPage"));
 const ResumeAnalyzerPage = lazy(() => import("../modules/resume-analyzer/pages/ResumeAnalyzerPage"));
@@ -20,6 +27,7 @@ const RecruiterAnalyticsPage = lazy(() => import("../modules/recruiter-jobs/page
 const CreateJobPostingPage = lazy(() => import("../modules/recruiter-jobs/pages/CreateJobPostingPage"));
 const EditJobPostingPage = lazy(() => import("../modules/recruiter-jobs/pages/EditJobPostingPage"));
 const RecruiterApplicantsPage = lazy(() => import("../modules/recruiter-jobs/pages/RecruiterApplicantsPage"));
+const TalentFinderPage = lazy(() => import("../modules/recruiter-jobs/pages/TalentFinderPage"));
 const JobBoardPage = lazy(() => import("../modules/student-jobs/pages/JobBoardPage"));
 const MyApplicationsPage = lazy(() => import("../modules/student-jobs/pages/MyApplicationsPage"));
 const RoadmapPage = lazy(() => import("../modules/roadmap/pages/RoadmapPage"));
@@ -37,6 +45,7 @@ const NotificationsPage = lazy(() => import("../modules/notifications/pages/Noti
 const ChatWidget = lazy(() => import("../modules/ai-assistant/components/ChatWidget"));
 import ProtectedRoute from "../shared/components/ProtectedRoute";
 import SocketNotificationListener from "../shared/components/SocketNotificationListener";
+import ScrollToTop from "../shared/components/ScrollToTop";
 import { LoadingState } from "../shared/components";
 function App() {
   const dispatch = useDispatch();
@@ -62,11 +71,21 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--text-main)] transition-colors duration-300">
+      <ScrollToTop />
       <SocketNotificationListener />
 
       <Suspense fallback={<LoadingState title="Loading module..." />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        
+        {/* Static Content Routes */}
+        <Route path="/docs" element={<DocumentationPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/careers" element={<CareersPage />} />
+        <Route path="/status" element={<ApiStatusPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsOfServicePage />} />
+        <Route path="/cookies" element={<CookiePolicyPage />} />
         <Route
           path="/job-matcher"
           element={
@@ -162,6 +181,14 @@ function App() {
           element={
             <ProtectedRoute requiredRole="recruiter">
               <RecruiterApplicantsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recruiter/talent-finder"
+          element={
+            <ProtectedRoute requiredRole="recruiter">
+              <TalentFinderPage />
             </ProtectedRoute>
           }
         />
