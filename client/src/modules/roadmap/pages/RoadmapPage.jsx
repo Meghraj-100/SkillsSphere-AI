@@ -7,6 +7,7 @@ import { LoadingState, useToast } from "../../../shared/components";
 import ContributionSummaryCard from "../components/ContributionSummaryCard";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import RoadmapCollaborationPanel from "../components/RoadmapCollaborationPanel";
+import logger from "../../../utils/logger";
 
 const RoadmapPage = () => {
   useDocumentTitle("Roadmap");
@@ -25,7 +26,7 @@ const RoadmapPage = () => {
         setRoadmap(response.data);
       }
     } catch (err) {
-      console.error("Failed to fetch roadmap:", err);
+      logger.error("Failed to fetch roadmap:", err);
     } finally {
       setLoading(false);
     }
@@ -45,7 +46,7 @@ const RoadmapPage = () => {
         showSuccess(`Milestone marked as ${nextStatus === "completed" ? "Completed" : "In Progress"}.`);
       }
     } catch (err) {
-      console.error("Update failed:", err);
+      logger.error("Update failed:", err);
       showError(err.message || "Failed to update milestone status.");
     } finally {
       setUpdatingId(null);

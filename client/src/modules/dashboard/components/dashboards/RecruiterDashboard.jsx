@@ -5,6 +5,7 @@ import StatCard from "../StatCard";
 import DashboardSkeleton from "../DashboardSkeleton";
 import { getRoleAnalytics } from "../../services/dashboardService";
 import { getRecruiterJobs } from "../../../recruiter-jobs/services/jobPostingService";
+import logger from "../../../../utils/logger";
 
 const RecruiterDashboard = ({ token }) => {
   const [analytics, setAnalytics] = useState(null);
@@ -22,7 +23,7 @@ const RecruiterDashboard = ({ token }) => {
         if (analyticsRes.success) setAnalytics(analyticsRes.data);
         if (jobsRes.success) setRecruiterJobs(jobsRes.jobs || []);
       } catch (error) {
-        console.error("Failed to fetch recruiter dashboard data:", error);
+        logger.error("Failed to fetch recruiter dashboard data:", error);
       } finally {
         setLoading(false);
       }

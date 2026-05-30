@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Navbar from "../../../shared/landing/Navbar";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+import logger from "../../../utils/logger";
 
 
 const InterviewResults = () => {
@@ -37,7 +38,7 @@ const InterviewResults = () => {
         setResults(res.data);
       } catch (err) {
         setError("Failed to load results.");
-        console.error("[InterviewResults] Error:", err);
+        logger.error("[InterviewResults] Error:", err);
       } finally {
         setLoading(false);
       }

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Navbar from "../../../shared/landing/Navbar";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+import logger from "../../../utils/logger";
 
 const EXPORT_CSV_FILENAME = "interview-history.csv";
 const EXPORT_JSON_FILENAME = "interview-history.json";
@@ -168,7 +169,7 @@ const InterviewHistory = () => {
       setPagination(res.data?.pagination || { page: 1, pages: 1, total: 0 });
     } catch (err) {
       setError("Failed to load interview history.");
-      console.error("[InterviewHistory] Error:", err);
+      logger.error("[InterviewHistory] Error:", err);
     } finally {
       setLoading(false);
     }
@@ -214,7 +215,7 @@ const InterviewHistory = () => {
       }
     } catch (err) {
       setExportError("Export failed. Please try again.");
-      console.error("[InterviewHistory] Export error:", err);
+      logger.error("[InterviewHistory] Export error:", err);
     } finally {
       exportInProgressRef.current = false;
       setExportingType(null);

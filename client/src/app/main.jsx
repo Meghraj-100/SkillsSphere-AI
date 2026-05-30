@@ -8,19 +8,9 @@ import './index.css';
 import { ToastProvider } from '../shared/components';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import { ThemeProvider } from '../shared/contexts/ThemeContext.jsx';
-if (import.meta.env.DEV && typeof window !== 'undefined') {
-  const originalError = console.error;
-  console.error = (...args) => {
-    const firstArg = args[0];
-    if (
-      typeof firstArg === 'string' &&
-      firstArg.includes('Encountered a script tag while rendering React component')
-    ) {
-      return; 
-    }
-    originalError(...args);
-  };
-}
+import { suppressReactScriptTagWarning } from '../utils/logger';
+
+suppressReactScriptTagWarning();
 
 const savedTheme =
   localStorage.getItem("skillssphere.theme") || "light";

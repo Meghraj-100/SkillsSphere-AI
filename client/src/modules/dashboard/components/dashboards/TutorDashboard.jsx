@@ -3,6 +3,7 @@ import { Users, BarChart3, CheckCircle } from "lucide-react";
 import StatCard from "../StatCard";
 import DashboardSkeleton from "../DashboardSkeleton";
 import { getRoleAnalytics } from "../../services/dashboardService";
+import logger from "../../../../utils/logger";
 
 const TutorDashboard = ({ token }) => {
   const [analytics, setAnalytics] = useState(null);
@@ -14,7 +15,7 @@ const TutorDashboard = ({ token }) => {
         const analyticsRes = await getRoleAnalytics(token);
         if (analyticsRes.success) setAnalytics(analyticsRes.data);
       } catch (error) {
-        console.error("Failed to fetch tutor dashboard data:", error);
+        logger.error("Failed to fetch tutor dashboard data:", error);
       } finally {
         setLoading(false);
       }

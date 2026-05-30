@@ -15,6 +15,7 @@ import {
   loadInterviewSession,
   clearInterviewSession
 } from "../../../utils/interviewSessionStorage";
+import logger from "../../../utils/logger";
 import {
   Send,
   CheckCircle,
@@ -131,7 +132,7 @@ const InterviewSession = () => {
         });
       } catch (err) {
         setError("Failed to load interview session.");
-        console.error("[InterviewSession] Error:", err);
+        logger.error("[InterviewSession] Error:", err);
       } finally {
         setLoading(false);
       }
@@ -214,7 +215,7 @@ const InterviewSession = () => {
 
     newSocket.on("evaluation-error", (err) => {
       setError(err.message || "Failed to submit answer.");
-      console.error("[InterviewSession] Socket evaluation error:", err);
+      logger.error("[InterviewSession] Socket evaluation error:", err);
       setSubmitting(false);
     });
 
@@ -291,7 +292,7 @@ const InterviewSession = () => {
         handleEvaluationResult(res.data);
       } catch (err) {
         setError(err.message || "Failed to submit answer.");
-        console.error("[InterviewSession] Submit error:", err);
+        logger.error("[InterviewSession] Submit error:", err);
         setSubmitting(false);
       }
     }
@@ -307,7 +308,7 @@ const InterviewSession = () => {
       navigate(`/mock-interview/${sessionId}/results`, { replace: true });
     } catch (err) {
       setError(err.message || "Failed to complete interview.");
-      console.error("[InterviewSession] Complete error:", err);
+      logger.error("[InterviewSession] Complete error:", err);
     } finally {
       setCompleting(false);
     }
@@ -359,7 +360,7 @@ const InterviewSession = () => {
       mediaRecorder.start(1000);
       setIsRecording(true);
     } catch (err) {
-      console.error("Error accessing microphone:", err);
+      logger.error("Error accessing microphone:", err);
       setError("Microphone access denied or unavailable.");
     }
   };

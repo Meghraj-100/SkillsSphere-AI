@@ -14,6 +14,7 @@ import PerformanceTrend from "../PerformanceTrend";
 import VersionComparisonModal from "../VersionComparisonModal";
 import { getAnalysisHistory, getSkillTrends, getRoleAnalytics } from "../../services/dashboardService";
 import { getMyRoadmap } from "../../../roadmap/services/roadmapService";
+import logger from "../../../../utils/logger";
 
 const StudentDashboard = ({ token }) => {
   const [history, setHistory] = useState([]);
@@ -39,7 +40,7 @@ const StudentDashboard = ({ token }) => {
         if (roadmapRes.success) setRoadmap(roadmapRes.data || null);
         if (analyticsRes.success) setAnalytics(analyticsRes.data);
       } catch (error) {
-        console.error("Failed to fetch student dashboard data:", error);
+        logger.error("Failed to fetch student dashboard data:", error);
       } finally {
         setLoading(false);
       }

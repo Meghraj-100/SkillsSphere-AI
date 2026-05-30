@@ -11,6 +11,7 @@ import {
 import { LoadingState, useToast } from "../../../shared/components";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import RoadmapCollaborationPanel from "../components/RoadmapCollaborationPanel";
+import logger from "../../../utils/logger";
 
 
 export default function TutorRoadmapLobby() {
@@ -43,7 +44,7 @@ export default function TutorRoadmapLobby() {
         setStudents(response.data);
       }
     } catch (err) {
-      console.error("Failed to load student roadmaps:", err);
+      logger.error("Failed to load student roadmaps:", err);
     } finally {
       setLoading(false);
     }
@@ -62,7 +63,7 @@ export default function TutorRoadmapLobby() {
         setStudentDetails(response.data);
       }
     } catch (err) {
-      console.error("Failed to load student roadmap details:", err);
+      logger.error("Failed to load student roadmap details:", err);
     } finally {
       setDetailsLoading(false);
     }
@@ -81,7 +82,7 @@ export default function TutorRoadmapLobby() {
         showSuccess(nextVerifyState ? "Milestone verified successfully!" : "Milestone verification removed.");
       }
     } catch (err) {
-      console.error("Failed to toggle verification:", err);
+      logger.error("Failed to toggle verification:", err);
       showError(err.message || "Failed to update milestone verification state.");
     }
   };
@@ -109,7 +110,7 @@ export default function TutorRoadmapLobby() {
         showSuccess("Custom resource link assigned successfully!");
       }
     } catch (err) {
-      console.error("Failed to assign resource:", err);
+      logger.error("Failed to assign resource:", err);
       showError(err.message || "Failed to assign learning resource. Please verify input data.");
     } finally {
       setActionLoading(false);
@@ -129,7 +130,7 @@ export default function TutorRoadmapLobby() {
         showSuccess("Custom milestone added successfully!");
       }
     } catch (err) {
-      console.error("Failed to add milestone:", err);
+      logger.error("Failed to add milestone:", err);
       showError(err.message || "Failed to add milestone.");
     } finally {
       setActionLoading(false);

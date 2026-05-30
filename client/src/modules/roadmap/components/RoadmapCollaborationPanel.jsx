@@ -4,6 +4,7 @@ import { Send, X, MessageSquare, Clock, Loader2 } from "lucide-react";
 import { getRoadmapComments, postRoadmapComment } from "../services/roadmapService";
 import { SOCKET_URL } from "../../../config/env";
 import { useToast } from "../../../shared/components";
+import logger from "../../../utils/logger";
 
 const TOKEN_KEY = "skillssphere.auth.token";
 const getToken = () => localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
@@ -99,7 +100,7 @@ export default function RoadmapCollaborationPanel({
         setComments(res.data);
       }
     } catch (err) {
-      console.error("Failed to load comments:", err);
+      logger.error("Failed to load comments:", err);
       toast.error("Failed to load conversation history.");
     } finally {
       setLoading(false);
@@ -129,7 +130,7 @@ export default function RoadmapCollaborationPanel({
         // Comment is appended via socket event listener
       }
     } catch (err) {
-      console.error("Failed to post comment:", err);
+      logger.error("Failed to post comment:", err);
       toast.error(err.message || "Failed to send comment.");
       setInputText(content);
     } finally {
