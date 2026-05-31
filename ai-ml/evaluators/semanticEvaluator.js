@@ -1,18 +1,6 @@
 import crypto from "crypto";
-let mongoose = null;
-let SemanticCache = null;
-try {
-  const m = await import('mongoose');
-  mongoose = m.default ?? m;
-} catch (e) {
-  mongoose = null;
-}
-try {
-  const sc = await import('../../server/src/database/models/SemanticCache.js');
-  SemanticCache = sc.default ?? sc;
-} catch (e) {
-  SemanticCache = null;
-}
+import mongoose from "mongoose";
+import SemanticCache from "../../server/src/database/models/SemanticCache.js";
 
 const HF_MODEL_URL =
   "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/sentence-similarity";
@@ -114,7 +102,7 @@ export const semanticEvaluator = async ({ resumeText = "", jobDescription = "" }
 
     // 🔍 Check cache first - ONLY IF CONNECTED TO DB
     let cachedResult = null;
-    if (mongoose.connection.readyState === 1) {
+    if (mongoose && mongoose.connection && mongoose.connection.readyState === 1 && SemanticCache) {
       cachedResult = await SemanticCache.findOne({ resumeHash, jdHash });
     }
     
@@ -154,7 +142,7 @@ export const semanticEvaluator = async ({ resumeText = "", jobDescription = "" }
     };
 
     // 💾 Save to cache ONLY IF CONNECTED TO DB
-    if (mongoose.connection.readyState === 1) {
+    if (mongoose && mongoose.connection && mongoose.connection.readyState === 1 && SemanticCache) {
       await SemanticCache.create({
         resumeHash,
         jdHash,
