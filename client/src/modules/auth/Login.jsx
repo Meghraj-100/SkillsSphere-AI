@@ -42,20 +42,20 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = loginSchema.safeParse(form);
-
-    if (!result.success) {
-      const fieldErrors = {};
-      result.error.errors.forEach((err) => {
-        if (!fieldErrors[err.path[0]]) {
-          fieldErrors[err.path[0]] = err.message;
+    
+    const parsed = loginSchema.safeParse(form);
+    if (!parsed.success) {
+      const newErrors = {};
+      parsed.error.issues.forEach((issue) => {
+        if (!newErrors[issue.path[0]]) {
+          newErrors[issue.path[0]] = issue.message;
         }
       });
-      setErrors(fieldErrors);
+      setErrors(newErrors);
       warning("Please fix the highlighted login fields before continuing.");
       return;
     }
-    
+
     setErrors({});
 
     const resultAction = await dispatch(

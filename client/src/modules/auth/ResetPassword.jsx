@@ -67,13 +67,13 @@ const ResetPassword = () => {
   };
 
   const validate = () => {
+    const parsed = resetSchema.safeParse(form);
     const newErrors = {};
-    const result = resetSchema.safeParse(form);
 
-    if (!result.success) {
-      result.error.errors.forEach((err) => {
-        if (!newErrors[err.path[0]]) {
-          newErrors[err.path[0]] = err.message;
+    if (!parsed.success) {
+      parsed.error.issues.forEach((issue) => {
+        if (!newErrors[issue.path[0]]) {
+          newErrors[issue.path[0]] = issue.message;
         }
       });
     }

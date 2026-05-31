@@ -135,9 +135,9 @@ export default function ClassroomsDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020617] text-gray-900 dark:text-white pt-24 pb-16 px-6">
+    <div className="min-h-screen bg-white dark:bg-[#020617] text-gray-900 dark:text-white flex flex-col">
       <Navbar />
-      <div className="max-w-6xl mx-auto">
+      <div className="flex-1 max-w-6xl mx-auto w-full pt-24 pb-16 px-6">
         
         {/* Header section */}
         <div className="text-center mb-12">
