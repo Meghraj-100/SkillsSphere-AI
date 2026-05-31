@@ -23,14 +23,9 @@ import {
   resetPassword,
   verifyEmail,
 } from "./controller.js";
-import mongoose from "mongoose";
 
 const router = express.Router();
 
-router.get("/debug-db", async (req, res) => {
-  const users = await mongoose.connection.db.collection('users').find({}).toArray();
-  res.json({ count: users.length, emails: users.map(u => u.email) });
-});
 
 /**
  * @openapi
