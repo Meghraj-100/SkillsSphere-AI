@@ -921,7 +921,7 @@ const RecruiterAnalyticsPage = () => {
         </div>
       </div>
           <Footer />
-    </main>
+    </div>
   );
 };
 

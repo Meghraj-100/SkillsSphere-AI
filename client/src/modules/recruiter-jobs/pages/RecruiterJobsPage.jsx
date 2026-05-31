@@ -292,7 +292,7 @@ const RecruiterJobsPage = () => {
         )}
       </div>
           <Footer />
-    </main>
+    </div>
   );
 };
 

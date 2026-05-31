@@ -956,7 +956,7 @@ const RecruiterApplicantsPage = () => {
         onUpdate={handleUpdateStatus}
       />
           <Footer />
-    </main>
+    </div>
   );
 };
 

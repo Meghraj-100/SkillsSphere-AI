@@ -119,7 +119,7 @@ const EditJobPostingPage = () => {
         </div>
       </div>
           <Footer />
-    </main>
+    </div>
   );
 };
 

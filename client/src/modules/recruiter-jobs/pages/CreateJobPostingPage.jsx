@@ -81,7 +81,7 @@ const CreateJobPostingPage = () => {
         </div>
       </div>
           <Footer />
-    </main>
+    </div>
   );
 };
 
