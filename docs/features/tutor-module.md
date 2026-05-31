@@ -1,132 +1,273 @@
 # Tutor Module
 
-The Tutor Module provides comprehensive tools for educators, including live interactive classrooms and deep analytics to track student performance and skill gaps across the platform.
+The Tutor Module is a comprehensive suite of tools designed specifically for educators and technical mentors. It bridges the gap between passive tracking and active intervention, providing Tutors with deeply integrated analytics to identify cohort-wide skill gaps, and the real-time collaboration tools (Live Classrooms) needed to address those gaps instantly.
+
+This document serves as the exhaustive technical reference for the Tutor Module's architecture, WebRTC streaming logic, state synchronization, and data aggregation pipelines.
 
 ---
 
-## 1. System Architecture & Component Interactions
+## 1. High-Level System Architecture & Component Interactions
 
-### Live Classroom WebRTC & Socket Workflow
+The Tutor Module operates on a hybrid architecture, combining the high throughput of WebRTC for media with the reliable, ordered delivery of WebSockets for application state.
 
-The Live Classroom system uses WebRTC (via `simple-peer`) for peer-to-peer audio/video streaming, backed by a Node.js Socket.IO server for signaling and real-time state synchronization (chat, whiteboard, code).
+### Architectural Pillars
+1. **Signaling Server (Socket.IO)**: The Node.js backend acts strictly as a signaling router. It manages the `roomStates` in memory, broadcasting `webrtc-offer` and `webrtc-answer` payloads between clients to facilitate peer connections. It never touches raw audio or video data.
+2. **Media Delivery (WebRTC Mesh)**: Handled by `simple-peer` on the client side. Once signaled, browsers establish direct peer-to-peer (P2P) connections.
+3. **Analytics Engine (MongoDB)**: The backend relies heavily on MongoDB Aggregation Framework to scan thousands of student profiles and resumes in real-time, outputting actionable metrics without heavy caching.
+
+---
+
+## 2. Sub-Module Deep Dive: Live Interactive Classrooms
+
+The Classroom environment is the most latency-sensitive part of the application. It supports simultaneous multi-user video, a collaborative whiteboard, and a shared code editor.
+
+### The WebRTC Handshake & Signaling Sequence
+
+When a Tutor creates a room and Students join, a complex handshake occurs to establish the P2P mesh network.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Student
-    participant FE as React Frontend
-    participant IO as Socket.IO Server
-    participant State as In-Memory State
-    participant DB as MongoDB
+    participant FE as React Frontend (ClassroomRoom.jsx)
+    participant IO as Socket.IO Server (classrooms/socket.js)
+    participant State as Node.js In-Memory Map
     actor Tutor
 
+    Note over Tutor, FE: 1. Room Initialization
     Tutor->>FE: Creates Session (POST /api/classrooms/create)
-    FE->>DB: Saves new ClassroomSession (generates UUID)
+    FE->>IO: emit 'join-room' { roomId: "uuid-1234" }
+    IO->>State: Initialize Room State object
     
-    Student->>FE: Joins Room (UUID)
+    Note over Student, IO: 2. Student Joins
+    Student->>FE: Navigates to /classrooms/uuid-1234
     FE->>IO: emit 'join-room'
+    IO-->>FE: Returns 'room-participants' (Array of existing Socket IDs)
+    IO-->>Tutor: emit 'user-joined' (Student's Socket ID)
     
-    IO->>State: Creates/Updates roomStates Map
-    IO-->>FE: Returns 'room-participants' (Socket IDs)
-    
-    Note over Student,Tutor: WebRTC Signaling Phase
-    Student->>IO: emit 'webrtc-offer' (to Tutor's Socket ID)
+    Note over Student, Tutor: 3. WebRTC Signaling (Student is Initiator)
+    Student->>FE: Generates WebRTC Offer (SDP)
+    Student->>IO: emit 'webrtc-offer' { target: TutorId, offer }
     IO->>Tutor: forward 'webrtc-offer'
-    Tutor->>IO: emit 'webrtc-answer'
+    
+    Tutor->>FE: Applies Remote Offer, Generates Answer (SDP)
+    Tutor->>IO: emit 'webrtc-answer' { target: StudentId, answer }
     IO->>Student: forward 'webrtc-answer'
     
-    Student<-->>Tutor: Establish P2P Media Stream (ICE Candidates)
+    Note over Student, Tutor: 4. P2P Connection
+    Student<-->>Tutor: ICE Candidate Exchange & Stream Establishment
     
-    Note over Student,Tutor: Real-Time Collaboration Phase
-    Student->>IO: emit 'draw-stroke' / 'code-change'
-    IO->>State: Update in-memory state
-    IO->>Tutor: broadcast 'draw-stroke' / 'code-change'
+    Note over Student, Tutor: 5. Application State Sync
+    Tutor->>IO: emit 'code-change'
+    IO->>State: Update memory cache
+    IO->>Student: broadcast 'code-change'
+```
+
+### Technical Implementation Details
+
+#### 1. Track Replacement (Screen Sharing)
+A critical feature is the ability to share a screen without dropping the active WebRTC connection. Tearing down the connection to add a new video track causes unacceptable latency. Instead, we use `RTCRtpSender.replaceTrack()`.
+
+```javascript
+// client/src/modules/classrooms/pages/ClassroomRoom.jsx
+const toggleScreenShare = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+    screenStreamRef.current = stream;
+    const screenTrack = stream.getVideoTracks()[0];
+    const cameraTrack = localStreamRef.current?.getVideoTracks()[0];
     
-    Tutor->>FE: Ends Session
-    FE->>IO: emit 'end-session'
-    IO->>State: Extract final chat & code
-    IO->>DB: Persist chatHistory and codeSnapshot to ClassroomSession
-    IO->>State: Clear room UUID from Map
+    // Iterate over all active peer connections and hot-swap the track
+    if (cameraTrack) {
+      peersRef.current.forEach(p => {
+        p.peer.replaceTrack(cameraTrack, screenTrack, localStreamRef.current);
+      });
+    }
+  } catch (err) {
+    console.error("Screen share failed", err);
+  }
+};
+```
+
+#### 2. Whiteboard Normalization
+To ensure that a stroke drawn by a Tutor on a 4K monitor appears exactly in the same relative position for a Student on a 13-inch laptop, the frontend normalizes all coordinates before emitting them.
+
+```javascript
+// client/src/modules/classrooms/components/Whiteboard.jsx
+const emitDrawEvent = (x, y, color) => {
+  const canvas = canvasRef.current;
+  const normalizedX = x / canvas.width;  // Value between 0.0 and 1.0
+  const normalizedY = y / canvas.width;  // Value between 0.0 and 1.0
+  
+  socket.emit('draw-stroke', { roomId, x: normalizedX, y: normalizedY, color });
+};
+
+// On the receiving end:
+socket.on('draw-stroke', (data) => {
+  const realX = data.x * canvasRef.current.width;
+  const realY = data.y * canvasRef.current.width;
+  drawToCanvas(realX, realY, data.color);
+});
+```
+
+#### 3. Code Editor Echo Loops
+When integrating Monaco Editor, collaborative typing can create an infinite echo loop (Client A types -> Emits to Server -> Broadcasts to Client B -> Client B updates Editor -> Client B's Editor triggers onChange -> Emits to Server).
+To prevent this, the component utilizes an `isRemoteChangeRef`.
+
+```javascript
+// client/src/modules/classrooms/components/SharedCodeEditor.jsx
+socket.on('code-change', (newCode) => {
+  isRemoteChangeRef.current = true; // Lock local emissions
+  editorRef.current.setValue(newCode); // Update UI
+  setTimeout(() => isRemoteChangeRef.current = false, 50); // Unlock
+});
+
+const handleEditorChange = (value) => {
+  if (!isRemoteChangeRef.current) {
+    socket.emit('code-change', { roomId, code: value });
+  }
+};
+```
+
+#### 4. Disconnection & State Persistence
+During the session, chat and code are stored in Node.js RAM (`roomStates` Map) for maximum speed. When the Tutor clicks "End Session", the `classrooms/socket.js` detects the `disconnect` or `end-session` event, reads the final state from the Map, and persists it to the `ClassroomSession` document in MongoDB, freeing up RAM.
+
+---
+
+## 3. Sub-Module Deep Dive: Analytics & Skill Gaps
+
+Tutors need to know *what* to teach. The Analytics Dashboard provides a macro-view of the student cohort's weaknesses.
+
+### The Skill Gap Algorithm
+Instead of relying on self-reported data, the system analyzes the actual, verified Resumes of the students. It utilizes a MongoDB Aggregation Pipeline to count occurrences and calculate a `gapScore`.
+
+```javascript
+// server/src/modules/analytics/controller.js
+export const getSkillGaps = async (req, res) => {
+  const pipeline = [
+    // 1. Unwind the skills array from all active resumes
+    { $unwind: "$skills" },
+    // 2. Normalize case to prevent "React" and "react" from splitting
+    { $project: { skill: { $toLower: "$skills.name" } } },
+    // 3. Group and Count
+    { $group: { _id: "$skill", count: { $sum: 1 } } },
+    // 4. Sort by most frequent
+    { $sort: { count: -1 } },
+    { $limit: 50 }
+  ];
+
+  const skillDistribution = await Resume.aggregate(pipeline);
+  
+  // 5. Calculate the proprietary Gap Score
+  const results = skillDistribution.map(item => {
+    // Formula: Assume a baseline of 10 students. 
+    // If only 1 student has the skill, the gap is high (90).
+    const gapScore = Math.max(1, 100 - (item.count * 10));
+    return { name: item._id, count: item.count, gapScore };
+  });
+
+  res.json(results);
+};
+```
+
+### Dashboard Visualizations
+The frontend (`TutorAnalyticsDashboard.jsx`) heavily utilizes the `Recharts` library.
+- **Treemap Heatmap**: Renders nested, colored rectangles based on the frequency of skills. High-frequency skills are larger.
+- **Horizontal Bar Chart**: Focuses specifically on the `gapScore`, sorted descending, visually flagging the immediate areas where the Tutor should focus their next Live Classroom curriculum.
+
+---
+
+## 4. Exhaustive Database Models
+
+### A. ClassroomSession Schema (`server/src/database/models/ClassroomSession.js`)
+
+Tracks the metadata and final snapshots of live classrooms for auditing and student review.
+
+```json
+{
+  "_id": "ObjectId",
+  "roomId": "UUID-String",
+  "host": "ObjectId (ref: User)",
+  "title": "Advanced Data Structures Review",
+  "subject": "Algorithms",
+  "status": "ended", // 'active' or 'ended'
+  "startedAt": "ISODate",
+  "endedAt": "ISODate",
+  "chatHistory": [
+    {
+      "sender": {
+        "name": "Arsh Verma",
+        "id": "ObjectId"
+      },
+      "message": "Can we go over Dijkstra's algorithm?",
+      "timestamp": "ISODate"
+    }
+  ],
+  "codeSnapshot": "function dijkstra(graph, start) {\n  // Implementation here...\n}"
+}
 ```
 
 ---
 
-## 2. End-to-End Workflows
+## 5. Comprehensive API Endpoints Contract
 
-### A. Live Interactive Classrooms
-1. **Session Setup**: The tutor creates a session, which generates a unique UUID `roomId`. Participants join via this UUID.
-2. **WebRTC Implementation**: 
-   - Each peer connects using `simple-peer` with `trickle: false`.
-   - Media streams are acquired via browser APIs: `getUserMedia` for camera/mic and `getDisplayMedia` for screen sharing.
-   - Screen sharing is implemented by dynamically calling `replaceTrack()` on existing WebRTC connections.
-3. **Collaboration Tools**:
-   - **Whiteboard**: Uses HTML5 Canvas. Coordinates are normalized to a `0-1` range so strokes render correctly regardless of individual screen resolutions.
-   - **Shared Code Editor**: Integrated Monaco Editor. It tracks cursor positions and detects remote changes (`isRemoteChangeRef`) to prevent infinite echo loops.
-4. **State Management**:
-   - During the session, chat messages, whiteboard strokes, and code are stored in an in-memory `Map` (`roomStates`) on the Node server to ensure low-latency syncing.
-   - When the tutor ends the session, the final `chatHistory` and `codeSnapshot` are written to MongoDB.
-5. **Security**: All Socket.IO events validate that the sender's `socket.data.roomId` matches the target room, preventing cross-room injection attacks.
+### Classrooms REST API (`/api/classrooms`)
 
-### B. Tutor Analytics & Session Management
-1. **Data Aggregation**: Tutors have access to a dashboard that aggregates data from the `Resume`, `LearningProgress`, and `InterviewSession` collections.
-2. **Skill Gap Analysis**:
-   - A MongoDB aggregation pipeline scans all student resumes, groups them by lowercase skill names, and counts occurrences.
-   - **Gap Score Formula**: The backend computes a `gapScore` for each skill using `max(1, 100 - (count * 10))`.
-   - Example: A skill appearing in 10 student resumes yields a gapScore of 0 (well-covered). A skill appearing in 1 student resume yields a gapScore of 90 (high gap, needs tutor attention).
-3. **Dashboard Visualizations**:
-   - **Treemap Heatmap**: Uses Recharts to render a colored heatmap based on the skill frequency.
-   - **Horizontal Bar Chart**: Displays the top 10 skills with the highest `gapScore`, visually flagging areas where tutors should focus their curriculum.
+| Method | Endpoint | Description | Auth | Request Payload | Response |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `POST` | `/create` | Generate a new session | Tutor | `{ title, subject }` | `201 Created`: `{ roomId, sessionDoc }` |
+| `GET` | `/my-sessions` | List tutor's history | Tutor | - | `200 OK`: `[ { sessionList } ]` |
+| `GET` | `/active` | List all live sessions | Any | - | `200 OK`: `[ { activeRooms } ]` |
+| `PATCH`| `/:roomId/end` | Persist and close room | Tutor | `{ chatHistory, codeSnapshot }` | `200 OK`: `{ success: true }` |
 
----
+### Analytics REST API (`/api/analytics`)
 
-## 3. Database Models
+| Method | Endpoint | Description | Auth | Request Payload | Response |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/skill-gaps` | Aggregated heatmap data | Tutor | - | `200 OK`: `[ { name, count, gapScore } ]` |
+| `GET` | `/dashboard` | Platform metrics | Tutor | - | `200 OK`: `{ activeStudents, avgMockScore }` |
 
-### ClassroomSession (`server/src/database/models/ClassroomSession.js`)
-Tracks the metadata and final snapshots of live classrooms.
-- `roomId`: UUID string, uniquely identifying the room.
-- `title` & `subject`: Session metadata.
-- `host`: Reference to the Tutor (`User` model).
-- `status`: `active` or `ended`.
-- `chatHistory`: Array of `{sender, message, timestamp}` objects, persisted only upon session end.
-- `codeSnapshot`: Final string of the collaborative Monaco Editor content.
+### Detailed Socket.IO Event Payloads
 
----
-
-## 4. API Endpoints & Socket Events
-
-### REST API Endpoints
-| Method | Endpoint | Description | Auth |
+| Event Name | Direction | Payload Example | Description |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/classrooms/create` | Create a new session (generates UUID) | Tutor |
-| `GET` | `/api/classrooms/my-sessions` | List tutor's created sessions | Tutor |
-| `GET` | `/api/classrooms/active` | List all active sessions on the platform | Any |
-| `GET` | `/api/classrooms/:roomId` | Get specific session details | Any |
-| `PATCH`| `/api/classrooms/:roomId/end` | End session, persist state to MongoDB | Tutor |
-| `GET` | `/api/analytics/skill-gaps` | Fetch skill distribution heatmap data | Tutor |
-| `GET` | `/api/analytics/dashboard` | Fetch platform-wide tutor metrics | Tutor |
-
-### Socket.IO Events
-| Event Name | Direction | Payload | Description |
-| :--- | :--- | :--- | :--- |
-| `join-room` | Client → Server | `{ roomId, user }` | Joins a socket room |
-| `webrtc-offer` / `answer` | Bi-directional | `{ signal, callerId }` | WebRTC P2P signaling |
-| `room-participants` | Server → Client | `[socketIds]` | Sent upon joining room |
-| `draw-stroke` | Bi-directional | `{ roomId, strokeData }` | Sync whiteboard drawing |
-| `code-change` | Bi-directional | `{ roomId, code }` | Sync Monaco Editor |
-| `code-cursor` | Bi-directional | `{ roomId, position }` | Sync remote cursors |
-| `chat-message` | Bi-directional | `{ roomId, message }` | Live chat broadcasting |
+| `join-room` | Client → Server | `{ roomId: "123", user: { id: "xx", name: "Alice" } }` | Authenticates and joins a socket room. |
+| `webrtc-offer` | Client → Server | `{ targetSocketId: "A1", callerSocketId: "B2", offer: { type: "offer", sdp: "v=0..." } }` | Relays WebRTC initiation packet. |
+| `room-participants` | Server → Client | `[ { socketId: "A1", user: {...} } ]` | Sent upon joining room to map the mesh. |
+| `draw-stroke` | Bi-directional | `{ roomId: "123", x: 0.5, y: 0.2, color: "#ff0000" }` | Syncs a single coordinate to the Canvas. |
+| `code-change` | Bi-directional | `{ roomId: "123", code: "const x = 1;" }` | Syncs full document string to Monaco. |
 
 ---
 
-## 5. Key Files Reference
+## 6. Security, Limitations & Scaling
+
+### Socket Cross-Room Injection
+A malicious student could attempt to emit a `chat-message` or `draw-stroke` with a `roomId` they are not currently inside. 
+**Mitigation**: The `socket.js` backend attaches the verified `roomId` to the socket object during the initial `join-room` phase (`socket.data.roomId = payload.roomId`). All subsequent emissions ignore the payload's roomId and strictly use the verified `socket.data.roomId` for broadcasting.
+
+### Mesh Network Limitations
+The Live Classroom utilizes a **Full Mesh Network** topology via `simple-peer`. Every peer connects directly to every other peer.
+- 2 participants = 1 connection.
+- 5 participants = 10 connections.
+- 10 participants = 45 connections.
+
+Because the client must encode and upload their video stream separately for *each* connection, bandwidth and CPU usage scale exponentially.
+**Scaling Strategy**: The current architecture is recommended for small cohort sizes (5-8 participants). If the platform scales to support large lecture halls (50+ students), the WebRTC module must be migrated away from `simple-peer` to an **SFU (Selective Forwarding Unit)** architecture (e.g., using `mediasoup` or `Janus`), where the client uploads their stream exactly once to the server, and the server distributes it to the viewers.
+
+---
+
+## 7. Directory & Key Files Reference
+
+To quickly navigate the codebase for Tutor features:
 
 **Frontend Components (`client/src/modules/`)**
-- `classrooms/pages/ClassroomRoom.jsx` - Main WebRTC & Socket orchestrator.
-- `classrooms/components/Whiteboard.jsx` - HTML5 Canvas logic.
-- `classrooms/components/SharedCodeEditor.jsx` - Monaco Editor integration.
-- `analytics/TutorAnalyticsDashboard.jsx` - Recharts dashboards for skill gaps.
+- `classrooms/pages/ClassroomsDashboard.jsx` - UI for creating new sessions.
+- `classrooms/pages/ClassroomRoom.jsx` - The monolithic WebRTC mesh orchestrator.
+- `classrooms/components/Whiteboard.jsx` - HTML5 Canvas drawing logic.
+- `classrooms/components/SharedCodeEditor.jsx` - Monaco Editor integration with echo-loop prevention.
+- `analytics/TutorAnalyticsDashboard.jsx` - Recharts visualizations for the `gapScore`.
 
 **Backend Services (`server/src/modules/`)**
-- `classrooms/socket.js` - In-memory state and WebRTC signaling router.
-- `classrooms/controller.js` - REST API for session creation and termination.
-- `analytics/controller.js` - MongoDB aggregation pipelines for the gapScore.
+- `classrooms/socket.js` - In-memory state maps and WebSocket signaling router.
+- `classrooms/controller.js` - REST API for session metadata and teardown persistence.
+- `analytics/controller.js` - MongoDB aggregation pipelines calculating the skill gaps.
