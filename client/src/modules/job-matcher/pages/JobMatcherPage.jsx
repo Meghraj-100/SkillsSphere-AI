@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { Sparkles, FileUp, AlertCircle, Briefcase, ArrowLeft } from "lucide-react";
 import Navbar from "../../../shared/landing/Navbar";
+import Footer from "../../../modules/landing/components/Footer";
 import LoadingState from "../../../shared/components/LoadingState";
 import { JobViewerCard, Pagination } from "../../../shared/components";
 import JobApplyForm from "../../student-jobs/components/JobApplyForm";
@@ -221,6 +222,7 @@ export default function JobMatcherPage() {
           isSubmitting={!!applyingJobId}
         />
       )}
+      <Footer />
     </main>
   );
 }

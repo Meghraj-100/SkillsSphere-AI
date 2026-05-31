@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../../../shared/landing/Navbar";
+import Footer from "../../../modules/landing/components/Footer";
 import { getCoverLetterHistory } from "../services/dashboardService";
 import { 
   FileText, 
@@ -171,6 +172,7 @@ const CoverLetterHistoryPage = () => {
         initialText={selectedCl ? selectedCl.generatedText : ""}
         onRegenerate={handleRegenerate}
       />
+      <Footer />
     </div>
   );
 };

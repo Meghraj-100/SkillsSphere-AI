@@ -16,6 +16,7 @@ import {
   List,
 } from "lucide-react";
 import Navbar from "../../../shared/landing/Navbar";
+import Footer from "../../../modules/landing/components/Footer";
 import LoadingState from "../../../shared/components/LoadingState";
 import ConfirmDialog from "../../../shared/components/ConfirmDialog";
 import {
@@ -542,6 +543,7 @@ const MyApplicationsPage = () => {
           background: rgba(59, 130, 246, 0.5);
         }
       `}} />
+      <Footer />
     </main>
   );
 };

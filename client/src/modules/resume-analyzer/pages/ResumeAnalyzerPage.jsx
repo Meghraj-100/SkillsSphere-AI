@@ -7,6 +7,7 @@ import {
   PageHeader,
 } from "../../../shared/components";
 import Navbar from "../../../shared/landing/Navbar";
+import Footer from "../../../modules/landing/components/Footer";
 import AnalysisResult from "../components/AnalysisResult";
 import DragDropUpload from "../components/DragDropUpload";
 import JobDescriptionInput from "../components/JobDescriptionInput";
@@ -502,6 +503,7 @@ const ResumeAnalyzerPage = () => {
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}
       />
+      <Footer />
     </div>
   );
 };
