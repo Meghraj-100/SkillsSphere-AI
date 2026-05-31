@@ -105,33 +105,12 @@ router.post("/start", aiActionLimiter, startInterview);
  */
 router.get("/history", getInterviewHistory);
 
-router.get("/:id", getSession);
-router.post("/:id/answer", aiActionLimiter, upload.single("audio"), submitAnswer);
-router.post("/:id/complete", completeInterview);
-
-/**
- * @openapi
- * /api/interviews/{id}/results:
- *   get:
- *     summary: Get final results and feedback for a completed session
- *     tags: [Interviews]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Detailed feedback and scores
- */
-router.get("/:id/results", getSessionResults);
-
-// Tutor routes
+// Tutor routes (must be before /:id to avoid route conflict)
 router.get("/tutor/sessions", authorizeRoles("tutor"), getTutorSessions);
 router.get("/tutor/sessions/:id", authorizeRoles("tutor"), getTutorSession);
 router.post("/tutor/sessions/:id/feedback", authorizeRoles("tutor"), submitTutorFeedback);
 
-export default router;
+router.get("/:id", getSession);
+router.post("/:id/answer", aiActionLimiter, upload.single("audio"), submitAnswer);
+router.post("/:id/complete", completeInterview);
+router.get("/:id/results", getSessionResults);
