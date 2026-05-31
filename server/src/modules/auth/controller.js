@@ -156,8 +156,8 @@ export const googleLogin = asyncHandler(async (req, res, next) => {
     token: jwtToken,
     user: {
       id: user._id.toString(),
-      name: user.name,
-      email: user.email,
+      name: user.get('name'),
+      email: user.get('email'),
       role: user.role,
     },
   });

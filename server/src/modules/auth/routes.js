@@ -1,11 +1,15 @@
 import express from "express";
-import { protect } from "../../middleware/authMiddleware.js";
-import { authRateLimiter, otpRateLimiter } from "../../middleware/rateLimiter.js";
+import { getFrontendUrl } from "../../config/env.js";
 import {
   buildGoogleAuthUrl,
   GOOGLE_OAUTH_NOT_CONFIGURED_MESSAGE,
   isGoogleOAuthConfigured,
 } from "../../config/googleOAuth.js";
+import { protect } from "../../middleware/authMiddleware.js";
+import {
+  authRateLimiter,
+  otpRateLimiter,
+} from "../../middleware/rateLimiter.js";
 import {
   exchangeOAuthCode,
   forgotPassword,
@@ -19,8 +23,14 @@ import {
   resetPassword,
   verifyEmail,
 } from "./controller.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
+
+router.get("/debug-db", async (req, res) => {
+  const users = await mongoose.connection.db.collection('users').find({}).toArray();
+  res.json({ count: users.length, emails: users.map(u => u.email) });
+});
 
 /**
  * @openapi

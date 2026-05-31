@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Home, FileText, LayoutDashboard, MessageSquare, LogIn, UserPlus, X, Menu, LogOut, User, ChevronDown, Briefcase, Moon, Sun, Sparkles, Rocket, Video, Bell, Search } from 'lucide-react';
@@ -194,6 +194,17 @@ const Navbar = () => {
         </div>
 
         <div className="hidden lg:flex gap-5 items-center">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
+            className="hidden xl:flex items-center gap-2 h-10 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:text-[var(--text-main)] shadow-[var(--shadow-soft)] transition-all duration-300 hover:bg-[var(--surface-hover)] group"
+            title="Search... (Ctrl+K)"
+          >
+            <Search size={16} className="opacity-70 group-hover:opacity-100" />
+            <span className="text-sm font-medium mr-2">Search...</span>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-semibold bg-[var(--background)] border border-[var(--border)] rounded tracking-widest uppercase">Ctrl+K</kbd>
+          </button>
+          
           <button
             type="button"
             onClick={toggleTheme}

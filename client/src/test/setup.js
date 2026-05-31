@@ -7,4 +7,4 @@ vi.mock('import.meta.env', () => ({
 }))
 
 // Mock fetch globally
-global.fetch = vi.fn()
+globalThis.fetch = vi.fn()
