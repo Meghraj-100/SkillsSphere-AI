@@ -42,8 +42,8 @@ import {
   PolarRadiusAxis,
   Radar
 } from "recharts";
-import Navbar from "../../../shared/landing/Navbar";
-import Footer from "../../../modules/landing/components/Footer";
+import Navbar from "../../../shared/components/Navbar";
+import Footer from "../../../shared/components/Footer";
 
 import LoadingState from "../../../shared/components/LoadingState";
 import ErrorState from "../../../shared/components/ErrorState";

@@ -26,8 +26,8 @@ import {
   Loader2,
   Code
 } from 'lucide-react';
-import Navbar from '../../../shared/landing/Navbar';
-import Footer from "../../../modules/landing/components/Footer";
+import Navbar from '../../../shared/components/Navbar';
+import Footer from "../../../shared/components/Footer";
 
 import { Button, LoadingState, ErrorState, EmptyState } from '../../../shared/components';
 import { getRecruiterJobs } from '../services/jobPostingService';

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import Navbar from "../../shared/landing/Navbar";
-import Footer from "../../modules/landing/components/Footer";
+import Navbar from "../../shared/components/Navbar";
+import Footer from "../../shared/components/Footer";
 
 import { Link } from "react-router-dom";
 import ProfileSkeleton from "./components/ProfileSkeleton";

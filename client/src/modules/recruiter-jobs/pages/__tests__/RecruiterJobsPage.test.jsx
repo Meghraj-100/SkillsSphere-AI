@@ -7,7 +7,7 @@ import { MemoryRouter } from 'react-router-dom'
 import RecruiterJobsPage from '../RecruiterJobsPage'
 import * as jobPostingService from '../../services/jobPostingService'
 import { ToastProvider } from '../../../../shared/components/toast/ToastProvider'
-import Footer from "../../../../modules/landing/components/Footer";
+import Footer from "../../../../shared/components/Footer";
 
 
 // Mock the service
@@ -17,7 +17,7 @@ vi.mock('../../services/jobPostingService', () => ({
 }))
 
 // Mock components
-vi.mock('../../../../shared/landing/Navbar', () => ({
+vi.mock('../../../../shared/components/Navbar', () => ({
   default: () => <nav data-testid="navbar">Navbar</nav>,
 }))
 

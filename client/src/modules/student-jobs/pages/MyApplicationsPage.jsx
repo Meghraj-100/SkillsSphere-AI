@@ -15,8 +15,8 @@ import {
   LayoutGrid,
   List,
 } from "lucide-react";
-import Navbar from "../../../shared/landing/Navbar";
-import Footer from "../../../modules/landing/components/Footer";
+import Navbar from "../../../shared/components/Navbar";
+import Footer from "../../../shared/components/Footer";
 
 import LoadingState from "../../../shared/components/LoadingState";
 import ConfirmDialog from "../../../shared/components/ConfirmDialog";

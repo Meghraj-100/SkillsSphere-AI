@@ -6,7 +6,7 @@ import Button from './Button';
 import { logout } from '../../features/auth/authSlice';
 import { getProtectedAssetUrl } from '../../utils/protectedAssetUrl';
 import { getSignedFileUrl } from '../../services/fileService';
-import NotificationsDropdown from '../components/NotificationsDropdown';
+import NotificationsDropdown from './NotificationsDropdown';
 import { getUnreadCount } from '../../features/notifications/notificationsSlice';
 import { useTheme } from '../contexts/ThemeContext';
 

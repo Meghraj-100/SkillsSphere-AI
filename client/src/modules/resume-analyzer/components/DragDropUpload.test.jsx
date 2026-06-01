@@ -13,7 +13,7 @@ vi.mock("../../../shared/components", () => ({
   useToast: () => toast,
 }));
 
-vi.mock("../../../shared/landing/Button", () => ({
+vi.mock("../../../shared/components/Button", () => ({
   default: ({ children, ...props }) => <button {...props}>{children}</button>,
 }));
 

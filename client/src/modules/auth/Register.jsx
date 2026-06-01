@@ -8,7 +8,7 @@ import Button from "../../shared/components/Button";
 import Input from "../../shared/components/Input";
 import Select from "../../shared/components/Select";
 import GoogleOAuthButton from "../../shared/components/GoogleOAuthButton";
-import Navbar from "../../shared/landing/Navbar";
+import Navbar from "../../shared/components/Navbar";
 import { API_URL } from "../../config/env";
 import { z } from "zod";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
@@ -300,7 +300,7 @@ const Register = () => {
               {errors.form}
             </p>
           )}
-          <GoogleOAuthButton role={form.role} />
+          <GoogleOAuthButton role={formData.role} />
         </form>
         {/* Footer */}
         <p className="text-center mt-4 sm:mt-5 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">

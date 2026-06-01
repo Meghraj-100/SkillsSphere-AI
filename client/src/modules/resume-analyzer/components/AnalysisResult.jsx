@@ -17,7 +17,7 @@ import {
   BarChart3
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import Button from "../../../shared/landing/Button";
+import Button from "../../../shared/components/Button";
 import SkillGapVenn from "./SkillGapVenn";
 import CoverLetterModal from "../../../shared/components/CoverLetterModal";
 import { generateCoverLetter } from "../services/resumeService";

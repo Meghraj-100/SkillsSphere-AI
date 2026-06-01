@@ -15,7 +15,7 @@ vi.mock('../../services/jobPostingService', () => ({
 }))
 
 // Mock the components
-vi.mock('../../../../shared/landing/Navbar', () => ({
+vi.mock('../../../../shared/components/Navbar', () => ({
   default: () => <nav data-testid="navbar">Navbar</nav>,
 }))
 

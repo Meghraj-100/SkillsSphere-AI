@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 
 /**
  * Button — Reusable button component.
@@ -81,6 +82,7 @@ const Button = ({
   className = "",
   leftIcon,
   rightIcon,
+  to,
   ...rest
 }) => {
   const isDisabled = disabled || loading;
@@ -103,16 +105,8 @@ const Button = ({
 
   const iconSize = ICON_SIZE[size] ?? ICON_SIZE.md;
 
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={isDisabled}
-      aria-busy={loading}
-      aria-disabled={isDisabled}
-      className={classes}
-      {...rest}
-    >
+  const content = (
+    <>
       {loading ? (
         <Spinner sizeClass={iconSize} />
       ) : (
@@ -131,6 +125,28 @@ const Button = ({
           {rightIcon}
         </span>
       )}
+    </>
+  );
+
+  if (to && !isDisabled) {
+    return (
+      <Link to={to} className={classes} {...rest}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={isDisabled}
+      aria-busy={loading}
+      aria-disabled={isDisabled}
+      className={classes}
+      {...rest}
+    >
+      {content}
     </button>
   );
 };
@@ -147,6 +163,7 @@ Button.propTypes = {
   className: PropTypes.string,
   leftIcon: PropTypes.node,
   rightIcon: PropTypes.node,
+  to: PropTypes.string,
 };
 
 export default Button;

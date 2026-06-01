@@ -5,8 +5,8 @@ import { LogOut, Menu, User, FileText, Target, Briefcase, Video, BadgeCheck, Spa
 
 import { logout } from "../../features/auth/authSlice";
 import Button from "../../shared/components/Button";
-import Navbar from "../../shared/landing/Navbar";
-import Footer from "../../modules/landing/components/Footer";
+import Navbar from "../../shared/components/Navbar";
+import Footer from "../../shared/components/Footer";
 
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 

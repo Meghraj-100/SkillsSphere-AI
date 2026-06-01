@@ -70,7 +70,7 @@ vi.mock("../shared/components", async () => {
   };
 });
 
-vi.mock("../shared/landing/Navbar", () => ({
+vi.mock("../shared/components/Navbar", () => ({
   default: () => <nav aria-label="Primary navigation" />,
 }));
 

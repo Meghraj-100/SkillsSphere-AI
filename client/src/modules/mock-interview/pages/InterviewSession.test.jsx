@@ -24,7 +24,7 @@ let managerHandlers = {};
 let trackEndedHandler;
 let trackRemoveHandler;
 
-vi.mock("../../../shared/landing/Navbar", () => ({
+vi.mock("../../../shared/components/Navbar", () => ({
   default: () => <nav data-testid="navbar" />,
 }));
 
