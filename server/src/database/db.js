@@ -3,8 +3,6 @@ import mongoose from "mongoose";
 
 export let isConnected = false;
 
-import { seedInterviewData } from "../modules/interviews/seed/seedInterviewData.js";
-
 const connectDB = async () => {
   const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
 
@@ -15,8 +13,9 @@ const connectDB = async () => {
     console.log(`Started ephemeral Memory Database at: ${uri}`);
     process.env.MONGO_URI = uri;
     const res = await connectDB();
-    console.log("Memory DB connected. Auto-seeding mock interview data...");
-    await seedInterviewData();
+    console.log("Memory DB connected.");
+    // NOTE: If you need to seed interview data in memory mode,
+    // call seedInterviewData() from app.js after connectDB() resolves.
     return res;
   }
 
