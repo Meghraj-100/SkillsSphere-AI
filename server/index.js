@@ -32,6 +32,7 @@ import {
 } from "./src/middleware/socketAuthError.js";
 import analyticsRoutes from "./src/modules/analytics/routes.js";
 import authRoutes from "./src/modules/auth/routes.js";
+import createChatRouter from "./src/modules/chat/routes.js";
 import classroomRoutes from "./src/modules/classrooms/routes.js";
 import { initClassroomSockets } from "./src/modules/classrooms/socket.js";
 import coverLetterRoutes from "./src/modules/coverLetters/routes.js";
@@ -94,22 +95,33 @@ io.use(async (socket, next) => {
     socket.user = await verifySocketToken(token);
     next();
   } catch (err) {
-    const message = getSocketAuthErrorMessage(err, "Invalid auth token");
-    const errorCode =
-      message === "Missing auth token"
-        ? SOCKET_AUTH_ERROR_CODES.missingToken
-        : SOCKET_AUTH_ERROR_CODES.invalidToken;
+    // Harden unexpected thrown values (non-Error, Error without message, etc.)
+    // so socket auth failure always returns a safe payload.
+    const safeMessage =
+      err instanceof Error
+        ? typeof err.message === "string" && err.message.trim()
+          ? err.message.trim()
+          : "Invalid auth token"
+        : typeof err === "string" && err.trim()
+          ? err.trim()
+          : "Invalid auth token";
+
+    // Decide error code deterministically.
+    // The "missingToken" case should be handled earlier when token is falsy.
+    // Any thrown/failed verification is treated as invalidToken.
+    const errorCode = SOCKET_AUTH_ERROR_CODES.invalidToken;
 
     next(
       createSocketAuthError(
-        message === "Missing auth token"
-          ? message
-          : `Socket authentication failed: ${message}`,
+        safeMessage === "Invalid auth token"
+          ? safeMessage
+          : `Socket authentication failed: ${safeMessage}`,
         errorCode,
       ),
     );
   }
 });
+
 
 setIO(io);
 // Attach per-socket rate limiter to protect against message floods
@@ -145,6 +157,8 @@ app.get("/health", (req, res) => {
 });
 
 // app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.use("/api/chat", createChatRouter({ getGeminiModel: () => geminiModel }));
 
 app.use("/api/auth", requireDB, authRoutes);
 app.use("/api/resume", requireDB, resumeRoutes);
