@@ -32,6 +32,7 @@ import {
 } from "./src/middleware/socketAuthError.js";
 import analyticsRoutes from "./src/modules/analytics/routes.js";
 import authRoutes from "./src/modules/auth/routes.js";
+import createChatRouter from "./src/modules/chat/routes.js";
 import classroomRoutes from "./src/modules/classrooms/routes.js";
 import { initClassroomSockets } from "./src/modules/classrooms/socket.js";
 import coverLetterRoutes from "./src/modules/coverLetters/routes.js";
