@@ -40,7 +40,7 @@ const getSidebarItems = (role) => {
   return [
     { label: "Resume Analyzer", icon: FileText, to: "/resume-analyzer" },
     { label: "Smart Job Matching", icon: Target, to: "/job-matcher" },
-    { label: "Applied Jobs", icon: Briefcase, to: "/my-applications" },
+    { label: "My Applications", icon: Briefcase, to: "/my-applications" },
     { label: "Mock Interviews", icon: Video, to: "/mock-interview" },
     { label: "Live Classrooms", icon: Video, to: "/classrooms" },
   ];

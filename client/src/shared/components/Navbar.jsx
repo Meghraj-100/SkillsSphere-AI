@@ -284,7 +284,7 @@ const Navbar = () => {
                       onClick={() => setIsProfileOpen(false)}
                     >
                       <Briefcase size={18} />
-                      Applied Jobs
+                      My Applications
                     </Link>
                   )}
                   <button 

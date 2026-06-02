@@ -47,7 +47,7 @@ const statusConfig = {
 const BOARD_COLUMNS = ["pending", "reviewed", "shortlisted", "rejected", "withdrawn"];
 
 const MyApplicationsPage = () => {
-  useDocumentTitle("My Application");
+  useDocumentTitle("My Applications");
   const { token } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const toast = useToast();
@@ -391,7 +391,7 @@ const MyApplicationsPage = () => {
             </div>
 
             <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tight leading-tight">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-400">My</span> Application
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-400">My</span> Applications
             </h1>
             <p className="text-lg text-gray-600 dark:text-slate-400 font-medium">
               Track and manage all the jobs you&apos;ve applied to
@@ -457,7 +457,7 @@ const MyApplicationsPage = () => {
             {/* Right Content */}
             <div className="flex-1 text-center md:text-left z-10">
               <h2 className="text-3xl font-heading font-black text-gray-900 dark:text-white mb-4">
-                No Application Yet
+                No Applications Yet
               </h2>
               <p className="text-gray-500 dark:text-slate-400 text-lg mb-8 leading-relaxed max-w-lg">
                 You haven&apos;t applied to any jobs yet. Start exploring opportunities and track your applications in one place.
