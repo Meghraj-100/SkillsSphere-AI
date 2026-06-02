@@ -50,6 +50,7 @@ import resumeRoutes from "./src/modules/resumes/routes.js";
 import roadmapRoutes from "./src/modules/roadmap/routes.js";
 import { initRoadmapSockets } from "./src/modules/roadmap/socket.js";
 import userRoutes from "./src/modules/users/routes.js";
+import aiAssistantRoutes from "./src/modules/ai-assistant/routes.js";
 import { setIO } from "./src/utils/socketIO.js";
 import attachSocketRateLimiter from "./src/middleware/socketRateLimiter.js";
 
@@ -149,12 +150,7 @@ await connectDB();
 await connectRedis();
 logEvaluatorConfig();
 
-// Initialize Gemini AI client once at startup (not per-request)
-let geminiModel = null;
-if (process.env.GEMINI_API_KEY) {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-}
+// Initialize Gemini AI client logic moved to src/modules/ai-assistant/controller.js
 
 app.get("/health", (req, res) => {
   res.json({ status: "OK", db: isConnected ? "connected" : "disconnected" });
@@ -179,6 +175,7 @@ app.use("/api/files", requireDB, fileRoutes);
 app.use("/api/notifications", requireDB, notificationRoutes);
 app.use("/api/analytics", requireDB, analyticsRoutes);
 app.use("/api/recruiter", requireDB, recruiterRoutes);
+app.use("/api/chat", requireDB, aiAssistantRoutes);
 
 initClassroomSockets(io);
 initNotificationSockets(io);
