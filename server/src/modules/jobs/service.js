@@ -1072,3 +1072,31 @@ export const updateApplicationStatus = async (applicationId, recruiterId, { stat
 
   return application;
 };
+
+/**
+ * Update the student's personal CRM status for a job application
+ * @param {string} applicationId - ID of the job application
+ * @param {string} applicantId - ID of the student
+ * @param {string} studentStatus - The new status
+ * @returns {Promise<Object>} - Updated application
+ */
+export const updateStudentApplicationStatusService = async (applicationId, applicantId, studentStatus) => {
+  const application = await JobApplication.findOne({
+    _id: applicationId,
+    applicant: applicantId,
+  });
+
+  if (!application) {
+    throw new AppError("Application not found", 404);
+  }
+
+  // Prevent moving withdrawn or rejected applications
+  if (["withdrawn", "rejected"].includes(application.status)) {
+    throw new AppError("Cannot change CRM status for finalized applications", 400);
+  }
+
+  application.studentStatus = studentStatus;
+  await application.save();
+
+  return application;
+};

@@ -23,6 +23,7 @@ import ConfirmDialog from "../../../shared/components/ConfirmDialog";
 import {
   getMyApplicationsDetailed,
   withdrawApplication,
+  updateStudentApplicationStatus,
 } from "../services/jobService";
 import { StatusTimeline } from "../../../shared/components";
 import { useToast } from "../../../shared/components/toast/ToastProvider";
@@ -68,15 +69,9 @@ const MyApplicationsPage = () => {
     try {
       const data = await getMyApplicationsDetailed(token, page, limit);
       
-      // Inject local CRM status overrides
+      // Use backend studentStatus, fallback to official recruiter status
       const enrichedApps = (data.applications || []).map(app => {
-        let localStatus = app.status;
-        if (app.status !== "withdrawn" && app.status !== "rejected") {
-          const savedStatus = localStorage.getItem(`ss_custom_stage_${app._id}`);
-          if (savedStatus && BOARD_COLUMNS.includes(savedStatus)) {
-            localStatus = savedStatus;
-          }
-        }
+        let localStatus = app.studentStatus || app.status;
         return { ...app, _localStatus: localStatus };
       });
       
@@ -112,7 +107,6 @@ const MyApplicationsPage = () => {
       setApplications((prev) =>
         prev.map((app) => {
           if ((app.job?._id || app.job) === confirmJobId) {
-            localStorage.removeItem(`ss_custom_stage_${app._id}`);
             return { ...app, status: "withdrawn", _localStatus: "withdrawn" };
           }
           return app;
@@ -161,7 +155,7 @@ const MyApplicationsPage = () => {
     setActiveDragCol(null);
   };
 
-  const handleDrop = (e, columnStatus) => {
+  const handleDrop = async (e, columnStatus) => {
     e.preventDefault();
     setActiveDragCol(null);
     const appId = e.dataTransfer.getData("appId");
@@ -182,12 +176,21 @@ const MyApplicationsPage = () => {
       return;
     }
 
-    // Update local CRM state
-    localStorage.setItem(`ss_custom_stage_${appId}`, columnStatus);
+    // Optimistic UI Update
+    const previousApplications = [...applications];
     setApplications(prev => 
       prev.map(a => a._id === appId ? { ...a, _localStatus: columnStatus } : a)
     );
-    toast.success(`Stage updated on your local board! Note: The official status with the recruiter remains ${statusConfig[app.status]?.label || app.status}`, "Premium Personal CRM");
+
+    try {
+      // Sync to database
+      await updateStudentApplicationStatus(appId, columnStatus, token);
+      toast.success(`Stage updated in your CRM! Note: The official status with the recruiter remains ${statusConfig[app.status]?.label || app.status}`, "Premium Personal CRM");
+    } catch (error) {
+      // Revert on failure
+      setApplications(previousApplications);
+      toast.error(error.message || "Failed to update status. Please try again.");
+    }
   };
 
   // Group applications for Board View
@@ -217,10 +220,10 @@ const MyApplicationsPage = () => {
         draggable={isBoardView && !["withdrawn", "rejected"].includes(app.status)}
         onDragStart={(e) => handleDragStart(e, app._id)}
         onDragEnd={handleDragEnd}
-        className={`bg-white dark:bg-slate-900/50 rounded-2xl border transition-all duration-300 ${isBoardView ? 'p-4 cursor-grab active:cursor-grabbing hover:border-blue-500/30' : 'p-5'} ${
+        className={`bg-white dark:bg-surface/50 backdrop-blur-md rounded-2xl border transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 ${isBoardView ? 'p-4 cursor-grab active:cursor-grabbing hover:border-brand-500/50' : 'p-5'} ${
           expandedId === app._id 
-            ? "border-blue-500/30 bg-blue-50 dark:bg-slate-900/80 shadow-[0_0_15px_rgba(59,130,246,0.15)]" 
-            : "border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 hover:shadow-lg"
+            ? "border-brand-500/50 bg-blue-50 dark:bg-surface/80 shadow-[0_0_20px_rgba(99,102,241,0.15)]" 
+            : "border-border hover:border-white/20 hover:shadow-lg hover:shadow-brand-500/5"
         }`}
       >
         <div 
@@ -229,11 +232,11 @@ const MyApplicationsPage = () => {
         >
           {/* Job info */}
           <div className="flex-1 min-w-0">
-            <h3 className={`${isBoardView ? 'text-base' : 'text-lg'} font-bold text-gray-900 dark:text-white truncate`}>
+            <h3 className={`${isBoardView ? 'text-base' : 'text-lg'} font-heading font-semibold text-text-main truncate`}>
               {job?.title || "Job no longer available"}
             </h3>
 
-            <div className={`flex flex-wrap items-center gap-2 mt-2 text-xs text-gray-500 dark:text-slate-400`}>
+            <div className={`flex flex-wrap items-center gap-2 mt-2 text-xs text-text-muted`}>
               {job?.location && (
                 <span className="flex items-center gap-1">
                   <MapPin size={12} />
@@ -242,7 +245,7 @@ const MyApplicationsPage = () => {
                 </span>
               )}
               {job?.jobLevel && (
-                <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded">
+                <span className="px-1.5 py-0.5 bg-surface-hover rounded text-text-main">
                   {job.jobLevel}
                 </span>
               )}
@@ -300,7 +303,7 @@ const MyApplicationsPage = () => {
 
         {/* Links section */}
         {(!isBoardView || app.resumeLink || app.coverNote) && (
-          <div className="mt-3 pt-3 border-t border-gray-100 dark:border-white/5 flex flex-wrap items-center gap-4 text-xs">
+          <div className="mt-3 pt-3 border-t border-border flex flex-wrap items-center gap-4 text-xs">
             {app.resumeLink && (
               <a
                 href={app.resumeLink}
@@ -322,7 +325,7 @@ const MyApplicationsPage = () => {
             {isBoardView && (
               <button 
                 onClick={() => setExpandedId(expandedId === app._id ? null : app._id)}
-                className="ml-auto text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white"
+                className="ml-auto text-text-muted hover:text-brand-400 transition-colors"
               >
                 {expandedId === app._id ? 'Hide Timeline' : 'View Timeline'}
               </button>
@@ -332,8 +335,8 @@ const MyApplicationsPage = () => {
 
         {/* Expanded Timeline Section */}
         {expandedId === app._id && (
-          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 animate-in slide-in-from-top-2 duration-300">
-            <h4 className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <div className="mt-4 pt-4 border-t border-border animate-in slide-in-from-top-2 duration-300">
+            <h4 className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <Clock size={14} /> Application Journey
             </h4>
             <div className="px-2">
