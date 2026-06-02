@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { getResults } from "../services/interviewService";
 import InterviewResultsSkeleton from "../components/InterviewResultsSkeleton";
 import { analyzeText } from "../utils/sentiment";
@@ -142,8 +142,19 @@ const InterviewResults = () => {
       
       <main className="max-w-[900px] w-full mx-auto px-8 pb-12 flex flex-col gap-6">
         
+        {/* Back to Dashboard Link */}
+        <div className="-mt-4 mb-2 flex">
+          <Link 
+            to="/dashboard" 
+            className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+          >
+            <ArrowLeft size={16} />
+            Back to Dashboard
+          </Link>
+        </div>
+
         {/* Header */}
-        <div className="text-center animate-[fadeIn_0.8s_ease-out]">
+        <div className="text-center animate-[fadeIn_0.8s_ease-out] relative pt-4">
           <h1 className="text-5xl md:text-6xl font-black tracking-tight bg-gradient-to-br from-indigo-600 via-purple-600 to-emerald-500 bg-clip-text text-transparent mb-6 drop-shadow-sm leading-tight">
             Interview Results
           </h1>

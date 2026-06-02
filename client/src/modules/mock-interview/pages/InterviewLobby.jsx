@@ -86,10 +86,10 @@ const InterviewLobby = () => {
       <main className="relative z-10 pt-8 pb-12 max-w-[1200px] mx-auto px-4 sm:px-8 min-h-[calc(100vh-80px)] flex flex-col gap-10">
         
         {/* Back to Dashboard Link */}
-        <div className="mb-2 flex">
+        <div className="-mt-4 mb-2 flex">
           <Link 
             to="/dashboard" 
-            className="inline-flex items-center gap-2 text-sm font-medium text-text-muted hover:text-text-main transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
           >
             <ArrowLeft size={16} />
             Back to Dashboard
@@ -97,7 +97,7 @@ const InterviewLobby = () => {
         </div>
 
         {/* Header Section */}
-        <header className="text-center mb-6 animate-[fadeIn_0.8s_ease-out] relative z-10">
+        <header className="mb-8 text-center max-w-3xl mx-auto relative pt-4 animate-[fadeIn_0.8s_ease-out] z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-sm font-bold tracking-wide uppercase mb-4">
             <Sparkles size={16} /> Cognitive Evaluation Engine
           </div>
@@ -115,10 +115,10 @@ const InterviewLobby = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column: Device & Focus Area */}
-          <div className="flex flex-col gap-6 w-full animate-[slideRight_0.6s_ease-out]">
+          <div className="lg:col-span-7 flex flex-col gap-6 w-full animate-[slideRight_0.6s_ease-out]">
             <CameraCheck onStreamReady={setIsMediaReady} />
             
             {/* Focus Area Card */}
@@ -169,14 +169,14 @@ const InterviewLobby = () => {
           </div>
 
           {/* Right Column: Persona & Start Action */}
-          <div className="flex flex-col gap-6 w-full animate-[slideLeft_0.6s_ease-out]">
+          <div className="lg:col-span-5 flex flex-col gap-6 w-full animate-[slideLeft_0.6s_ease-out]">
             <PersonaSelector 
               selectedPersona={selectedPersona} 
               onSelect={setSelectedPersona} 
             />
 
             {/* Launch Console */}
-            <div className="relative mt-2 p-1 rounded-[2rem] bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-emerald-500/20 shadow-[0_0_30px_rgba(99,102,241,0.05)] group">
+            <div className="relative p-1 rounded-[2rem] bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-emerald-500/20 shadow-[0_0_30px_rgba(99,102,241,0.05)] group">
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 opacity-20 group-hover:opacity-40 blur-xl transition-opacity duration-500 rounded-[2rem]" />
               
               <div className="relative bg-white dark:bg-surface backdrop-blur-2xl rounded-[1.85rem] p-6 sm:p-8 flex flex-col items-center justify-center border border-white/40 dark:border-border">

@@ -242,10 +242,10 @@ const InterviewHistory = () => {
       <main className="max-w-[1200px] w-full mx-auto px-4 sm:px-8 pb-12 flex flex-col gap-6 min-h-[calc(100vh-80px)]">
         
         {/* Back to Dashboard Link */}
-        <div className="mb-2 flex">
+        <div className="-mt-4 mb-2 flex">
           <Link 
             to="/dashboard" 
-            className="inline-flex items-center gap-2 text-sm font-medium text-text-muted hover:text-text-main transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
           >
             <ArrowLeft size={16} />
             Back to Dashboard
@@ -253,7 +253,7 @@ const InterviewHistory = () => {
         </div>
 
         {/* Header Section */}
-        <header className="text-center mb-8 animate-[fadeIn_0.8s_ease-out]">
+        <header className="mb-8 text-center max-w-3xl mx-auto relative pt-4 animate-[fadeIn_0.8s_ease-out]">
           <h1 className="text-5xl md:text-6xl font-black tracking-tight bg-gradient-to-br from-indigo-600 via-purple-600 to-emerald-500 bg-clip-text text-transparent mb-4 drop-shadow-sm leading-tight">
             Interview History
           </h1>
