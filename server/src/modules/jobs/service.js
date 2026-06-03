@@ -238,6 +238,33 @@ export const getJobRecommendations = async (user) => {
     };
   }
 
+  // 1.5. Check if we already have a valid MatchResult for this exact resume
+  const latestMatch = await matchingService.getLatestRecommendations(user._id);
+  
+  if (latestMatch && latestMatch.resume.toString() === resume._id.toString()) {
+    // If the match was generated less than 24 hours ago, use it directly
+    const ageInHours = (new Date() - new Date(latestMatch.createdAt)) / (1000 * 60 * 60);
+    if (ageInHours < 24) {
+      const jobsWithDetails = latestMatch.recommendations.map(rec => {
+        const jobDoc = rec.job; // populated
+        if (!jobDoc) return null;
+        return {
+          ...jobDoc,
+          matchScore: rec.score,
+          matchBreakdown: rec.breakdown,
+          relevanceInsights: rec.skillMatch?.feedback?.[0] || "Good match based on your background."
+        };
+      }).filter(Boolean);
+      
+      return {
+        success: true,
+        message: "Personalized matches found by SkillSphere AI",
+        jobs: jobsWithDetails,
+        hasResume: true
+      };
+    }
+  }
+
   // 2. Optimization: Pre-filter jobs to reduce load on the heavy AI engine
   const query = { status: "open" };
 
@@ -268,7 +295,15 @@ export const getJobRecommendations = async (user) => {
   }
 
   // Fetch only the relevant subset of jobs (limit to 100 at DB level)
-  const openJobs = await JobPosting.find(query).limit(100);
+  let openJobs = await JobPosting.find(query).limit(100);
+
+  // Fallback: If no jobs strictly match the skills/keywords, just fetch the latest 10 open jobs
+  // This ensures the AI always has something to evaluate and recommend
+  if (openJobs.length === 0) {
+    openJobs = await JobPosting.find({ status: "open" })
+      .sort({ createdAt: -1 })
+      .limit(10);
+  }
 
   // 3. Perform matching and save result using matching service (ranks to top 20 and runs AI evaluation)
   const matchResult = await matchingService.evaluateMatches(user, resume, openJobs);
