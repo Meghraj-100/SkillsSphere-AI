@@ -185,12 +185,20 @@ const globalErrorHandler = (err, req, res, next) => {
       });
     } else {
       logger.error("ERROR 💥", error);
-      res.status(500).json({
+
+      // Standardize non-operational error payload shape for frontend reliability.
+      // Frontend may expect `errors` and `statusCode` consistently.
+      const statusCode = 500;
+
+      res.status(statusCode).json({
         success: false,
         status: "error",
+        statusCode,
         message: "Something went very wrong!",
+        errors: {},
       });
     }
+
   }
 };
 
