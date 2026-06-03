@@ -1,12 +1,5 @@
 import express from "express";
-import { getFrontendUrl } from "../../config/env.js";
-import {
-  buildGoogleAuthUrl,
-  GOOGLE_OAUTH_NOT_CONFIGURED_MESSAGE,
-  isGoogleOAuthConfigured,
-} from "../../config/googleOAuth.js";
 import { protect } from "../../middleware/authMiddleware.js";
-import logger from "../../utils/logger.js";
 
 import {
   authRateLimiter,
@@ -14,14 +7,13 @@ import {
 } from "../../middleware/rateLimiter.js";
 import {
   exchangeOAuthCode,
-  DEFAULT_OAUTH_REDIRECT_PATH,
   forgotPassword,
   getMe,
   googleLogin,
   googleOAuthCallback,
+  initiateGoogleOAuth,
   login,
   logout,
-  normalizeOAuthRedirectPath,
   register,
   resendOTP,
   resetPassword,
@@ -46,34 +38,7 @@ const router = express.Router();
 router.get("/me", protect, getMe);
 
 // Initiate Google OAuth
-router.get("/google", (req, res) => {
-  const frontendOrigin = new URL(getFrontendUrl()).origin;
-  const requestedRedirect = req.query.redirect;
-  const role = req.query.role;
-  const redirectPath =
-    typeof requestedRedirect === "string" && requestedRedirect.length > 0
-      ? normalizeOAuthRedirectPath(requestedRedirect)
-      : DEFAULT_OAUTH_REDIRECT_PATH;
-  const redirectTarget = `${frontendOrigin}${redirectPath}`;
-
-  const stateObj = { redirect: redirectPath };
-  if (role) {
-    stateObj.role = role;
-  }
-
-  const state = encodeURIComponent(
-    Buffer.from(JSON.stringify(stateObj), "utf8").toString("base64"),
-  );
-
-  if (!isGoogleOAuthConfigured()) {
-    logger.error("[AUTH] Google OAuth env vars are missing in server/.env");
-    return res.redirect(
-      `${redirectTarget}?error=${encodeURIComponent(GOOGLE_OAUTH_NOT_CONFIGURED_MESSAGE)}`,
-    );
-  }
-
-  res.redirect(buildGoogleAuthUrl({ state }));
-});
+router.get("/google", initiateGoogleOAuth);
 
 // Callback from Google
 router.get("/google/callback", googleOAuthCallback);
