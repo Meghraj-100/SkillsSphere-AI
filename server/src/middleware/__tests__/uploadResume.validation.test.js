@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "fs/promises";
 import path from "path";
 import {
+  fileFilter,
   validateAndPersistResumeFile,
   persistValidatedResumeFile,
   removeUploadedFile,
@@ -31,6 +32,35 @@ const runMiddleware = (middleware, req) =>
     });
   });
 
+const runFileFilter = (file) =>
+  new Promise((resolve) => {
+    fileFilter(null, file, (error, accepted) => {
+      resolve({ error, accepted });
+    });
+  });
+
+describe("fileFilter", () => {
+  it("rejects allowed extensions when the mimetype is incorrect", async () => {
+    const result = await runFileFilter({
+      originalname: "resume.docx",
+      mimetype: "application/octet-stream",
+    });
+
+    assert.equal(result.accepted, false);
+    assert.equal(result.error?.code, "INVALID_FILE_TYPE");
+  });
+
+  it("rejects files with unsupported extensions", async () => {
+    const result = await runFileFilter({
+      originalname: "resume.exe",
+      mimetype: "application/octet-stream",
+    });
+
+    assert.equal(result.accepted, false);
+    assert.equal(result.error?.code, "INVALID_FILE_TYPE");
+  });
+});
+
 describe("validateAndPersistResumeFile middleware", () => {
   it("returns 400 and never writes spoofed pdf to uploads", async () => {
     const before = new Set(await fs.readdir(uploadDirectory).catch(() => []));
@@ -46,7 +76,7 @@ describe("validateAndPersistResumeFile middleware", () => {
 
     const result = await runMiddleware(validateAndPersistResumeFile, req);
 
-    assert.equal(result.statusCode, 400);
+    assert.equal(result.statusCode, 415);
     assert.equal(result.body.success, false);
     assert.match(result.body.message, /not a valid PDF/i);
     assert.equal(req.file, undefined);

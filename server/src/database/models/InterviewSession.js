@@ -103,6 +103,11 @@ const interviewSessionSchema = new mongoose.Schema(
       default: "medium",
     },
 
+    persona: {
+      type: String,
+      default: "friendly",
+    },
+
     status: {
       type: String,
       enum: ["in_progress", "completed", "abandoned"],
@@ -162,7 +167,7 @@ const interviewSessionSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true }
+  { timestamps: true, optimisticConcurrency: true }
 );
 
 // Index for fetching user's interview history efficiently

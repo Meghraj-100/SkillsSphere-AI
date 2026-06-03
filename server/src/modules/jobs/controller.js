@@ -2,6 +2,7 @@ import JobPosting from "../../database/models/JobPosting.js";
 import {
   getAllJobs,
   getJobRecommendations,
+  getRankedCandidatesForJob,
   getRecruiterAnalytics as getAnalyticsData,
   applyToJob as applyToJobService,
   getJobApplications as getJobAppsService,
@@ -13,6 +14,7 @@ import {
   deleteJob as deleteJobService,
   getSkillTrends as getSkillTrendsService,
   updateApplicationStatus as updateApplicationStatusService,
+  updateStudentApplicationStatusService,
 } from "./service.js";
 import AppError from "../../utils/AppError.js";
 import asyncHandler from "../../utils/asyncHandler.js";
@@ -45,10 +47,10 @@ const sanitizeCSVField = (str) => {
   return `"${cleaned}"`;
 };
 
-const invalidateAnalyticsCache = (recruiterId) => {
+const invalidateAnalyticsCache = async (recruiterId) => {
   if (!redisClient || !redisClient.isReady) return;
   try {
-    redisClient.del(["global_skill_trends", `recruiter_analytics_${recruiterId}`]);
+    await redisClient.del(["global_skill_trends", `recruiter_analytics_${recruiterId}`]);
   } catch {
     // Redis unavailable — skip invalidation
   }
@@ -125,7 +127,7 @@ export const createJobPosting = asyncHandler(async (req, res) => {
 
   // Invalidate jobs cache
   await invalidateCacheByPrefix("jobs");
-  invalidateAnalyticsCache(req.user._id.toString());
+  await invalidateAnalyticsCache(req.user._id.toString());
 
   res.status(201).json({
     success: true,
@@ -189,7 +191,7 @@ export const getJobPostingById = asyncHandler(async (req, res) => {
  */
 export const updateJobPosting = asyncHandler(async (req, res) => {
   const updatedJob = await updateJobService(req.params.id, req.body, req.user._id);
-  invalidateAnalyticsCache(req.user._id.toString());
+  await invalidateAnalyticsCache(req.user._id.toString());
   res.status(200).json({
     success: true,
     job: updatedJob,
@@ -203,7 +205,7 @@ export const updateJobPosting = asyncHandler(async (req, res) => {
  */
 export const deleteJobPosting = asyncHandler(async (req, res) => {
   await deleteJobService(req.params.id, req.user._id);
-  invalidateAnalyticsCache(req.user._id.toString());
+  await invalidateAnalyticsCache(req.user._id.toString());
   res.status(200).json({
     success: true,
     message: "Job deleted successfully",
@@ -296,6 +298,10 @@ export const applyToJobPosting = asyncHandler(async (req, res) => {
  * @access  Private (Recruiters only)
  */
 export const getApplications = asyncHandler(async (req, res) => {
+  if (req.query.view === "insights") {
+    return getRankedCandidates(req, res);
+  }
+
   const result = await getJobAppsService(req.params.id, req.user._id, {
     ...req.query,
     page: Math.max(1, parseInt(req.query.page) || 1),
@@ -312,6 +318,20 @@ export const getApplications = asyncHandler(async (req, res) => {
   });
 });
 
+export const getRankedCandidates = asyncHandler(async (req, res) => {
+  const result = await getRankedCandidatesForJob(req.params.id, req.user._id, req.query);
+
+  return res.status(200).json({
+    success: true,
+    job: result.job,
+    candidates: result.candidates,
+    totalCount: result.totalCount,
+    totalPages: result.totalPages,
+    currentPage: result.currentPage,
+    summary: result.summary,
+  });
+});
+
 /**
  * @desc    Export all applications for a job posting as CSV
  * @route   GET /api/jobs/:id/applications/export
@@ -319,7 +339,8 @@ export const getApplications = asyncHandler(async (req, res) => {
  */
 export const exportApplicationsToCSV = asyncHandler(async (req, res) => {
   const { status, sortBy } = req.query || {};
-  const applications = await getJobAppsService(req.params.id, req.user._id, status, sortBy);
+  const result = await getJobAppsService(req.params.id, req.user._id, status, sortBy);
+  const applications = result.applications || result;
 
   // Construct CSV headers
   const headers = [
@@ -456,6 +477,31 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: `Application status updated to ${status}`,
+    application,
+  });
+});
+
+/**
+ * @desc    Update the student's personal CRM status for a job application
+ * @route   PATCH /api/jobs/applications/:id/student-status
+ * @access  Private (Students only)
+ */
+export const updateStudentApplicationStatus = asyncHandler(async (req, res) => {
+  const { studentStatus } = req.body;
+
+  if (studentStatus === undefined) {
+    throw new AppError("studentStatus is required", 400);
+  }
+
+  const application = await updateStudentApplicationStatusService(
+    req.params.id,
+    req.user._id,
+    studentStatus
+  );
+
+  res.status(200).json({
+    success: true,
+    message: `Student tracking status updated`,
     application,
   });
 });
