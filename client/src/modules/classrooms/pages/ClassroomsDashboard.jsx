@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { MonitorPlay, ShieldAlert, ArrowLeft, Users, Monitor } from "lucide-react";
+import { MonitorPlay, ShieldAlert, ArrowLeft, Users, Monitor, Sparkles } from "lucide-react";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 
 // Hooks
@@ -29,41 +29,42 @@ export default function ClassroomsDashboard() {
       <Navbar />
       <div className="flex-1 max-w-6xl mx-auto w-full pt-24 pb-16 px-6 relative">
         
-        {/* Floating Icons Background */}
-        <div className="absolute top-32 left-[0%] hidden lg:flex items-center justify-center w-16 h-16 bg-white dark:bg-surface rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-white/5 opacity-80 pointer-events-none z-0 hover:opacity-100 transition-opacity">
-          <Users size={28} className="text-purple-500" />
-        </div>
-        <div className="absolute top-44 right-[0%] hidden lg:flex items-center justify-center w-16 h-16 bg-white dark:bg-surface rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-white/5 opacity-80 pointer-events-none z-0 hover:opacity-100 transition-opacity">
-          <Monitor size={28} className="text-emerald-500" />
-        </div>
+        {/* Floating Icons Background (managed in hero section now) */}
 
         {/* Header section */}
         <div className="w-full mx-auto relative z-10">
-          <div className="mb-6">
+          {/* Back to Dashboard Link */}
+          <div className="py-6">
             <Link 
               to="/dashboard" 
-              className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
             >
               <ArrowLeft size={16} />
               Back to Dashboard
             </Link>
           </div>
           
-          <div className="mb-12 text-center max-w-3xl mx-auto relative pt-4">
-            <div className="relative flex flex-col items-center">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold tracking-wider uppercase mb-6 border border-blue-100 dark:border-blue-800/50">
-                <MonitorPlay size={14} /> COLLABORATIVE LEARNING
-              </div>
+          {/* Hero Section */}
+          <div className="text-center space-y-4 mb-10 relative">
+            <div className="hidden md:flex absolute top-4 left-4 xl:left-8 w-14 h-14 bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 rounded-2xl items-center justify-center shadow-sm transform -rotate-3 hover:rotate-0 transition-transform">
+               <Users className="w-6 h-6 text-purple-600" />
+            </div>
+            <div className="hidden md:flex absolute top-8 right-4 xl:right-8 w-14 h-14 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl items-center justify-center shadow-sm transform rotate-3 hover:rotate-0 transition-transform">
+               <Monitor className="w-6 h-6 text-emerald-600" />
             </div>
 
-            <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tight leading-tight">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-400">Live</span> Classrooms
+            <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 shadow-sm text-[11px] font-bold text-purple-600 dark:text-purple-400 mx-auto tracking-wide uppercase">
+              <Sparkles size={12} className="text-purple-500" /> COLLABORATIVE LEARNING
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+              <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-teal-400 bg-clip-text text-transparent">Live</span> Classrooms
             </h1>
-            <p className="text-lg text-gray-600 dark:text-slate-400 font-medium">
+            
+            <p className="text-gray-500 dark:text-gray-400 text-[15px] max-w-2xl mx-auto font-medium">
               {isTutor 
                 ? "Host live interactive lessons, chat with peers, and share your screen in real-time."
-                : "Enter unique session IDs provided by your tutor to join active learning rooms."
-              }
+                : "Join live interactive lessons, chat with peers, and learn in real-time."}
             </p>
           </div>
         </div>

@@ -16,6 +16,10 @@ import {
   Clock,
   Loader2,
   ArrowLeft,
+  Video,
+  Play,
+  FileJson,
+  Sparkles
 } from "lucide-react";
 import Navbar from "../../../shared/components/Navbar";
 import Footer from "../../../shared/components/Footer";
@@ -158,7 +162,7 @@ const InterviewResults = () => {
         <div className="w-full max-w-[900px] relative z-10 flex flex-col gap-6">
           
           {/* Back to Dashboard Link */}
-          <div className="py-6 mt-[-1rem]">
+          <div className="py-6">
             <Link 
               to="/dashboard" 
               className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
@@ -168,10 +172,21 @@ const InterviewResults = () => {
             </Link>
           </div>
 
-          {/* Header */}
-          <div className="text-center animate-[fadeIn_0.8s_ease-out] relative pt-4">
-            <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight mb-6 drop-shadow-sm leading-tight">
-              <span className="text-blue-600 dark:text-blue-500">Interview</span> Results
+          {/* Hero Section */}
+          <div className="text-center space-y-4 mb-10 relative">
+            <div className="hidden md:flex absolute top-4 left-4 xl:left-8 w-14 h-14 bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 rounded-2xl items-center justify-center shadow-sm transform -rotate-3 hover:rotate-0 transition-transform">
+               <FileJson className="w-6 h-6 text-purple-600" />
+            </div>
+            <div className="hidden md:flex absolute top-8 right-4 xl:right-8 w-14 h-14 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl items-center justify-center shadow-sm transform rotate-3 hover:rotate-0 transition-transform">
+               <Brain className="w-6 h-6 text-emerald-600" />
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 shadow-sm text-[11px] font-bold text-purple-600 dark:text-purple-400 mx-auto tracking-wide uppercase">
+              <Sparkles size={12} className="text-purple-500" /> COGNITIVE EVALUATION REPORT
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+              <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-teal-400 bg-clip-text text-transparent">Interview</span> Results
             </h1>
         <div className="flex justify-center gap-4 mt-2 flex-wrap">
           <span className="py-1 px-3 rounded-full text-xs font-semibold bg-gradient-to-br from-indigo-500 to-purple-500 text-white">

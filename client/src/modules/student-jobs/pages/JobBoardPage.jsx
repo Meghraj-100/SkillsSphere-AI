@@ -120,21 +120,22 @@ const JobBoardPage = () => {
 
           {/* Hero Section */}
           <div className="text-center space-y-4 mb-10 relative">
-            <div className="hidden md:flex absolute top-4 left-[10%] xl:left-[15%] w-16 h-16 bg-white dark:bg-surface border-none rounded-3xl items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-white/5 transform -rotate-3 hover:rotate-0 transition-transform">
-               <Briefcase className="w-7 h-7 text-purple-600" />
+            <div className="hidden md:flex absolute top-4 left-4 xl:left-8 w-14 h-14 bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 rounded-2xl items-center justify-center shadow-sm transform -rotate-3 hover:rotate-0 transition-transform">
+               <Briefcase className="w-6 h-6 text-purple-600" />
             </div>
-            <div className="hidden md:flex absolute top-8 right-[10%] xl:right-[15%] w-16 h-16 bg-white dark:bg-surface border-none rounded-3xl items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-white/5 transform rotate-3 hover:rotate-0 transition-transform">
-               <TrendingUp className="w-7 h-7 text-emerald-500" />
+            <div className="hidden md:flex absolute top-8 right-4 xl:right-8 w-14 h-14 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl items-center justify-center shadow-sm transform rotate-3 hover:rotate-0 transition-transform">
+               <TrendingUp className="w-6 h-6 text-emerald-600" />
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 shadow-sm text-[11px] font-bold text-purple-600 dark:text-purple-400 mx-auto tracking-wide uppercase">
               <Sparkles size={12} className="text-purple-500" /> Premium Opportunities
             </div>
             
-            <h1 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
               <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-teal-400 bg-clip-text text-transparent">Job</span> Board
             </h1>
-            <p className="text-gray-600 dark:text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+            
+            <p className="text-gray-500 dark:text-gray-400 text-[15px] max-w-2xl mx-auto font-medium">
               Browse through curated job listings from top companies looking for talent like you.
             </p>
           </div>
