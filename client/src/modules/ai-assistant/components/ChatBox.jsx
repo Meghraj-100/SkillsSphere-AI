@@ -1,5 +1,9 @@
 import { useState } from "react";
 import MessageBubble from "./MessageBubble";
+import { apiRequest } from "../../../services/apiClient";
+
+const TOKEN_KEY = "skillssphere.auth.token";
+const getToken = () => localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
 
 const ChatBox = () => {
   const [messages, setMessages] = useState([
@@ -11,15 +15,11 @@ const ChatBox = () => {
   // 🔥 NEW: backend call function
   const sendMessageToBackend = async (message) => {
     try {
-      const res = await fetch("http://localhost:5000/api/chat", {
+      const data = await apiRequest("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message }),
+        body: { message },
+        token: getToken(),
       });
-
-      const data = await res.json();
       return data.reply;
     } catch (error) {
       console.error(error);

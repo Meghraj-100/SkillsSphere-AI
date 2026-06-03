@@ -30,7 +30,7 @@ import { logEvaluatorConfig } from "./src/config/evaluatorConfig.js";
 import { setIO } from "./src/utils/socketIO.js";
 import { connectRedis } from "./src/config/redis.js";
 import { initNotificationSockets } from "./src/modules/notifications/socket.js";
-import { verifySocketToken } from "./src/middleware/authMiddleware.js";
+import { protect, verifySocketToken } from "./src/middleware/authMiddleware.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./src/config/swaggerConfig.js";
 import analyticsRoutes from "./src/modules/analytics/routes.js";
@@ -99,7 +99,7 @@ app.get("/health", (req, res) => {
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.post("/api/chat", async (req, res) => {
+app.post("/api/chat", protect, async (req, res) => {
   try {
     const { message } = req.body;
     if (!message) {
