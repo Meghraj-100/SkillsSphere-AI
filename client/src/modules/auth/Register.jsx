@@ -128,8 +128,8 @@ const Register = () => {
     if (registerUser.fulfilled.match(resultAction)) {
       const isAutoVerified = resultAction.payload?.user?.isVerified;
       if (isAutoVerified) {
-        success("Account created and verified! You can now log in.");
-        navigate("/login", { replace: true });
+        success("Account created and verified! Let's complete your profile.");
+        navigate("/dashboard", { replace: true });
       } else {
         success("Account created. Check your email for the verification code.");
         navigate(`/verify-email?email=${encodeURIComponent(email)}`, {
