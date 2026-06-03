@@ -10,7 +10,9 @@ import {
   Briefcase, 
   ChevronRight, 
   ArrowLeft,
-  Loader2 
+  Loader2,
+  Sparkles,
+  TrendingUp
 } from "lucide-react";
 import CoverLetterModal from "../../../shared/components/CoverLetterModal";
 import { generateCoverLetter } from "../../resume-analyzer/services/resumeService";
@@ -90,21 +92,42 @@ const ResumeAnalyzerHistoryPage = () => {
       </div>
 
       <main className="container mx-auto px-4 max-w-5xl z-10 flex-grow py-8 relative">
-        {/* Header */}
-        <div className="mb-8 animate-in slide-in-from-bottom-4 duration-500">
-          <Link 
-            to="/dashboard" 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10 text-sm font-medium text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-all backdrop-blur-md shadow-sm mb-8"
-          >
-            <ArrowLeft size={16} />
-            Back to Dashboard
-          </Link>
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
-            Resume Analyzer <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-teal-400 bg-clip-text text-transparent">History</span>
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-slate-400 text-lg">
-            View, manage, and reuse your previously generated AI cover letters and resume analyses.
-          </p>
+        <div className="w-full relative z-10">
+          
+          {/* Back to Dashboard Link */}
+          <div className="py-6">
+            <Link 
+              to="/dashboard" 
+              className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+            >
+              <ArrowLeft size={16} />
+              Back to Dashboard
+            </Link>
+          </div>
+
+          {/* Hero Section (Globally Visible) */}
+          <div className="text-center space-y-4 mb-10 relative">
+            {/* Floating Icons (Visible mainly on md+ screens) */}
+            <div className="hidden md:flex absolute top-4 left-4 xl:left-8 w-14 h-14 bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 rounded-2xl items-center justify-center shadow-sm transform -rotate-3 hover:rotate-0 transition-transform">
+               <FileText className="w-6 h-6 text-purple-600" />
+            </div>
+            <div className="hidden md:flex absolute top-8 right-4 xl:right-8 w-14 h-14 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl items-center justify-center shadow-sm transform rotate-3 hover:rotate-0 transition-transform">
+               <TrendingUp className="w-6 h-6 text-emerald-600" />
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 shadow-sm text-[11px] font-bold text-purple-600 dark:text-purple-400 mx-auto tracking-wide uppercase">
+              <Sparkles size={12} className="text-purple-500" /> Advanced AI Intelligence Active
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+              <span className="text-blue-600 dark:text-blue-500">Resume Analyzer</span> History
+            </h1>
+            
+            <p className="text-gray-500 dark:text-gray-400 text-[15px] max-w-2xl mx-auto font-medium">
+              View, manage, and reuse your previously generated AI cover letters
+              <br className="hidden sm:block" /> and resume analyses.
+            </p>
+          </div>
         </div>
 
         {/* Content */}
