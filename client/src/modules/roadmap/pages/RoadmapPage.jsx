@@ -68,7 +68,8 @@ const RoadmapPage = () => {
     return (
       <div className="min-h-screen bg-gray-50/50 dark:bg-[#09090b] text-gray-900 dark:text-text-main font-sans pt-20 flex flex-col">
         <Navbar />
-        <main className="flex-grow flex flex-col items-center justify-center px-4 pb-12 animate-fade-in relative overflow-hidden">
+        
+        <main className="flex-grow flex flex-col items-center justify-start px-4 sm:px-6 lg:px-8 pb-12 animate-fade-in relative overflow-hidden">
           {/* Background glow effects */}
           <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
             <div className="absolute -top-[10%] -left-[5%] w-[40%] h-[40%] rounded-full bg-blue-100/40 dark:bg-blue-900/10 blur-[120px]" />
@@ -76,17 +77,58 @@ const RoadmapPage = () => {
             <div className="absolute top-[5%] right-[20%] w-[35%] h-[35%] rounded-full bg-teal-50/40 dark:bg-teal-900/10 blur-[100px]" />
           </div>
 
-          <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-2xl mx-auto">
-            <div className="p-6 bg-indigo-50 dark:bg-indigo-500/10 rounded-full mb-6 border border-indigo-100 dark:border-indigo-500/20">
-              <Target className="w-16 h-16 text-indigo-500" />
+          <div className="w-full max-w-[1200px] relative z-10">
+            {/* Back to Dashboard Link */}
+            <div className="py-6">
+              <Link 
+                to="/dashboard" 
+                className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+              >
+                <ArrowLeft size={16} />
+                Back to Dashboard
+              </Link>
             </div>
-            <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight mb-4">No Active Roadmap</h1>
-            <p className="text-gray-500 dark:text-gray-400 text-[15px] max-w-md mb-8 font-medium">
-              Analyze your resume first to generate a personalized learning roadmap tailored to your target role.
-            </p>
-            <a href="/resume-analyzer" className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-teal-500 text-white rounded-xl font-bold hover:from-indigo-500 hover:to-teal-400 shadow-lg hover:shadow-indigo-500/25 transition-all">
-              Analyze Resume
-            </a>
+
+            {/* Hero Section */}
+            <div className="text-center space-y-4 mb-10 relative">
+              <div className="hidden md:flex absolute top-4 left-4 xl:left-8 w-14 h-14 bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 rounded-2xl items-center justify-center shadow-sm transform -rotate-3 hover:rotate-0 transition-transform">
+                 <Rocket className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="hidden md:flex absolute top-8 right-4 xl:right-8 w-14 h-14 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl items-center justify-center shadow-sm transform rotate-3 hover:rotate-0 transition-transform">
+                 <Target className="w-6 h-6 text-emerald-600" />
+              </div>
+
+              <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 shadow-sm text-[11px] font-bold text-purple-600 dark:text-purple-400 mx-auto tracking-wide uppercase">
+                <Sparkles size={12} className="text-purple-500" /> Advanced AI Roadmap Active
+              </div>
+              
+              <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+                <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-teal-400 bg-clip-text text-transparent">Learning</span> Roadmap
+              </h1>
+              
+              <p className="text-gray-500 dark:text-gray-400 text-[15px] max-w-2xl mx-auto font-medium">
+                Your personalized AI-generated learning path. Complete milestones to 
+                <br className="hidden sm:block" /> achieve job readiness and earn achievements.
+              </p>
+            </div>
+            
+            {/* Empty State Card */}
+            <div className="max-w-3xl mx-auto flex flex-col items-center justify-center py-16 text-center bg-white dark:bg-slate-900/30 rounded-3xl border border-gray-100 dark:border-white/5 shadow-xl mt-8">
+              <div className="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center mb-6">
+                <Target className="w-10 h-10 text-indigo-500" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">No Active Roadmap</h3>
+              <p className="text-gray-500 dark:text-slate-400 max-w-md mx-auto mb-8">
+                Analyze your resume first to generate a personalized learning roadmap tailored to your target role.
+              </p>
+              <Link 
+                to="/resume-analyzer"
+                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2 hover:from-indigo-500 hover:to-teal-400"
+              >
+                <TrendingUp size={18} />
+                Analyze Resume
+              </Link>
+            </div>
           </div>
         </main>
         <Footer />
