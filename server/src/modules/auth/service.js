@@ -92,6 +92,8 @@ export const registerUserAndIssueToken = async ({ name, email, password, role })
       name: user.get('name'),
       email: user.get('email'),
       isVerified: skipVerification,
+      isOnboarded: user.isOnboarded,
+      profilePic: user.profilePic,
     },
   };
 };
@@ -251,7 +253,9 @@ export const loginUser = async (email, password) => {
       id: user._id.toString(),
       name: user.get('name'),
       email: user.get('email'),
-      role: user.role
+      role: user.role,
+      isOnboarded: user.isOnboarded,
+      profilePic: user.profilePic,
     }
   };
 };
@@ -293,6 +297,8 @@ export const exchangeAuthCodeForToken = async (code) => {
       name: user.get('name'),
       email: user.get('email'),
       role: user.role,
+      isOnboarded: user.isOnboarded,
+      profilePic: user.profilePic,
     },
   };
 };

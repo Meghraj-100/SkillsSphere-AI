@@ -213,6 +213,8 @@ export const googleLogin = asyncHandler(async (req, res, next) => {
       name: user.get('name'),
       email: user.get('email'),
       role: user.role,
+      isOnboarded: user.isOnboarded,
+      profilePic: user.profilePic,
     },
   });
 });

@@ -21,6 +21,7 @@ const OAuthCallback = lazy(() => import("../modules/auth/OAuthCallback"));
 const ResetPassword = lazy(() => import("../modules/auth/ResetPassword"));
 const ForgotPassword = lazy(() => import("../modules/auth/ForgotPassword"));
 const VerifyEmail = lazy(() => import("../modules/auth/VerifyEmail"));
+const OnboardingPage = lazy(() => import("../modules/auth/OnboardingPage"));
 const ProfilePage = lazy(() => import("../modules/profile/ProfilePage"));
 const RecruiterJobsPage = lazy(() => import("../modules/recruiter-jobs/pages/RecruiterJobsPage"));
 const RecruiterAnalyticsPage = lazy(() => import("../modules/recruiter-jobs/pages/RecruiterAnalyticsPage"));
@@ -149,6 +150,14 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route 
+          path="/onboarding" 
+          element={
+            <ProtectedRoute>
+              <OnboardingPage />
+            </ProtectedRoute>
+          } 
+        />
         <Route
           path="/recruiter/jobs"
           element={
