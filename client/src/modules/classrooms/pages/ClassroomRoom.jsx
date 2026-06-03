@@ -94,25 +94,27 @@ export default function ClassroomRoom() {
         s.on("room-participants", (participants) => {
           const peersArr = [];
           participants.forEach((p) => {
-            activeSocketIdsRef.current.add(p.socketId);
-            const peer = createPeer(p.socketId, s.id, stream, user);
-            peersRef.current.push({
-              peerId: p.socketId,
-              peer,
-              user: p.user,
-              isHandRaised: false,
-              isMuted: false,
-            });
-            peersArr.push({
-              peerId: p.socketId,
-              peer,
-              user: p.user,
-              stream: null, // Will be populated on peer 'stream' event
-              isHandRaised: false,
-              isMuted: false,
-              isVideoOff: false,
-              isScreenShare: false,
-            });
+            if (p.socketId !== s.id) {
+              activeSocketIdsRef.current.add(p.socketId);
+              const peer = createPeer(p.socketId, s.id, stream, user);
+              peersRef.current.push({
+                peerId: p.socketId,
+                peer,
+                user: p.user,
+                isHandRaised: false,
+                isMuted: false,
+              });
+              peersArr.push({
+                peerId: p.socketId,
+                peer,
+                user: p.user,
+                stream: null,
+                isHandRaised: false,
+                isMuted: false,
+                isVideoOff: false,
+                isScreenShare: false,
+              });
+            }
           });
           setPeers(peersArr);
         });
@@ -128,7 +130,20 @@ export default function ClassroomRoom() {
         s.on("user-joined", (payload) => {
           logger.debug("User joined", payload);
           activeSocketIdsRef.current.add(payload.socketId);
-          // We don't initiate here. We wait for their offer.
+          
+          // Immediately add them to members list so they show up, even before WebRTC connects
+          const newPeerObj = {
+            peerId: payload.socketId,
+            peer: null,
+            user: payload.user,
+            stream: null,
+            isHandRaised: false,
+            isMuted: false,
+            isVideoOff: false,
+            isScreenShare: false,
+          };
+          peersRef.current.push(newPeerObj);
+          setPeers((prev) => [...prev, newPeerObj]);
         });
 
         // Receiving an offer
@@ -148,19 +163,25 @@ export default function ClassroomRoom() {
             s,
           );
 
-          const newPeerObj = {
-            peerId: payload.callerSocketId,
-            peer,
-            user: payload.callerUser,
-            stream: null,
-            isHandRaised: false,
-            isMuted: false,
-            isVideoOff: false,
-            isScreenShare: false,
-          };
-
-          peersRef.current.push(newPeerObj);
-          setPeers((prev) => [...prev, newPeerObj]);
+          // Update existing placeholder or push new if missing
+          const existingIdx = peersRef.current.findIndex(p => p.peerId === payload.callerSocketId);
+          if (existingIdx >= 0) {
+            peersRef.current[existingIdx].peer = peer;
+            setPeers([...peersRef.current]);
+          } else {
+            const newPeerObj = {
+              peerId: payload.callerSocketId,
+              peer,
+              user: payload.callerUser,
+              stream: null,
+              isHandRaised: false,
+              isMuted: false,
+              isVideoOff: false,
+              isScreenShare: false,
+            };
+            peersRef.current.push(newPeerObj);
+            setPeers((prev) => [...prev, newPeerObj]);
+          }
         });
 
         // Receiving an answer
