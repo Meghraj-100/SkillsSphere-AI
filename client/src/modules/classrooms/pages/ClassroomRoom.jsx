@@ -11,6 +11,8 @@ import {
   Users,
   Video,
   VideoOff,
+  ArrowLeft,
+  Copy,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
@@ -436,8 +438,39 @@ export default function ClassroomRoom() {
     navigate("/classrooms");
   };
 
+  const copyRoomId = () => {
+    navigator.clipboard.writeText(roomId);
+    toast.success("Room ID copied to clipboard!");
+  };
+
   return (
-    <div className="h-screen bg-white dark:bg-[#0B0F19] text-slate-900 dark:text-white flex flex-col pt-16 font-sans">
+    <div className="h-screen bg-white dark:bg-[#0B0F19] text-slate-900 dark:text-white flex flex-col font-sans">
+      {/* Top Header */}
+      <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md z-20">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate("/classrooms")}
+            className="flex items-center space-x-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
+          >
+            <ArrowLeft size={16} />
+            <span>Back to Dashboard</span>
+          </button>
+        </div>
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center bg-gray-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 border border-gray-200 dark:border-slate-700">
+            <span className="text-xs font-semibold text-slate-500 uppercase mr-2">Room ID:</span>
+            <span className="text-sm font-bold text-slate-900 dark:text-white font-mono">{roomId}</span>
+          </div>
+          <button
+            onClick={copyRoomId}
+            className="p-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors shadow-sm"
+            title="Copy Room ID"
+          >
+            <Copy size={16} />
+          </button>
+        </div>
+      </div>
+
       <div className="flex-1 flex overflow-hidden">
         {/* Main Video Area */}
         <div className="flex-1 p-6 flex flex-col min-h-0 gap-4">
