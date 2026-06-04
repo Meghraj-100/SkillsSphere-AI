@@ -125,7 +125,7 @@ export const verifyUserEmail = async (email, otp) => {
   user.otpAttempts = 0;
   await user.save();
 
-  return { success: true, message: "Email verified successfully" };
+  return { user };
 };
 
 // 🔑 Forgot password

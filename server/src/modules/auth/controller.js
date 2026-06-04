@@ -113,11 +113,36 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
     return next(new AppError("Invalid verification data", 400));
   }
 
-  const result = await verifyUserEmail(
+  const { user } = await verifyUserEmail(
     validation.data.email,
     validation.data.otp,
   );
-  return res.status(200).json(result);
+
+  const token = jwt.sign(
+    {
+      userId: user._id.toString(),
+      role: user.role,
+      jti: crypto.randomUUID(),
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    },
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Email verified successfully",
+    token,
+    user: {
+      id: user._id.toString(),
+      name: user.get("name"),
+      email: user.get("email"),
+      role: user.role,
+      isOnboarded: user.isOnboarded,
+      profilePic: user.profilePic,
+    },
+  });
 });
 
 // 🔑 Forgot Password

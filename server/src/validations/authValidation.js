@@ -37,12 +37,14 @@ export const registerSchema = z.object({
     .toLowerCase(),
   password: passwordSchema,
   role: z
-    .string({ required_error: "Role is required" })
+    .string()
     .trim()
     .toLowerCase()
     .refine((value) => allowedRoles.includes(value), {
       message: "Role must be one of: student, tutor, recruiter"
     })
+    .optional()
+    .default("student")
 });
 
 export const verifyEmailSchema = z.object({
