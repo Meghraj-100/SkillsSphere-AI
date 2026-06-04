@@ -52,7 +52,7 @@ import { initRoadmapSockets } from "./src/modules/roadmap/socket.js";
 import userRoutes from "./src/modules/users/routes.js";
 import aiAssistantRoutes from "./src/modules/ai-assistant/routes.js";
 import { setIO } from "./src/utils/socketIO.js";
-import { protect, verifySocketToken } from "./src/middleware/authMiddleware.js";
+import { protect } from "./src/middleware/authMiddleware.js";
 import swaggerSpec from "./src/config/swaggerConfig.js";
 import attachSocketRateLimiter from "./src/middleware/socketRateLimiter.js";
 
