@@ -32,15 +32,17 @@ export default function JobMatcherPage() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const ITEMS_PER_PAGE = 6;
+  const [sortBy, setSortBy] = useState("score");
+  const [limit, setLimit] = useState(20);
 
   useEffect(() => {
-    if (refreshTrigger === 0) return;
+    if (!token) return;
 
     const fetchRecommendations = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await getRecommendations(token);
+        const data = await getRecommendations(token, { sortBy, limit });
         setJobs(data.jobs || []);
         setHasResume(data.hasResume !== false);
         setMessage(data.message || "");
@@ -60,7 +62,7 @@ export default function JobMatcherPage() {
     };
 
     fetchRecommendations();
-  }, [token, refreshTrigger]);
+  }, [token, refreshTrigger, sortBy, limit]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -226,7 +228,7 @@ export default function JobMatcherPage() {
         </div>
 
         {/* Results Section */}
-        {refreshTrigger === 0 && !loading && !error ? null : loading ? (
+        {!hasResume && !loading && !error ? null : loading ? (
           <div className="min-h-[400px] flex items-center justify-center bg-gray-100 dark:bg-slate-900/30 rounded-2xl border border-gray-200 dark:border-white/5 backdrop-blur-sm">
             <LoadingState message="Analyzing your profile for the best matches..." />
           </div>
@@ -261,16 +263,58 @@ export default function JobMatcherPage() {
         ) : (
           /* Recommendations found */
           <div>
-            <div className="mb-6 flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Sparkles size={20} className="text-blue-400" />
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500/10 rounded-lg">
+                  <Sparkles size={20} className="text-blue-400" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-slate-200">
+                  Recommended for You
+                  <span className="ml-2 text-sm font-normal text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800/50 px-2 py-0.5 rounded-full border border-gray-300 dark:border-white/5">
+                    {jobs.length}
+                  </span>
+                </h2>
               </div>
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-slate-200">
-                Recommended for You
-                <span className="ml-2 text-sm font-normal text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800/50 px-2 py-0.5 rounded-full border border-gray-300 dark:border-white/5">
-                  {jobs.length}
-                </span>
-              </h2>
+
+              {/* Sorting and Limiting Controls */}
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Sort By:
+                  </span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-700 dark:text-slate-200"
+                  >
+                    <option value="score">Best Match</option>
+                    <option value="salary">Highest Salary</option>
+                    <option value="date">Most Recent</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Limit:
+                  </span>
+                  <select
+                    value={limit}
+                    onChange={(e) => {
+                      setLimit(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-700 dark:text-slate-200"
+                  >
+                    <option value="5">5 Matches</option>
+                    <option value="10">10 Matches</option>
+                    <option value="20">20 Matches</option>
+                    <option value="50">50 Matches</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-5">
