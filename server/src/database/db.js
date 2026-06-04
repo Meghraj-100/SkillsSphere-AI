@@ -5,6 +5,7 @@ export let isConnected = false;
 
 import { seedInterviewData } from "../modules/interviews/seed/seedInterviewData.js";
 import { seedJobData } from "../modules/jobs/seed/seedJobData.js";
+import { seedTutorRoadmap } from "../modules/roadmap/seed/seedTutorRoadmap.js";
 
 import logger from "../utils/logger.js";
 
@@ -24,6 +25,7 @@ const connectDB = async () => {
     logger.log("Memory DB connected. Auto-seeding mock interview data and job postings...");
     await seedInterviewData();
     await seedJobData();
+    await seedTutorRoadmap();
     return res;
   }
 

@@ -241,7 +241,7 @@ function App() {
           }
         />
 
-        {/* Tutor Roadmap Lobby */}
+        {/* Student's Roadmap */}
         <Route
           path="/tutor/roadmaps"
           element={

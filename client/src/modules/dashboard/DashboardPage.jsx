@@ -24,7 +24,7 @@ const getSidebarItems = (role) => {
   if (role === "tutor") {
     return [
       { label: "Analytics", icon: Target, to: "/tutor/analytics" },
-      { label: "Roadmaps", icon: FileText, to: "/tutor/roadmaps" },
+      { label: "Student's Roadmap", icon: FileText, to: "/tutor/roadmaps" },
       { label: "Interviews", icon: Video, to: "/tutor/interviews" },
       { label: "Classrooms", icon: Video, to: "/classrooms" },
     ];
