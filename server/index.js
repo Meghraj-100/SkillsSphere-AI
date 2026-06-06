@@ -152,6 +152,16 @@ app.use("/api", globalLimiter);
 let didConnectRedis = false;
 try {
   await connectDB();
+  
+  // Clear ghost sockets from active classroom sessions on server startup to prevent WebRTC continuity issues
+  const ClassroomSession = (await import("./src/database/models/ClassroomSession.js")).default;
+  const resetResult = await ClassroomSession.updateMany(
+    { status: "active" },
+    { $set: { participants: [] } }
+  );
+  if (resetResult.modifiedCount > 0) {
+    logger.log(`Cleared ghost participants from ${resetResult.modifiedCount} active classroom(s)`);
+  }
 } catch (err) {
   logger.error(
     "MongoDB startup error (degraded mode):",

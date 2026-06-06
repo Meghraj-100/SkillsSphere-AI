@@ -38,37 +38,7 @@ const router = express.Router();
 router.get("/me", protect, getMe);
 
 // Initiate Google OAuth
-router.get("/google", (req, res) => {
-  const frontendOrigin = new URL(getFrontendUrl()).origin;
-  const requestedRedirect = req.query.redirect;
-  const role = req.query.role;
-  const redirectPath =
-    typeof requestedRedirect === "string" && requestedRedirect.length > 0
-      ? normalizeOAuthRedirectPath(requestedRedirect)
-      : DEFAULT_OAUTH_REDIRECT_PATH;
-  const redirectTarget = `${frontendOrigin}${redirectPath}`;
-
-  const stateObj = { redirect: redirectPath };
-  if (role) {
-    stateObj.role = role;
-  }
-  if (req.query.action) {
-    stateObj.action = req.query.action;
-  }
-
-  const state = encodeURIComponent(
-    Buffer.from(JSON.stringify(stateObj), "utf8").toString("base64"),
-  );
-
-  if (!isGoogleOAuthConfigured()) {
-    logger.error("[AUTH] Google OAuth env vars are missing in server/.env");
-    return res.redirect(
-      `${redirectTarget}?error=${encodeURIComponent(GOOGLE_OAUTH_NOT_CONFIGURED_MESSAGE)}`,
-    );
-  }
-
-  res.redirect(buildGoogleAuthUrl({ state }));
-});
+router.get("/google", initiateGoogleOAuth);
 
 // Callback from Google
 router.get("/google/callback", googleOAuthCallback);
