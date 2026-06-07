@@ -210,13 +210,11 @@ const globalErrorHandler = (err, req, res, next) => {
       (aiUrlHints.some((hint) => url.toLowerCase().includes(hint)) ||
         // Secondary check: provider header / type hints if present.
         (typeof error?.config?.headers === "object" &&
-          (Object.values(error.config.headers)
-            .filter((v) => typeof v === "string")
+          (Object.keys(error.config.headers)
             .join(" ")
             .toLowerCase()
-            .includes("google") ||
-            Object.values(error.config.headers)
-              .filter((v) => typeof v === "string")
+            .includes("goog") ||
+            Object.keys(error.config.headers)
               .join(" ")
               .toLowerCase()
               .includes("gemini"))))

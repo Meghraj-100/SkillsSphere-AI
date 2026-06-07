@@ -71,6 +71,7 @@ test("cascadeDeleteUser sweeps all physical files and databases", async () => {
   mock.method(AnalysisHistory, "deleteMany", async () => ({ deletedCount: 1 }));
   mock.method(ClassroomSession, "deleteMany", async () => ({ deletedCount: 1 }));
   mock.method(ClassroomSession, "updateMany", async () => ({ modifiedCount: 1 }));
+  mock.method(RoadmapComment, "deleteMany", async () => ({ deletedCount: 1 }));
 
   mock.method(JobPosting, "find", () => ({ session: async () => [mockJobPosting] }));
   mock.method(JobPosting, "deleteMany", async () => ({ deletedCount: 1 }));

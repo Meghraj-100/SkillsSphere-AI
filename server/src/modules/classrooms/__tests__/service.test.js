@@ -63,6 +63,10 @@ describe("Classroom Service - Active Sessions", () => {
       assert.equal(mockSort.mock.calls.length, 1);
       assert.deepEqual(mockSort.mock.calls[0].arguments[0], { createdAt: -1 });
 
+      // Assert limit was called with 20
+      assert.equal(mockLimit.mock.calls.length, 1);
+      assert.deepEqual(mockLimit.mock.calls[0].arguments[0], 20);
+
       // Assert final results match the mock data
       assert.deepEqual(result, mockActiveSessions);
     });

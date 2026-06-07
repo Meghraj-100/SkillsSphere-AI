@@ -203,6 +203,9 @@ export const initiateGoogleOAuth = (req, res) => {
   if (role) {
     stateObj.role = role;
   }
+  if (req.query.action) {
+    stateObj.action = req.query.action;
+  }
 
   const state = encodeURIComponent(signOAuthState(stateObj));
 
