@@ -252,7 +252,7 @@ const RecruiterJobsPage = () => {
                   onClick={() => setStatusFilter(filter.value)}
                   className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     isActive
-                      ? "border-blue-400 bg-blue-500/20 text-blue-100"
+                      ? "border-blue-400 bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-100"
                       : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >
