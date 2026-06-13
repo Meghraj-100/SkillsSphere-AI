@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import ClassroomSession from "../../database/models/ClassroomSession.js";
 import { getRoomLock, clearRoomLock } from "../../utils/mutex.js";
 import logger from "../../utils/logger.js";
@@ -11,8 +12,11 @@ import registerCodeEditorHandler from "./socketHandlers/codeEditorHandler.js";
 import redisClient from "../../config/redis.js";
 
 const roomStates = new Map();
+const serverId = crypto.randomUUID();
 
 const getRedisKey = (roomId) => `classroom:state:${roomId}`;
+const getPresenceKey = (roomId, sId) => `classroom:presence:${roomId}:${sId}`;
+const getPresencePattern = (roomId) => `classroom:presence:${roomId}:*`;
 
 export async function loadRoomState(roomId, session = null) {
   if (roomStates.has(roomId)) return roomStates.get(roomId);
@@ -107,15 +111,46 @@ export function initClassroomSockets(io) {
             continue;
           }
 
-          let activeSockets = [];
+          let localSockets = [];
           try {
-            activeSockets = await io.in(freshSession.roomId).fetchSockets();
+            localSockets = await io.in(freshSession.roomId).fetchSockets();
           } catch (fetchErr) {
             logger.error(`Error fetching sockets for room ${freshSession.roomId}:`, fetchErr);
             continue;
           }
 
-          if (activeSockets.length === 0) {
+          const localSocketIds = localSockets.map((s) => s.id);
+          const activeSocketIds = new Set();
+
+          if (redisClient.isReady) {
+            const presenceKey = getPresenceKey(freshSession.roomId, serverId);
+            if (localSocketIds.length > 0) {
+              await redisClient.set(presenceKey, JSON.stringify(localSocketIds), { EX: 20 });
+            } else {
+              await redisClient.del(presenceKey);
+            }
+
+            // Retrieve all presence keys for this room across all active nodes in the cluster
+            const presenceKeys = await redisClient.keys(getPresencePattern(freshSession.roomId));
+            for (const key of presenceKeys) {
+              try {
+                const data = await redisClient.get(key);
+                if (data) {
+                  const ids = JSON.parse(data);
+                  if (Array.isArray(ids)) {
+                    ids.forEach((id) => activeSocketIds.add(id));
+                  }
+                }
+              } catch (parseErr) {
+                logger.error(`Error reading presence key ${key}:`, parseErr);
+              }
+            }
+          } else {
+            // Fallback to local active sockets in single-server deployments
+            localSocketIds.forEach((id) => activeSocketIds.add(id));
+          }
+
+          if (activeSocketIds.size === 0) {
             // If the room has no active socket connections, check/set emptySince
             if (!freshSession.emptySince) {
               logger.info(`Background Sweeper: Room ${freshSession.roomId} is empty. Starting 30-second teardown countdown...`);
@@ -143,7 +178,6 @@ export function initClassroomSockets(io) {
             }
 
             // Clean up participants in DB that are no longer active sockets
-            const activeSocketIds = new Set(activeSockets.map((s) => s.id));
             const updatedParticipants = (freshSession.participants || []).filter((p) =>
               activeSocketIds.has(p.socketId)
             );
