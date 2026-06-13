@@ -17,6 +17,9 @@ import {
   Search,
   RotateCcw,
   Bookmark,
+  TrendingUp,
+  BarChart3,
+  Target,
 } from "lucide-react";
 import Navbar from "../../../shared/components/Navbar";
 import Footer from "../../../shared/components/Footer";
@@ -94,6 +97,96 @@ export const filterInterviewSessions = (interviews, filters = DEFAULT_FILTERS) =
 
     return matchesSearch && matchesDifficulty && matchesStatus && matchesMinScore && matchesMaxScore;
   });
+};
+
+const normalizeCountItems = (items = [], labelKey) =>
+  items
+    .map((item) => {
+      if (typeof item === "string") return { label: item, count: 1 };
+      return {
+        label: item?.[labelKey] || item?.label || item?.topic || item?.concept || "",
+        count: Number(item?.count || 0),
+      };
+    })
+    .filter((item) => item.label);
+
+const countItems = (items) =>
+  Object.entries(
+    items.reduce((acc, item) => {
+      if (!item) return acc;
+      acc[item] = (acc[item] || 0) + 1;
+      return acc;
+    }, {}),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([label, count]) => ({ label, count }));
+
+export const calculateInterviewAnalytics = (interviews = [], serverAnalytics = null) => {
+  const completedSessions = interviews.filter((session) => getSessionStatus(session) === "completed");
+  const scoredSessions = completedSessions.filter((session) => Number.isFinite(getSessionScore(session)));
+  const localTrend = scoredSessions
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(firstAvailable(a.completedAt, a.createdAt)).getTime() -
+        new Date(firstAvailable(b.completedAt, b.createdAt)).getTime(),
+    )
+    .map((session, index) => ({
+      label: `#${index + 1}`,
+      topic: session.topic || getSessionTitle(session),
+      score: getSessionScore(session),
+      date: firstAvailable(session.completedAt, session.createdAt),
+    }));
+
+  const trend = serverAnalytics?.improvementTrend?.length
+    ? serverAnalytics.improvementTrend.map((item, index) => ({
+        label: `#${index + 1}`,
+        topic: item.topic,
+        score: Number(item.score || 0),
+        date: item.date,
+      }))
+    : localTrend;
+
+  const averageScore =
+    serverAnalytics?.averageScore !== undefined
+      ? Number(serverAnalytics.averageScore)
+      : scoredSessions.length
+        ? Math.round(scoredSessions.reduce((sum, session) => sum + getSessionScore(session), 0) / scoredSessions.length)
+        : 0;
+
+  const weakConcepts =
+    serverAnalytics?.weakConcepts?.length
+      ? normalizeCountItems(serverAnalytics.weakConcepts, "concept")
+      : countItems(
+          completedSessions.flatMap((session) => {
+            if (Array.isArray(session.weakConcepts)) return session.weakConcepts;
+            if (Array.isArray(session.improvementAreas)) return session.improvementAreas;
+            return [];
+          }),
+        );
+
+  const weakTopics =
+    serverAnalytics?.weakTopics?.length
+      ? normalizeCountItems(serverAnalytics.weakTopics, "topic")
+      : countItems(
+          scoredSessions
+            .filter((session) => getSessionScore(session) < 70)
+            .map((session) => session.topic || getSessionTitle(session)),
+        );
+
+  const firstScore = trend[0]?.score ?? 0;
+  const lastScore = trend.at(-1)?.score ?? 0;
+  const trendDelta = trend.length > 1 ? lastScore - firstScore : 0;
+
+  return {
+    averageScore,
+    completedCount: serverAnalytics?.completedCount ?? scoredSessions.length,
+    trend,
+    trendDelta,
+    weakConcepts,
+    weakTopics,
+  };
 };
 
 const normalizeInterviewForExport = (session) => {
@@ -210,6 +303,106 @@ export const exportInterviewHistoryAsJSON = (interviews) => {
   );
 };
 
+const TrendLine = ({ points }) => {
+  if (!points.length) {
+    return (
+      <div className="flex h-28 items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 text-sm font-medium text-text-muted">
+        No completed interviews yet
+      </div>
+    );
+  }
+
+  const width = 320;
+  const height = 112;
+  const padding = 12;
+  const maxScore = 100;
+  const coordinates = points.map((point, index) => {
+    const x = points.length === 1
+      ? width / 2
+      : padding + (index / (points.length - 1)) * (width - padding * 2);
+    const y = height - padding - (Math.max(0, Math.min(100, point.score)) / maxScore) * (height - padding * 2);
+    return { ...point, x, y };
+  });
+  const path = coordinates.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");
+
+  return (
+    <div className="h-28 rounded-xl bg-gray-50 dark:bg-white/5 p-2">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Interview score trend over time" className="h-full w-full">
+        <path d={path} fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className="text-indigo-500" />
+        {coordinates.map((point) => (
+          <circle key={`${point.label}-${point.score}-${point.x}`} cx={point.x} cy={point.y} r="4.5" className="fill-white stroke-indigo-500 dark:fill-slate-900" strokeWidth="3" />
+        ))}
+      </svg>
+    </div>
+  );
+};
+
+const AnalyticsSummary = ({ analytics }) => {
+  const trendLabel = analytics.trend.length > 1
+    ? `${analytics.trendDelta >= 0 ? "+" : ""}${analytics.trendDelta} pts`
+    : "Need 2+ interviews";
+  const trendTone = analytics.trendDelta >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400";
+
+  return (
+    <section aria-label="Interview analytics" className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="rounded-2xl border border-border bg-white dark:bg-surface p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-text-muted">Average Score</p>
+            <p className="mt-2 text-4xl font-black text-text-main">{analytics.averageScore}%</p>
+          </div>
+          <div className="rounded-xl bg-indigo-50 dark:bg-indigo-500/10 p-3 text-indigo-600 dark:text-indigo-300">
+            <BarChart3 size={24} />
+          </div>
+        </div>
+        <p className="mt-3 text-sm font-medium text-text-muted">
+          Based on {analytics.completedCount} completed {analytics.completedCount === 1 ? "interview" : "interviews"}.
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-white dark:bg-surface p-5 shadow-sm">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-text-muted">Improvement Trend</p>
+            <p className={`mt-1 text-lg font-black ${trendTone}`}>{trendLabel}</p>
+          </div>
+          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 p-3 text-emerald-600 dark:text-emerald-300">
+            <TrendingUp size={24} />
+          </div>
+        </div>
+        <TrendLine points={analytics.trend} />
+      </div>
+
+      <div className="rounded-2xl border border-border bg-white dark:bg-surface p-5 shadow-sm">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-text-muted">Weak Areas</p>
+            <p className="mt-1 text-sm font-medium text-text-muted">Concepts and topics to review</p>
+          </div>
+          <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 p-3 text-amber-600 dark:text-amber-300">
+            <Target size={24} />
+          </div>
+        </div>
+
+        {analytics.weakConcepts.length === 0 && analytics.weakTopics.length === 0 ? (
+          <p className="rounded-xl bg-gray-50 dark:bg-white/5 px-3 py-4 text-sm font-medium text-text-muted">
+            No weak areas detected yet.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {[...analytics.weakConcepts, ...analytics.weakTopics.map((item) => ({ ...item, label: `Topic: ${item.label}` }))].slice(0, 6).map((item) => (
+              <div key={item.label} className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 dark:bg-white/5 px-3 py-2">
+                <span className="text-sm font-semibold text-text-main capitalize">{item.label}</span>
+                <span className="text-xs font-bold text-text-muted">{item.count}x</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
 const InterviewHistory = () => {
   useDocumentTitle("Interview History");
   const navigate = useNavigate();
@@ -220,13 +413,16 @@ const InterviewHistory = () => {
   const [exportingType, setExportingType] = useState(null);
   const [exportError, setExportError] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [analytics, setAnalytics] = useState(() => calculateInterviewAnalytics([]));
   const exportInProgressRef = useRef(false);
 
   const fetchHistory = async (page = 1) => {
     setLoading(true);
     try {
       const res = await getHistory(page, 10);
-      setSessions(res.data?.sessions || []);
+      const nextSessions = res.data?.sessions || [];
+      setSessions(nextSessions);
+      setAnalytics(calculateInterviewAnalytics(nextSessions, res.data?.analytics));
       setPagination(res.data?.pagination || { page: 1, pages: 1, total: 0 });
     } catch (err) {
       setError("Failed to load interview history.");
@@ -417,6 +613,8 @@ const InterviewHistory = () => {
         </div>
       ) : (
         <>
+        <AnalyticsSummary analytics={analytics} />
+
         <section className="bg-white dark:bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
             <label className="lg:col-span-2 flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wide text-text-muted">

@@ -3,7 +3,7 @@ import { act } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import InterviewHistory, { convertToCSV, filterInterviewSessions } from "../InterviewHistory";
+import InterviewHistory, { calculateInterviewAnalytics, convertToCSV, filterInterviewSessions } from "../InterviewHistory";
 import { getHistory } from "../../services/interviewService";
 
 vi.mock("../../services/interviewService", () => ({
@@ -318,5 +318,70 @@ describe("InterviewHistory filtering", () => {
 
     expect(results).toHaveLength(1);
     expect(results[0]._id).toBe("session-3");
+  });
+});
+
+describe("InterviewHistory analytics", () => {
+  it("calculates average score, improvement trend, weak concepts, and weak topics", () => {
+    const analytics = calculateInterviewAnalytics([
+      {
+        _id: "session-1",
+        topic: "react",
+        status: "completed",
+        overallScore: 60,
+        completedAt: "2026-05-01T10:00:00.000Z",
+        weakConcepts: ["hooks", "state"],
+      },
+      {
+        _id: "session-2",
+        topic: "node",
+        status: "completed",
+        overallScore: 80,
+        completedAt: "2026-05-03T10:00:00.000Z",
+        weakConcepts: ["streams"],
+      },
+      {
+        _id: "session-3",
+        topic: "react",
+        status: "completed",
+        overallScore: 70,
+        completedAt: "2026-05-02T10:00:00.000Z",
+        weakConcepts: ["hooks"],
+      },
+      {
+        _id: "session-4",
+        topic: "dsa",
+        status: "in_progress",
+        overallScore: 100,
+        createdAt: "2026-05-04T10:00:00.000Z",
+        weakConcepts: ["graphs"],
+      },
+    ]);
+
+    expect(analytics.averageScore).toBe(70);
+    expect(analytics.completedCount).toBe(3);
+    expect(analytics.trend.map((point) => point.score)).toEqual([60, 70, 80]);
+    expect(analytics.trendDelta).toBe(20);
+    expect(analytics.weakConcepts[0]).toEqual({ label: "hooks", count: 2 });
+    expect(analytics.weakTopics).toEqual([{ label: "react", count: 1 }]);
+  });
+
+  it("normalizes backend analytics summaries for display", () => {
+    const analytics = calculateInterviewAnalytics([], {
+      averageScore: 78,
+      completedCount: 4,
+      improvementTrend: [
+        { topic: "react", score: 72, date: "2026-05-01T10:00:00.000Z" },
+        { topic: "node", score: 84, date: "2026-05-02T10:00:00.000Z" },
+      ],
+      weakConcepts: [{ concept: "closures", count: 3 }],
+      weakTopics: [{ topic: "dsa", count: 2 }],
+    });
+
+    expect(analytics.averageScore).toBe(78);
+    expect(analytics.completedCount).toBe(4);
+    expect(analytics.trendDelta).toBe(12);
+    expect(analytics.weakConcepts).toEqual([{ label: "closures", count: 3 }]);
+    expect(analytics.weakTopics).toEqual([{ label: "dsa", count: 2 }]);
   });
 });
