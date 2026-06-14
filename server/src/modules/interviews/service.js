@@ -363,18 +363,66 @@ export const finalizeInterview = async (sessionId, userId) => {
 export const getUserInterviewHistory = async (userId, page, limit) => {
   const skip = (page - 1) * limit;
 
-  const [sessions, total] = await Promise.all([
+  const [sessions, total, analyticsSessions] = await Promise.all([
     InterviewSession.find({ userId })
-      .select("topic difficulty status overallScore totalQuestions duration createdAt completedAt")
+      .select("topic difficulty status overallScore totalQuestions duration weakConcepts createdAt completedAt")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean(),
     InterviewSession.countDocuments({ userId }),
+    InterviewSession.find({ userId, status: "completed" })
+      .select("topic overallScore weakConcepts completedAt createdAt")
+      .sort({ completedAt: 1, createdAt: 1 })
+      .lean(),
   ]);
+
+  const scoredSessions = analyticsSessions.filter((session) =>
+    Number.isFinite(Number(session.overallScore)),
+  );
+  const averageScore = scoredSessions.length
+    ? Math.round(
+        scoredSessions.reduce((sum, session) => sum + Number(session.overallScore), 0) /
+          scoredSessions.length,
+      )
+    : 0;
+
+  const improvementTrend = scoredSessions.map((session) => ({
+    sessionId: session._id,
+    topic: session.topic,
+    score: Number(session.overallScore),
+    date: session.completedAt || session.createdAt,
+  }));
+
+  const weakConceptCounts = {};
+  analyticsSessions.forEach((session) => {
+    (session.weakConcepts || []).forEach((concept) => {
+      weakConceptCounts[concept] = (weakConceptCounts[concept] || 0) + 1;
+    });
+  });
+
+  const weakTopicCounts = {};
+  scoredSessions
+    .filter((session) => Number(session.overallScore) < 70)
+    .forEach((session) => {
+      weakTopicCounts[session.topic] = (weakTopicCounts[session.topic] || 0) + 1;
+    });
 
   return {
     sessions,
+    analytics: {
+      averageScore,
+      completedCount: scoredSessions.length,
+      improvementTrend,
+      weakConcepts: Object.entries(weakConceptCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([concept, count]) => ({ concept, count })),
+      weakTopics: Object.entries(weakTopicCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([topic, count]) => ({ topic, count })),
+    },
     pagination: {
       page,
       limit,
