@@ -42,6 +42,7 @@ import errorReportRoutes from "./src/modules/errors/routes.js";
 import fileRoutes from "./src/modules/files/routes.js";
 import interviewRoutes from "./src/modules/interviews/routes.js";
 import { initInterviewSockets } from "./src/modules/interviews/socket.js";
+import { cleanupStaleInterviewSessions } from "./src/modules/interviews/service.js";
 import jobRoutes from "./src/modules/jobs/routes.js";
 import matchingRoutes from "./src/modules/matching/routes.js";
 import notificationRoutes from "./src/modules/notifications/routes.js";
@@ -248,6 +249,11 @@ initNotificationSockets(io);
 initInterviewSockets(io);
 initRoadmapSockets(io);
 
+// Start background task for cleaning up stale interview sessions
+const interviewSweeperInterval = setInterval(() => {
+  cleanupStaleInterviewSessions();
+}, 5 * 60 * 1000); // Every 5 minutes
+
 // Catch-all 404 handler for API routes
 // This prevents Express from returning HTML on missing routes, which crashes frontend JSON parsers.
 app.use("/api/*", (req, res) => {
@@ -277,6 +283,9 @@ server.listen(PORT, () => {
 const gracefulShutdown = async (signal) => {
   logger.info(`\nReceived ${signal}. Gracefully shutting down...`);
   try {
+    if (interviewSweeperInterval) {
+      clearInterval(interviewSweeperInterval);
+    }
     stopClassroomSweeper();
     if (redisClient && redisClient.isReady) {
       await redisClient.quit();

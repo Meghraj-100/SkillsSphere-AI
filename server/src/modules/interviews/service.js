@@ -128,10 +128,11 @@ export const processAnswerSubmission = async ({
       throw new AppError("Answer submission already in progress for this session", 429);
     }
   } else {
-    if (pendingSubmissions.get(sessionId)) {
+    const pending = pendingSubmissions.get(sessionId);
+    if (pending && Date.now() - pending < 60000) {
       throw new AppError("Answer submission already in progress for this session", 429);
     }
-    pendingSubmissions.set(sessionId, true);
+    pendingSubmissions.set(sessionId, Date.now());
   }
 
   try {
@@ -218,6 +219,7 @@ export const processAnswerSubmission = async ({
 
     // Move to next question
     session.currentQuestionIndex = currentIndex + 1;
+    session.lastActivityAt = new Date();
     await session.save();
 
     // Prepare response
@@ -364,13 +366,13 @@ export const getUserInterviewHistory = async (userId, page, limit) => {
   const skip = (page - 1) * limit;
 
   const [sessions, total, analyticsSessions] = await Promise.all([
-    InterviewSession.find({ userId })
+    InterviewSession.find({ userId, status: { $ne: "abandoned" } })
       .select("topic difficulty status overallScore totalQuestions duration weakConcepts createdAt completedAt")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean(),
-    InterviewSession.countDocuments({ userId }),
+    InterviewSession.countDocuments({ userId, status: { $ne: "abandoned" } }),
     InterviewSession.find({ userId, status: "completed" })
       .select("topic overallScore weakConcepts completedAt createdAt")
       .sort({ completedAt: 1, createdAt: 1 })
@@ -759,5 +761,33 @@ export const addTutorFeedback = async (sessionId, tutorId, { tutorOverallScore, 
     }
 
     return session;
+  }
+};
+
+/**
+ * Background task to clean up stale interview sessions.
+ * Finds sessions that have been in_progress for more than 2 hours with no activity
+ * and marks them as abandoned. Also cleans up pendingSubmissions map.
+ */
+export const cleanupStaleInterviewSessions = async () => {
+  try {
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    const result = await InterviewSession.updateMany(
+      { status: "in_progress", lastActivityAt: { $lt: twoHoursAgo } },
+      { $set: { status: "abandoned" } }
+    );
+    if (result.modifiedCount > 0) {
+      logger.info(`[interview-sweeper] Marked ${result.modifiedCount} stale interview sessions as abandoned.`);
+    }
+
+    // Also clean up stale in-memory locks
+    const now = Date.now();
+    for (const [sessionId, timestamp] of pendingSubmissions.entries()) {
+      if (now - timestamp > 60000) {
+        pendingSubmissions.delete(sessionId);
+      }
+    }
+  } catch (err) {
+    logger.error("[interview-sweeper] Error cleaning up stale sessions:", err);
   }
 };

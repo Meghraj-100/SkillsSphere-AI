@@ -171,6 +171,11 @@ const interviewSessionSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    lastActivityAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true, optimisticConcurrency: true }
 );
