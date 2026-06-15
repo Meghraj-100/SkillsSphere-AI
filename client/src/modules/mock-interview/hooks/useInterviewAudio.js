@@ -16,6 +16,7 @@ export const useInterviewAudio = ({
   const mediaRecorderRef = useRef(null);
   const mediaStreamRef = useRef(null);
   const mediaTrackCleanupRef = useRef([]);
+  const isStartingRef = useRef(false);
 
   const clearMediaTrackListeners = useCallback(() => {
     mediaTrackCleanupRef.current.forEach((cleanup) => cleanup());
@@ -45,7 +46,9 @@ export const useInterviewAudio = ({
     [clearMediaTrackListeners, persistBackup, setMediaWarning, setUploadStatus],
   );
 
-  const startRecording = async () => {
+  const startRecording = useCallback(async () => {
+    if (isStartingRef.current) return;
+    isStartingRef.current = true;
     try {
       setMediaWarning(null);
       setError(null);
@@ -100,8 +103,10 @@ export const useInterviewAudio = ({
       setMediaWarning("Microphone access was denied or unavailable. Check your device and retry.");
       setError("Microphone access denied or unavailable.");
       persistBackup({ uploadStatus: "failed" });
+    } finally {
+      isStartingRef.current = false;
     }
-  };
+  }, [attachMediaTrackListeners, persistBackup, sessionId, setError, setFailedAction, setMediaWarning, setRecoveryMessage, setUploadStatus, socket, socketStatus]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
