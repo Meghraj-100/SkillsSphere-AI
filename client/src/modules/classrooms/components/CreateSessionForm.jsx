@@ -56,15 +56,15 @@ export const CreateSessionForm = ({
           <input
             type="range"
             min="2"
-            max="100"
+            max="50"
             value={maxParticipants}
             onChange={(e) => setMaxParticipants(Number(e.target.value))}
             className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
           />
           <div className="flex justify-between text-[10px] text-gray-500 dark:text-slate-500 font-mono mt-1">
             <span>2</span>
+            <span>25</span>
             <span>50</span>
-            <span>100</span>
           </div>
         </div>
 

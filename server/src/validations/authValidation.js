@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const allowedRoles = ["student"];
+const allowedRoles = ["student", "tutor", "recruiter", "admin"];
 
 const passwordSchema = z
   .string({ required_error: "Password is required" })
@@ -9,6 +9,10 @@ const passwordSchema = z
   .regex(/[a-z]/, "Password must contain at least one lowercase letter")
   .regex(/[0-9]/, "Password must contain at least one number")
   .regex(/[^A-Za-z0-9\s]/, "Password must contain at least one special character");
+
+const loginPasswordSchema = z
+  .string({ required_error: "Password is required" })
+  .min(1, "Password is required");
 
 const otpSchema = z
   .string({ required_error: "OTP is required" })
@@ -42,10 +46,11 @@ export const registerSchema = z.object({
     .trim()
     .toLowerCase()
     .refine((value) => allowedRoles.includes(value), {
-      message: "Role must be: student"
+      message: "Role must be one of: " + allowedRoles.join(", ")
     })
     .optional()
-    .default("student")
+    .default("student"),
+  company: z.string().trim().optional()
 });
 
 export const verifyEmailSchema = z.object({
@@ -69,7 +74,7 @@ export const loginSchema = z.object({
     .trim()
     .email("Please provide a valid email address")
     .toLowerCase(),
-  password: passwordSchema
+  password: loginPasswordSchema
 });
 
 export const validateRegisterInput = (payload) => validate(registerSchema, payload);
