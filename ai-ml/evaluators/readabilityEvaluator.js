@@ -86,10 +86,10 @@ export default function readabilityEvaluator({ resumeText = "" }) {
 
   const weakBullets = [];
   const passiveVoicePatterns = [
-    /\b(?:is|are|was|were|be|been|being)\b\s+\b\w+ed\b/gi,
-    /\bresponsible for\b/gi,
-    /\bworked on\b/gi,
-    /\btasks included\b/gi
+    /\b(?:is|are|was|were|be|been|being)\b\s+\b\w+ed\b/i,
+    /\bresponsible for\b/i,
+    /\bworked on\b/i,
+    /\btasks included\b/i
   ];
 
   let powerVerbCount = 0;
