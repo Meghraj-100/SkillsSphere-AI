@@ -51,13 +51,14 @@ function detectOverusedWords(freqMap, threshold) {
   });
 }
 
-// Detect duplicate sentences using simple similarity check
+// Detect duplicate sentences using full-string matching to avoid prefix collision false positives
 function detectDuplicateSentences(sentences) {
   const duplicates = [];
   const seen = new Set();
 
   sentences.forEach(sentence => {
-    const key = sentence.slice(0, 50); // lightweight similarity
+    // Use the entire normalized string as a hash key instead of truncating at 50 characters
+    const key = sentence.trim();
     if (seen.has(key)) {
       duplicates.push(sentence);
     } else {
