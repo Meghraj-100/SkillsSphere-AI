@@ -11,6 +11,8 @@ import {
   deleteAllNotificationsForUser,
   deleteNotificationsBulk,
 } from "./controller.js";
+import { validateBody } from "../../middleware/validation.js";
+import { createNotificationSchema, bulkDeleteNotificationsSchema } from "../../validations/notifications.validation.js";
 
 const router = express.Router();
 
@@ -57,7 +59,7 @@ router.get("/unread-count", getUnreadCount);
  *       201:
  *         description: Notification created
  */
-router.post("/", createNotification);
+router.post("/", validateBody(createNotificationSchema), createNotification);
 
 /**
  * @openapi
@@ -85,7 +87,7 @@ router.patch("/mark-all/read", markAllAsRead);
  *       200:
  *         description: Notifications deleted
  */
-router.delete("/bulk", deleteNotificationsBulk);
+router.delete("/bulk", validateBody(bulkDeleteNotificationsSchema), deleteNotificationsBulk);
 
 /**
  * @openapi

@@ -19,6 +19,8 @@ import { resumeAnalysisLimiter, aiActionLimiter } from "../../middleware/rateLim
 
 import { protect, authorizeRoles } from "../../middleware/authMiddleware.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import { validateBody } from "../../middleware/validation.js";
+import { renameResumeSchema, compareResumesSchema, generateCoverLetterSchema } from "../../validations/resumes.validation.js";
 
 const router = express.Router();
 
@@ -78,21 +80,21 @@ router.get(
  *     responses:
  *       200:
  *         description: Resume uploaded successfully
- *       400:
- *         description: Invalid or spoofed file (magic-byte validation failed)
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - topicId
- *             properties:
- *               topicId:
- *                 type: string
- *               difficulty:
- *                 type: string
- *     responses:
  *       201:
  *         description: Environment initialized and session frames locked
+ *       400:
+ *         description: Invalid or spoofed file (magic-byte validation failed)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required:
+ *                 - topicId
+ *               properties:
+ *                 topicId:
+ *                   type: string
+ *                 difficulty:
+ *                   type: string
  */
 router.post(
   "/upload",
@@ -260,7 +262,7 @@ router.patch("/:id/active", protect, authorizeRoles("student"), setActiveResume)
  *       200:
  *         description: Resume renamed
  */
-router.patch("/:id/rename", protect, authorizeRoles("student"), renameResume);
+router.patch("/:id/rename", protect, authorizeRoles("student"), validateBody(renameResumeSchema), renameResume);
 
 /**
  * @openapi
@@ -335,7 +337,7 @@ router.get("/result/:id", protect, getResumeResult);
  *       200:
  *         description: Strategic comparison generated
  */
-router.post("/compare", protect, aiActionLimiter, compareVersions);
+router.post("/compare", protect, aiActionLimiter, validateBody(compareResumesSchema), compareVersions);
 
 /**
  * @openapi
@@ -372,6 +374,6 @@ router.post("/compare", protect, aiActionLimiter, compareVersions);
  *       500:
  *         description: AI generation failed
  */
-router.post("/:id/cover-letter", protect, aiActionLimiter, authorizeRoles("student"), generateCoverLetterForResume);
+router.post("/:id/cover-letter", protect, aiActionLimiter, authorizeRoles("student"), validateBody(generateCoverLetterSchema), generateCoverLetterForResume);
 
 export default router;
