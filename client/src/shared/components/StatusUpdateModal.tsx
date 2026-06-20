@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 import { useState } from 'react';
 import { X, Send, AlertCircle } from 'lucide-react';
@@ -32,7 +31,7 @@ const StatusUpdateModal = ({ isOpen, onClose, onUpdate, currentStatus, applicant
     try {
       await onUpdate(status, comment);
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || "Failed to update status.");
       toast.error(err.message || "Failed to update status.");
     } finally {
@@ -82,6 +81,7 @@ const StatusUpdateModal = ({ isOpen, onClose, onUpdate, currentStatus, applicant
             <label className="text-sm font-semibold text-slate-300 ml-1">
               New Status
             </label>
+            {/* @ts-expect-error TODO: Fix pervasive types */}
             <Select
               id="status-select"
               value={status}
@@ -94,6 +94,7 @@ const StatusUpdateModal = ({ isOpen, onClose, onUpdate, currentStatus, applicant
             <label className="text-sm font-semibold text-slate-300 ml-1">
               Feedback Comment
             </label>
+            {/* @ts-expect-error TODO: Fix pervasive types */}
             <TextArea
               id="status-comment"
               placeholder="e.g. Portfolio looks great, let's chat next week!"
@@ -107,6 +108,7 @@ const StatusUpdateModal = ({ isOpen, onClose, onUpdate, currentStatus, applicant
           </div>
 
           <div className="flex gap-3 pt-2">
+            {/* @ts-expect-error TODO: Fix pervasive types */}
             <Button
               type="button"
               variant="outline"
@@ -117,6 +119,7 @@ const StatusUpdateModal = ({ isOpen, onClose, onUpdate, currentStatus, applicant
             >
               Cancel
             </Button>
+            {/* @ts-expect-error TODO: Fix pervasive types */}
             <Button
               type="submit"
               fullWidth

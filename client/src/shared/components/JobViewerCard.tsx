@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 import React, { useState } from "react";
 import {
@@ -44,11 +43,15 @@ export interface JobViewerCardProps {
   recruiter?: any;
   name?: string;
   email?: string;
+  // @ts-expect-error TODO: Fix pervasive types
   company?: string;
+  // @ts-expect-error TODO: Fix pervasive types
   companyWebsite?: string;
   linkedinUrl?: string;
   createdAt?: string;
+  // @ts-expect-error TODO: Fix pervasive types
   company?: string;
+  // @ts-expect-error TODO: Fix pervasive types
   companyWebsite?: string;
   type?: string;
   openings?: number;
@@ -97,6 +100,7 @@ const formatSalary = (sal) => {
  */
 const getTimeAgo = (date) => {
   if (!date) return "–";
+  // @ts-expect-error TODO: Fix pervasive types
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
   if (seconds < 0) return "Just now";
 
@@ -499,6 +503,7 @@ const JobViewerCard = ({
                         Applied
                       </div>
                     ) : canApply ? (
+                      // @ts-expect-error TODO: Fix pervasive types
                       <Button
                         fullWidth
                         className="bg-blue-600 text-center hover:bg-blue-500"
@@ -524,6 +529,7 @@ const JobViewerCard = ({
                 {viewerRole === "recruiter" && (
                   <div className="mt-6 space-y-2">
                     {onViewStats && (
+                      // @ts-expect-error TODO: Fix pervasive types
                       <Button
                         fullWidth
                         className="flex items-center justify-center gap-2 whitespace-normal bg-blue-600 text-center hover:bg-blue-500"
@@ -537,6 +543,7 @@ const JobViewerCard = ({
                       </Button>
                     )}
                     {onViewApplicants && (
+                      // @ts-expect-error TODO: Fix pervasive types
                       <Button
                         fullWidth
                         className="flex items-center justify-center gap-2 whitespace-normal bg-purple-600 text-center hover:bg-purple-500"
@@ -551,6 +558,7 @@ const JobViewerCard = ({
                     )}
                     <div className="flex flex-col gap-2 sm:flex-row">
                       {onEdit && (
+                        // @ts-expect-error TODO: Fix pervasive types
                         <Button
                           variant="outline"
                           size="sm"
@@ -565,6 +573,7 @@ const JobViewerCard = ({
                         </Button>
                       )}
                       {onDelete && (
+                        // @ts-expect-error TODO: Fix pervasive types
                         <Button
                           variant="danger"
                           size="sm"

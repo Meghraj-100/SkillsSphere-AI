@@ -1,13 +1,16 @@
-// @ts-nocheck
 
 import React from "react";
 
 export interface SelectProps {
   id: string;
+  // @ts-expect-error TODO: Fix pervasive types
   label?: string;
   options?: any[];
+  // @ts-expect-error TODO: Fix pervasive types
   value?: string;
+  // @ts-expect-error TODO: Fix pervasive types
   label: string;
+  // @ts-expect-error TODO: Fix pervasive types
   value?: string;
   onChange?: (...args: any[]) => any;
   placeholder?: string;

@@ -124,7 +124,7 @@ export default function SharedCodeEditor({ socket, roomId, userRole, initialCode
     try {
       await navigator.clipboard.writeText(code);
       success("Code copied to clipboard!");
-    } catch (err) {
+    } catch (err: any) {
       logger.error("Failed to copy", err);
     }
   };

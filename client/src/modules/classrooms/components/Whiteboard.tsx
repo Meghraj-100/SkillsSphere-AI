@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import {
@@ -222,6 +221,7 @@ export default function Whiteboard({ socket, roomId, userRole, initialStrokes })
         initialStrokes.forEach((strokeData) => {
           // Wrap drawRemoteStroke logic locally here if it needs ctx access,
           // but drawRemoteStroke creates its own context so it's safe.
+          // @ts-expect-error TODO: Fix pervasive types
           drawRemoteStroke(strokeData.strokeData || strokeData);
         });
       }, 50);
@@ -516,6 +516,7 @@ export default function Whiteboard({ socket, roomId, userRole, initialStrokes })
           {/* Active drawing tools selection */}
           <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
             <button
+              // @ts-expect-error TODO: Fix pervasive types
               onClick={() => { setTool("pen"); setTextInput({ visible: false }); }}
               className={`p-2 rounded-md transition-colors cursor-pointer ${tool === "pen" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"}`}
               title="Pencil Tool"
@@ -523,6 +524,7 @@ export default function Whiteboard({ socket, roomId, userRole, initialStrokes })
               <Edit2 size={16} />
             </button>
             <button
+              // @ts-expect-error TODO: Fix pervasive types
               onClick={() => { setTool("line"); setTextInput({ visible: false }); }}
               className={`p-2 rounded-md transition-colors cursor-pointer ${tool === "line" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"}`}
               title="Draw Line"
@@ -530,6 +532,7 @@ export default function Whiteboard({ socket, roomId, userRole, initialStrokes })
               <Minus size={16} />
             </button>
             <button
+              // @ts-expect-error TODO: Fix pervasive types
               onClick={() => { setTool("rect"); setTextInput({ visible: false }); }}
               className={`p-2 rounded-md transition-colors cursor-pointer ${tool === "rect" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"}`}
               title="Draw Rectangle"
@@ -537,6 +540,7 @@ export default function Whiteboard({ socket, roomId, userRole, initialStrokes })
               <Square size={16} />
             </button>
             <button
+              // @ts-expect-error TODO: Fix pervasive types
               onClick={() => { setTool("circle"); setTextInput({ visible: false }); }}
               className={`p-2 rounded-md transition-colors cursor-pointer ${tool === "circle" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"}`}
               title="Draw Circle"
@@ -544,6 +548,7 @@ export default function Whiteboard({ socket, roomId, userRole, initialStrokes })
               <Circle size={16} />
             </button>
             <button
+              // @ts-expect-error TODO: Fix pervasive types
               onClick={() => { setTool("arrow"); setTextInput({ visible: false }); }}
               className={`p-2 rounded-md transition-colors cursor-pointer ${tool === "arrow" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"}`}
               title="Draw Arrow"
@@ -551,6 +556,7 @@ export default function Whiteboard({ socket, roomId, userRole, initialStrokes })
               <ArrowUpRight size={16} />
             </button>
             <button
+              // @ts-expect-error TODO: Fix pervasive types
               onClick={() => { setTool("text"); setTextInput({ visible: false }); }}
               className={`p-2 rounded-md transition-colors cursor-pointer ${tool === "text" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"}`}
               title="Add Text"
@@ -558,6 +564,7 @@ export default function Whiteboard({ socket, roomId, userRole, initialStrokes })
               <Type size={16} />
             </button>
             <button
+              // @ts-expect-error TODO: Fix pervasive types
               onClick={() => { setTool("eraser"); setTextInput({ visible: false }); }}
               className={`p-2 rounded-md transition-colors cursor-pointer ${tool === "eraser" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"}`}
               title="Eraser Tool"

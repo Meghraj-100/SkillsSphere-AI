@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 import React, { useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -49,7 +48,7 @@ const InterviewSession = () => {
   const { id: sessionId } = useParams();
   const navigate = useNavigate();
   const textareaRef = useRef(null);
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state: any) => state.auth);
 
   // 1. Manage State, Timers, Persistence, and API operations
   const state = useInterviewState(sessionId, false);
@@ -134,7 +133,7 @@ const InterviewSession = () => {
     } else {
       try {
         await state.submitAnswerApi(textareaRef);
-      } catch (err) {
+      } catch (err: any) {
         state.setFailedAction("submit");
       }
     }
