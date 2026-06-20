@@ -5,6 +5,7 @@ import { generateCoverLetter } from "../../utils/geminiService.js";
 import { COVER_LETTER_LIMIT } from "../../validations/coverLetterValidation.js";
 
 import logger from "../../utils/logger.js";
+import AppError from "../../utils/AppError.js";
 
 /**
  * Generate an AI cover letter based on a parsed resume and a target job description.
@@ -16,34 +17,22 @@ export const generateCoverLetterForResume = async (req, res, next) => {
     const userId = req.user?.id || req.user?._id;
 
     if (!jobDescription?.trim()) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Job description is required to generate a targeted cover letter." 
-      });
+      return next(new AppError("Job description is required to generate a targeted cover letter.", 400));
     }
 
     const resume = await Resume.findById(resumeId);
     if (!resume) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Resume not found." 
-      });
+      return next(new AppError("Resume not found.", 404));
     }
 
     // Security check: ensure the user owns the resume
     if (resume.user.toString() !== userId.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: "Unauthorized access to this resume."
-      });
+      return next(new AppError("Unauthorized access to this resume.", 403));
     }
 
     const coverLetterCount = await CoverLetter.countDocuments({ user: userId });
     if (coverLetterCount >= COVER_LETTER_LIMIT) {
-      return res.status(400).json({
-        success: false,
-        message: `Maximum limit of ${COVER_LETTER_LIMIT} cover letters reached. Please delete an existing one to generate a new one.`,
-      });
+      return next(new AppError(`Maximum limit of ${COVER_LETTER_LIMIT} cover letters reached. Please delete an existing one to generate a new one.`, 400));
     }
 
     logger.debug("[cover-letter] Building prompt", {
@@ -77,10 +66,7 @@ export const generateCoverLetterForResume = async (req, res, next) => {
     });
 
     if (!aiResult.success) {
-      return res.status(500).json({ 
-        success: false, 
-        error: aiResult.error || "Unknown AI Generation Error" 
-      });
+      return next(new AppError(aiResult.error || "Unknown AI Generation Error", 500));
     }
 
     // Persist the generated cover letter to the database
@@ -100,9 +86,6 @@ export const generateCoverLetterForResume = async (req, res, next) => {
     });
   } catch (error) {
     logger.error("Cover Letter Generation Error:", error);
-    return res.status(500).json({
-      success: false,
-      error: error.message,
-    });
+    return next(new AppError(error.message || "Failed to generate cover letter", 500));
   }
 };

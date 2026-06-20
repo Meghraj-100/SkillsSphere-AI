@@ -2,6 +2,7 @@ import multer from "multer";
 import fs from "fs";
 import fsPromises from "fs/promises";
 import path from "path";
+import AppError from "../utils/AppError.js";
 import { fileURLToPath } from "url";
 import { validateResumeBufferSignatureSync } from "../utils/validateFileSignature.js";
 import asyncHandler from "../utils/asyncHandler.js";
@@ -128,43 +129,28 @@ export const persistValidatedResumeFile = async (buffer, originalName) => {
  * @param {Object} res - Express response object
  * @returns {Object|null} JSON response or null if no error
  */
-const handleMulterError = (error, res) => {
+const handleMulterError = (error, res, next) => {
   if (error instanceof multer.MulterError) {
     if (error.code === "LIMIT_FILE_SIZE") {
-      return res.status(413).json({
-        success: false,
-        message: "Payload Too Large: File size must be less than or equal to 5 MB",
-      });
+      return next(new AppError("Payload Too Large: File size must be less than or equal to 5 MB", 413));
     }
 
     if (error.code === "LIMIT_UNEXPECTED_FILE") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid form field name. Use `resume` as the file field key in form-data.",
-      });
+      return next(new AppError("Invalid form field name. Use `resume` as the file field key in form-data.", 400));
     }
 
-    return res.status(400).json({
-      success: false,
-      message: error.message || "Invalid file upload request",
-    });
+    return next(new AppError(error.message || "Invalid file upload request", 400));
   }
 
   // Handle custom file filter errors
   if (error?.code === "INVALID_FILE_TYPE" || error?.code === "INVALID_FILE_NAME") {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    return next(new AppError(error.message, 400));
   }
 
   // Handle generic unknown errors
   if (error) {
     logger.error(`[Upload Error] Unexpected multer error: ${error.message}`);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error occurred while processing the upload.",
-    });
+    return next(new AppError("Internal server error occurred while processing the upload.", 500));
   }
 
   return null;
@@ -176,7 +162,7 @@ const handleMulterError = (error, res) => {
  */
 export const parseResumeUpload = (req, res, next) => {
   upload.single("resume")(req, res, (error) => {
-    const handled = error ? handleMulterError(error, res) : null;
+    const handled = error ? handleMulterError(error, res, next) : null;
     
     // If the error was handled and a response was sent, terminate the request chain
     if (handled !== null) return;
@@ -205,10 +191,7 @@ export const validateAndPersistResumeFile = asyncHandler(async (req, res, next) 
     // Clear the memory reference to aid Garbage Collection
     req.file = undefined; 
     
-    return res.status(415).json({
-      success: false,
-      message: signatureCheck.message || "The uploaded file failed content validation. Please upload a genuine PDF, DOC, DOCX, or TXT file.",
-    });
+    return next(new AppError(signatureCheck.message || "The uploaded file failed content validation. Please upload a genuine PDF, DOC, DOCX, or TXT file.", 415));
   }
 
   // The file is authentic. Write it from RAM to the Disk.

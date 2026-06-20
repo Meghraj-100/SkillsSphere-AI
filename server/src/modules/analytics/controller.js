@@ -4,13 +4,14 @@ import LearningProgress from "../../database/models/LearningProgress.js";
 import InterviewSession from "../../database/models/InterviewSession.js";
 
 import logger from "../../utils/logger.js";
+import AppError from "../../utils/AppError.js";
 
 /**
  * Compile global/class-wide student skill data for a tutor.
  * This runs a MongoDB aggregation pipeline to count skill frequencies
  * and identify common skill gaps based on the tutor's specific candidate pool.
  */
-export const getSkillGapHeatmap = async (req, res) => {
+export const getSkillGapHeatmap = async (req, res, next) => {
   try {
     // 1. Find the students this tutor is tracking
     const trackedProgress = await LearningProgress.find({ tutorsTracking: req.user._id }).select("user");
@@ -61,14 +62,14 @@ export const getSkillGapHeatmap = async (req, res) => {
     });
   } catch (error) {
     logger.error("Error in getSkillGapHeatmap aggregation:", error);
-    res.status(500).json({ success: false, message: "Failed to compile skill gap data" });
+    return next(new AppError("Failed to compile skill gap data", 500));
   }
 };
 
 /**
  * Dynamic Role-Specific Analytics Aggregation
  */
-export const getDashboardAnalytics = async (req, res) => {
+export const getDashboardAnalytics = async (req, res, next) => {
   try {
     const role = req.user.role;
     
@@ -164,9 +165,9 @@ export const getDashboardAnalytics = async (req, res) => {
       });
     }
 
-    res.status(403).json({ success: false, message: "Role not recognized for analytics" });
+    return next(new AppError("Role not recognized for analytics", 403));
   } catch (error) {
     logger.error("Error in getDashboardAnalytics:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch analytics" });
+    return next(new AppError("Failed to fetch analytics", 500));
   }
 };

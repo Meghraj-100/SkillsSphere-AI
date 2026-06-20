@@ -4,6 +4,7 @@ const AVATAR_MAX_SIZE = 5 * 1024 * 1024;
 const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
 import fs from "fs";
 import path from "path";
+import AppError from "../utils/AppError.js";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -49,15 +50,15 @@ export const uploadAvatarMiddleware = (req, res, next) => {
   upload.single("avatar")(req, res, (error) => {
     if (error instanceof multer.MulterError) {
       if (error.code === "LIMIT_FILE_SIZE") {
-        return res.status(400).json({ success: false, message: "Image must be 5MB or smaller" });
+        return next(new AppError("Image must be 5MB or smaller", 400));
       }
-      return res.status(400).json({ success: false, message: error.message });
+      return next(new AppError(error.message, 400));
     }
     if (error?.code === "INVALID_FILE_TYPE") {
-      return res.status(400).json({ success: false, message: error.message });
+      return next(new AppError(error.message, 400));
     }
     if (error) {
-      return res.status(500).json({ success: false, message: "Failed to upload image" });
+      return next(new AppError("Failed to upload image", 500));
     }
     next();
   });

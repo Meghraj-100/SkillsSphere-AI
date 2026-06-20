@@ -37,14 +37,11 @@ export const createChatRouter = ({ getGeminiModel }) => {
     "/",
     protect,
     validateChatPayload,
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req, res, next) => {
       const geminiModel = getGeminiModel();
 
       if (!geminiModel) {
-        return res.status(503).json({
-          error:
-            "AI service is currently unconfigured. Please set GEMINI_API_KEY in .env",
-        });
+        return next(new AppError("AI service is currently unconfigured. Please set GEMINI_API_KEY in .env", 503));
       }
 
       const prompt = `You are the "SkillsSphere Career Assistant", an expert AI specializing in tech careers, resumes, recruitment, and technical interviews. 
@@ -58,7 +55,7 @@ User message: ${req.body.message}`;
         return res.json({ reply });
       } catch (error) {
         logger.error("Chat API error:", error);
-        return res.status(500).json({ error: "Failed to generate AI response" });
+        return next(new AppError("Failed to generate AI response", 500));
       }
     }),
   );
