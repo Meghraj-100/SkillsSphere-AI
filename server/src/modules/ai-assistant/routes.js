@@ -2,6 +2,8 @@ import express from "express";
 import { protect } from "../../middleware/authMiddleware.js";
 import { aiActionLimiter } from "../../middleware/rateLimiter.js";
 import { generateChatResponse } from "./controller.js";
+import { validateBody } from "../../middleware/validation.js";
+import { chatSchema } from "../../validations/aiAssistant.validation.js";
 
 const router = express.Router();
 
@@ -46,6 +48,6 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.post("/", protect, aiActionLimiter, generateChatResponse);
+router.post("/", protect, aiActionLimiter, validateBody(chatSchema), generateChatResponse);
 
 export default router;
