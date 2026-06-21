@@ -234,8 +234,15 @@ export const deleteJob = async (id, recruiterId) => {
       const applications = await JobApplication.find({ job: id }).select("applicant").session(dbSession);
 
       // Delete all associated applications within transaction
-      await JobApplication.deleteMany({ job: id }, { session: dbSession });
-      await JobPosting.findByIdAndDelete(id, { session: dbSession });
+      await JobApplication.updateMany(
+        { job: id },
+        { 
+          $set: { status: "archived", studentStatus: "archived" },
+          $push: { statusHistory: { status: "archived", comment: "Job posting was removed by the recruiter" } }
+        },
+        { session: dbSession }
+      );
+      await JobPosting.findByIdAndUpdate(id, { status: "archived" }, { session: dbSession });
 
       if (applications.length > 0) {
         const notificationsData = applications.map(app => ({
@@ -243,7 +250,7 @@ export const deleteJob = async (id, recruiterId) => {
           type: "application",
           title: "Job Posting Removed",
           message: `A job you applied to has been removed by the recruiter.`,
-          metadata: { jobId: id }
+          relatedData: { jobId: id }
         }));
         
         notificationDocs = await Notification.insertMany(notificationsData, { session: dbSession });
@@ -275,8 +282,14 @@ export const deleteJob = async (id, recruiterId) => {
     }
     
     const applications = await JobApplication.find({ job: id }).select("applicant");
-    await JobApplication.deleteMany({ job: id });
-    await JobPosting.findByIdAndDelete(id);
+    await JobApplication.updateMany(
+      { job: id },
+      { 
+        $set: { status: "archived", studentStatus: "archived" },
+        $push: { statusHistory: { status: "archived", comment: "Job posting was removed by the recruiter" } }
+      }
+    );
+    await JobPosting.findByIdAndUpdate(id, { status: "archived" });
 
     if (applications.length > 0) {
       const notificationsData = applications.map(app => ({
@@ -284,7 +297,7 @@ export const deleteJob = async (id, recruiterId) => {
         type: "application",
         title: "Job Posting Removed",
         message: `A job you applied to has been removed by the recruiter.`,
-        metadata: { jobId: id }
+        relatedData: { jobId: id }
       }));
       
       const notificationDocs = await Notification.insertMany(notificationsData);
@@ -535,7 +548,7 @@ export const getRecruiterAnalytics = async (recruiterId) => {
     ])
   ]);
 
-  const statusBreakdown = { open: 0, draft: 0, closed: 0 };
+  const statusBreakdown = { open: 0, draft: 0, closed: 0, archived: 0 };
   let totalJobs = 0;
   statusAgg.forEach((stat) => {
     const status = stat._id;
@@ -621,7 +634,7 @@ export const applyToJob = async (jobId, applicantId, options = {}) => {
   type: "new_application",
   title: "Application Re-submitted",
   message: `A candidate has re-submitted their application for "${job.title}".`,
-  metadata: { jobId: job._id, applicationId: existing._id }
+  relatedData: { jobId: job._id, applicationId: existing._id }
 });
 const io = getIO();
 if (io) {
