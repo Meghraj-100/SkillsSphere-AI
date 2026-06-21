@@ -250,7 +250,7 @@ export const deleteJob = async (id, recruiterId) => {
           type: "application",
           title: "Job Posting Removed",
           message: `A job you applied to has been removed by the recruiter.`,
-          metadata: { jobId: id }
+          relatedData: { jobId: id }
         }));
         
         notificationDocs = await Notification.insertMany(notificationsData, { session: dbSession });
@@ -297,7 +297,7 @@ export const deleteJob = async (id, recruiterId) => {
         type: "application",
         title: "Job Posting Removed",
         message: `A job you applied to has been removed by the recruiter.`,
-        metadata: { jobId: id }
+        relatedData: { jobId: id }
       }));
       
       const notificationDocs = await Notification.insertMany(notificationsData);
@@ -634,7 +634,7 @@ export const applyToJob = async (jobId, applicantId, options = {}) => {
   type: "new_application",
   title: "Application Re-submitted",
   message: `A candidate has re-submitted their application for "${job.title}".`,
-  metadata: { jobId: job._id, applicationId: existing._id }
+  relatedData: { jobId: job._id, applicationId: existing._id }
 });
 const io = getIO();
 if (io) {
