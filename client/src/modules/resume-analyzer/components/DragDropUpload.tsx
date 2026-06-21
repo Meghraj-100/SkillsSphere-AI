@@ -44,8 +44,11 @@ export const validateResumeFile = (file) => {
 };
 
 const DragDropUpload = ({ onFileUpload, disabled = false, isUploading = false, uploadProgressLabel = "" }) => {
-  const { warning } = useToast();
+  const { warning, error } = useToast();
   const [isDragActive, setIsDragActive] = useState(false);
+  const [internalIsUploading, setInternalIsUploading] = useState(false);
+
+  const currentlyUploading = isUploading || internalIsUploading;
 
   const processFileUpload = useCallback(
     async (file) => {
@@ -54,9 +57,16 @@ const DragDropUpload = ({ onFileUpload, disabled = false, isUploading = false, u
         warning(validationMessage);
         return;
       }
-      onFileUpload(file);
+      try {
+        setInternalIsUploading(true);
+        await onFileUpload(file);
+      } catch (err) {
+        error("Server error while uploading your resume. Please try again in a moment.");
+      } finally {
+        setInternalIsUploading(false);
+      }
     },
-    [onFileUpload, warning],
+    [onFileUpload, warning, error],
   );
 
   const handleDragEnter = useCallback((e) => {
@@ -144,7 +154,7 @@ const DragDropUpload = ({ onFileUpload, disabled = false, isUploading = false, u
       onPaste={handlePaste}
     >
       <div className="bg-indigo-100/50 dark:bg-indigo-500/10 p-5 rounded-full mb-6 relative">
-        {isUploading ? (
+        {currentlyUploading ? (
           <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
         ) : (
           <CloudUpload className="w-10 h-10 text-indigo-500" />
@@ -153,10 +163,10 @@ const DragDropUpload = ({ onFileUpload, disabled = false, isUploading = false, u
 
       <div className="text-center space-y-3 max-w-md">
         <p className="text-2xl font-black text-gray-900 dark:text-white italic tracking-tight">
-          {isUploading ? (uploadProgressLabel || "Processing...") : "Drag & Drop your resume here"}
+          {currentlyUploading ? (uploadProgressLabel || "Processing...") : "Drag & Drop your resume here"}
         </p>
         
-        {!isUploading && (
+        {!currentlyUploading && (
           <>
             <p className="text-[15px] text-gray-500 dark:text-gray-400">
               Supported formats: <span className="text-indigo-600 dark:text-indigo-400 font-semibold">PDF, DOC, DOCX</span>
@@ -180,7 +190,7 @@ const DragDropUpload = ({ onFileUpload, disabled = false, isUploading = false, u
         )}
       </div>
 
-      {!isUploading && (
+      {!currentlyUploading && (
         <>
           <div className="w-full max-w-[200px] flex items-center gap-4 my-8 opacity-60">
             <div className="h-px bg-gray-300 dark:bg-gray-700 flex-1" />

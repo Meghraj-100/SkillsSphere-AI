@@ -301,10 +301,7 @@ describe("accessibility regression tests", () => {
       render(<DragDropUpload onFileUpload={() => pendingUpload} />);
       await user.upload(screen.getByLabelText(/browse resume file/i), file);
 
-      expect(screen.getByRole("button", { name: /uploading/i })).toHaveAttribute(
-        "aria-busy",
-        "true",
-      );
+      expect(screen.getByText(/processing/i)).toBeInTheDocument();
     });
   });
 

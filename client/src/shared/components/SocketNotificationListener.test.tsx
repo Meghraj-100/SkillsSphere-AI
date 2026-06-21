@@ -48,18 +48,19 @@ describe("SocketNotificationListener", () => {
 
     rerender(<SocketNotificationListener />);
 
-    expect(socket.on).toHaveBeenCalledTimes(5);
+    expect(socket.on).toHaveBeenCalledTimes(6);
     expect(socket.on.mock.calls.map(([event]) => event)).toEqual([
       "connect",
       "application-status-updated",
       "new-notification",
+      "dashboard-refresh",
       "disconnect",
       "connect_error",
     ]);
 
     unmount();
 
-    expect(socket.off).toHaveBeenCalledTimes(5);
+    expect(socket.off).toHaveBeenCalledTimes(6);
     expect(socket.disconnect).toHaveBeenCalledTimes(1);
   });
 });

@@ -140,6 +140,10 @@ class MockMediaRecorder {
       this.onstop?.();
     });
   }
+
+  static isTypeSupported(type) {
+    return true;
+  }
 }
 
 describe("InterviewSession recovery", () => {
