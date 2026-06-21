@@ -40,7 +40,7 @@ describe("errorReporter", () => {
 
   it("reports errors to the backend without throwing", async () => {
     // @ts-expect-error TODO: Fix pervasive types
-    global.fetch.mockResolvedValue({ ok: true });
+    global.fetch.mockResolvedValue({ ok: true, headers: { get: vi.fn() } });
 
     const result = await reportError(
       new Error("Render failed"),

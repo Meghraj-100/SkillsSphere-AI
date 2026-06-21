@@ -55,7 +55,7 @@ describe("dashboardService", () => {
       const result = await getAnalysisHistory(token);
 
       expect(apiRequest).toHaveBeenCalledWith(
-        "/api/dashboard/history",
+        "/api/dashboard/history?page=1&limit=10",
         expect.objectContaining({
           method: "GET",
           token,

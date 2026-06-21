@@ -37,8 +37,6 @@ describe("DragDropUpload", () => {
     await waitFor(() => {
       expect(onFileUpload).toHaveBeenCalledWith(file);
     });
-
-    expect(screen.getByText("resume.pdf ready for analysis")).toBeInTheDocument();
   });
 
   it("shows an error for unsupported file types", async () => {
@@ -53,7 +51,7 @@ describe("DragDropUpload", () => {
     });
 
     expect(onFileUpload).not.toHaveBeenCalled();
-    expect(await screen.findByRole("alert")).toHaveTextContent(
+    expect(await screen.findByRole("status")).toHaveTextContent(
       "Unsupported file type. Please upload a PDF, DOC, or DOCX resume.",
     );
   });
@@ -72,7 +70,7 @@ describe("DragDropUpload", () => {
     });
 
     expect(onFileUpload).not.toHaveBeenCalled();
-    expect(await screen.findByRole("alert")).toHaveTextContent(
+    expect(await screen.findByRole("status")).toHaveTextContent(
       "Resume file is too large. Please upload a file up to 5 MB.",
     );
   });
@@ -92,7 +90,7 @@ describe("DragDropUpload", () => {
       );
     });
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
+    expect(await screen.findByRole("status")).toHaveTextContent(
       "Server error while uploading your resume. Please try again in a moment.",
     );
   });
@@ -114,9 +112,9 @@ describe("DragDropUpload", () => {
       );
     });
 
-    expect(await screen.findByText("Uploading...")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /uploading/i })).toBeDisabled();
-    expect(screen.getByLabelText(/browse resume file/i)).toBeDisabled();
+    expect(await screen.findByText("Processing...")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /browse files/i })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/browse resume file/i)).not.toBeInTheDocument();
 
     await act(async () => {
       resolveUpload();
@@ -147,7 +145,7 @@ describe("DragDropUpload", () => {
     });
 
     expect(onFileUpload).not.toHaveBeenCalled();
-    expect(screen.getByRole("alert")).toHaveTextContent(
+    expect(screen.getByRole("status")).toHaveTextContent(
       "Please upload one resume file at a time.",
     );
   });

@@ -39,9 +39,9 @@ vi.mock('../../../../shared/components/LoadingState', () => ({
 }))
 
 vi.mock('../../../../shared/components/ErrorState', () => ({
-  default: ({ message, onRetry }) => (
+  default: ({ description, onRetry }) => (
     <div data-testid="error-state">
-      <span>{message}</span>
+      <span>{description}</span>
       <button onClick={onRetry} data-testid="retry-btn">Retry</button>
     </div>
   ),

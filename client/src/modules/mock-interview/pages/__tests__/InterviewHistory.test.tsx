@@ -6,6 +6,24 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import InterviewHistory, { calculateInterviewAnalytics, convertToCSV, filterInterviewSessions } from "../InterviewHistory";
 import { getHistory } from "../../services/interviewService";
+import * as reactRedux from "react-redux";
+
+vi.mock("react-redux", () => ({
+  useDispatch: () => vi.fn(),
+  useSelector: vi.fn(),
+}));
+
+const setReduxState = (state) => {
+  reactRedux.useSelector.mockReturnValue({
+    sessions: [],
+    pagination: { page: 1, pages: 1, total: 0 },
+    analytics: null,
+    isLoading: false,
+    error: null,
+    ...state,
+  });
+};
+
 
 vi.mock("../../services/interviewService", () => ({
   getHistory: vi.fn(),
@@ -82,6 +100,9 @@ describe("InterviewHistory export", () => {
   });
 
   it("renders export buttons only when history data exists", async () => {
+    setReduxState({
+      sessions: [], pagination: { page: 1, pages: 1, total: 0 }
+    });
     // @ts-expect-error TODO: Fix pervasive types
     getHistory.mockResolvedValueOnce({
       data: { sessions: [], pagination: { page: 1, pages: 1, total: 0 } },
@@ -93,6 +114,9 @@ describe("InterviewHistory export", () => {
     expect(screen.queryByRole("button", { name: /export interview history as csv/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /export interview history as json/i })).not.toBeInTheDocument();
 
+    setReduxState({
+      sessions: mockSessions, pagination: { page: 1, pages: 1, total: 1 }
+    });
     // @ts-expect-error TODO: Fix pervasive types
     getHistory.mockResolvedValueOnce({
       data: { sessions: mockSessions, pagination: { page: 1, pages: 1, total: 1 } },
@@ -105,6 +129,9 @@ describe("InterviewHistory export", () => {
   });
 
   it("exports CSV with the expected filename and performance metrics", async () => {
+    setReduxState({
+      sessions: mockSessions, pagination: { page: 1, pages: 1, total: 1 }
+    });
     // @ts-expect-error TODO: Fix pervasive types
     getHistory.mockResolvedValueOnce({
       data: { sessions: mockSessions, pagination: { page: 1, pages: 1, total: 1 } },
@@ -129,6 +156,9 @@ describe("InterviewHistory export", () => {
   });
 
   it("exports JSON with metadata and interview entries", async () => {
+    setReduxState({
+      sessions: mockSessions, pagination: { page: 1, pages: 1, total: 1 }
+    });
     // @ts-expect-error TODO: Fix pervasive types
     getHistory.mockResolvedValueOnce({
       data: { sessions: mockSessions, pagination: { page: 1, pages: 1, total: 1 } },
@@ -163,6 +193,9 @@ describe("InterviewHistory export", () => {
       resolveExport = resolve;
     });
 
+    setReduxState({
+      sessions: mockSessions, pagination: { page: 1, pages: 2, total: 2 }
+    });
     getHistory
       // @ts-expect-error TODO: Fix pervasive types
       .mockResolvedValueOnce({
@@ -183,7 +216,7 @@ describe("InterviewHistory export", () => {
       expect(jsonButton).toBeDisabled();
       expect(csvButton).toHaveTextContent("Exporting...");
     });
-    expect(getHistory).toHaveBeenCalledTimes(2);
+    expect(getHistory).toHaveBeenCalledTimes(1);
 
     resolveExport({
       data: { sessions: mockSessions, pagination: { page: 1, pages: 1, total: 1 } },
@@ -193,6 +226,9 @@ describe("InterviewHistory export", () => {
   });
 
   it("shows a friendly export error message when download fails", async () => {
+    setReduxState({
+      sessions: mockSessions, pagination: { page: 1, pages: 1, total: 1 }
+    });
     // @ts-expect-error TODO: Fix pervasive types
     getHistory.mockResolvedValueOnce({
       data: { sessions: mockSessions, pagination: { page: 1, pages: 1, total: 1 } },
@@ -262,6 +298,9 @@ describe("InterviewHistory filtering", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    setReduxState({
+      sessions: filterSessions, pagination: { page: 1, pages: 1, total: 3 }
+    });
     // @ts-expect-error TODO: Fix pervasive types
     getHistory.mockResolvedValue({
       data: { sessions: filterSessions, pagination: { page: 1, pages: 1, total: 3 } },

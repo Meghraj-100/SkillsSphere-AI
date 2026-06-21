@@ -50,6 +50,9 @@ const renderWithRouter = (ui) => render(<MemoryRouter>{ui}</MemoryRouter>);
 const mockSuccessfulExchange = () => {
   global.fetch = vi.fn().mockResolvedValue({
     ok: true,
+    headers: {
+      get: vi.fn().mockReturnValue("application/json"),
+    },
     json: async () => ({
       success: true,
       token: "oauth-token",

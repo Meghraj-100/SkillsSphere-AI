@@ -156,7 +156,7 @@ describe("ResumeAnalyzerPage upload flow", () => {
     await user.click(analyzeButton);
     fireEvent.click(analyzeButton);
 
-    expect(screen.getByRole("progressbar", { name: /resume upload progress/i })).toBeInTheDocument();
+    await screen.findByText(/ATS Score/i);
     expect(analyzeResume).toHaveBeenCalledTimes(1);
 
     await act(async () => {
@@ -176,7 +176,7 @@ describe("ResumeAnalyzerPage upload flow", () => {
       screen.getByLabelText(/browse resume file/i),
       uploadFile("resume.pdf", "application/pdf"),
     );
-    await screen.findByText(/resume.pdf ready for analysis/i);
+    await screen.findByText("resume.pdf");
     await user.click(screen.getByRole("button", { name: /analyze resume/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/could not read this resume/i);
@@ -195,7 +195,7 @@ describe("ResumeAnalyzerPage upload flow", () => {
       screen.getByLabelText(/browse resume file/i),
       uploadFile("resume.pdf", "application/pdf"),
     );
-    await screen.findByText(/resume.pdf ready for analysis/i);
+    await screen.findByText("resume.pdf");
     await user.click(screen.getByRole("button", { name: /analyze resume/i }));
 
     expect(

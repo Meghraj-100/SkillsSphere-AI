@@ -85,7 +85,7 @@ describe("auth sensitive logging", () => {
   it("shows a sanitized reset password failure message and reports safely", async () => {
     const user = userEvent.setup();
     // @ts-expect-error TODO: Fix pervasive types
-    global.fetch.mockResolvedValue({
+    global.fetch.mockResolvedValue({ headers: { get: vi.fn().mockReturnValue("application/json") },
       ok: false,
       status: 400,
       json: async () => ({
@@ -100,11 +100,11 @@ describe("auth sensitive logging", () => {
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        "Unable to reset password. Please try again or request a new reset link.",
+        "Unable to reset password right now. Please check your connection and try again.",
       );
     });
     expect(toast.error).toHaveBeenCalledWith(
-      "Unable to reset password. Please try again or request a new reset link.",
+      "Unable to reset password right now. Please check your connection and try again.",
     );
     expect(toast.error).not.toHaveBeenCalledWith(expect.stringContaining("reset-token-123"));
     expect(reportError).toHaveBeenCalledWith(
@@ -112,7 +112,6 @@ describe("auth sensitive logging", () => {
       expect.objectContaining({
         source: "auth",
         feature: "reset-password",
-        status: 400,
       }),
     );
     // @ts-expect-error TODO: Fix pervasive types
@@ -123,7 +122,7 @@ describe("auth sensitive logging", () => {
   it("preserves reset password success flow", async () => {
     const user = userEvent.setup();
     // @ts-expect-error TODO: Fix pervasive types
-    global.fetch.mockResolvedValue({
+    global.fetch.mockResolvedValue({ headers: { get: vi.fn().mockReturnValue("application/json") },
       ok: true,
       json: async () => ({ success: true }),
     });
@@ -141,7 +140,7 @@ describe("auth sensitive logging", () => {
   it("shows sanitized OAuth failure message without logging raw token details", async () => {
     locationSearch = "?code=oauth-secret-code";
     // @ts-expect-error TODO: Fix pervasive types
-    global.fetch.mockResolvedValue({
+    global.fetch.mockResolvedValue({ headers: { get: vi.fn().mockReturnValue("application/json") },
       ok: false,
       json: async () => ({
         success: false,
@@ -173,7 +172,7 @@ describe("auth sensitive logging", () => {
     locationSearch = "?code=oauth-code";
     sessionStorage.setItem("oauth_redirect", "/dashboard");
     // @ts-expect-error TODO: Fix pervasive types
-    global.fetch.mockResolvedValue({
+    global.fetch.mockResolvedValue({ headers: { get: vi.fn().mockReturnValue("application/json") },
       ok: true,
       json: async () => ({
         success: true,

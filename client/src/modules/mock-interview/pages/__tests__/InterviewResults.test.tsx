@@ -78,7 +78,8 @@ const renderResults = async () => {
       <InterviewResults />
     </MemoryRouter>,
   );
-  await screen.findByText(/what are react hooks/i);
+  // Wait for rendering
+  await screen.findAllByText(/what are react hooks/i);
 };
 
 describe("InterviewResults bookmarks", () => {
@@ -97,7 +98,8 @@ describe("InterviewResults bookmarks", () => {
 
     expect(screen.getByText("Bookmarked")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText(/what are react hooks/i));
+    const questions = screen.getAllByText(/what are react hooks/i);
+    fireEvent.click(questions[0]);
 
     const removeButton = screen.getByRole("button", { name: /remove bookmark/i });
     await act(async () => {
