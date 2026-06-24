@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Compass, Home, ArrowLeft } from 'lucide-react';
 
@@ -27,7 +26,7 @@ const NotFoundPage = () => {
         </h2>
         
         <p className="text-gray-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed px-4">
-          Oops! It looks like you've ventured into uncharted territory. The page you are looking for doesn't exist, has been moved, or you just took a wrong turn.
+          Oops! It looks like you&apos;ve ventured into uncharted territory. The page you are looking for doesn&apos;t exist, has been moved, or you just took a wrong turn.
         </p>
 
         {/* Action Buttons */}

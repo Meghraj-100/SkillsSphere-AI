@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Search, Home, User, Settings, FileText, Briefcase, Sparkles, Rocket, Video, LayoutDashboard, Users, FileSearch } from "lucide-react";
+import { Search, Home, User, FileText, Briefcase, Sparkles, Rocket, Video, LayoutDashboard, FileSearch } from "lucide-react";
 
 const CommandPalette = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +10,7 @@ const CommandPalette = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef(null);
   const navigate = useNavigate();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { user } = useSelector((state: any) => state.auth);
   
   // Define actions based on roles
@@ -77,6 +78,7 @@ const CommandPalette = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, filteredActions, selectedIndex]);
 
   // Focus input when opened
@@ -131,7 +133,7 @@ const CommandPalette = () => {
           {filteredActions.length === 0 ? (
             <div className="py-12 text-center text-[var(--text-muted)]">
               <Search className="w-10 h-10 mx-auto mb-3 opacity-20" />
-              <p>No results found for "{query}"</p>
+              <p>No results found for &quot;{query}&quot;</p>
             </div>
           ) : (
             <ul className="space-y-1">
